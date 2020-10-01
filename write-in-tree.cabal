@@ -1,0 +1,109 @@
+cabal-version: 3.0
+
+name:           write-in-tree
+version:        0.0.0.2
+license-file:   _license_.txt
+build-type:     Simple
+
+common common
+  hs-source-dirs:
+      Haskell
+  default-extensions: 
+    EmptyDataDecls EmptyCase LambdaCase
+    NoImplicitPrelude NoMonomorphismRestriction
+    InstanceSigs StandaloneDeriving
+    BangPatterns
+    TypeOperators ExplicitForAll ScopedTypeVariables TypeApplications OverloadedStrings
+    TypeInType RankNTypes GADTs ConstraintKinds
+    AllowAmbiguousTypes
+    LiberalTypeSynonyms
+    TypeFamilies TypeFamilyDependencies
+    QuantifiedConstraints FlexibleContexts FlexibleInstances MultiParamTypeClasses
+    DeriveFunctor DeriveFoldable DeriveTraversable
+  ghc-options: 
+    -fno-warn-tabs
+    -fwarn-incomplete-patterns -fwarn-incomplete-uni-patterns
+    -Wname-shadowing -Wincomplete-record-updates -Woverflowed-literals -Wmonomorphism-restriction
+    -Wwrong-do-bind -Wunticked-promoted-constructors -Wunsupported-llvm-version
+    -Worphans -Wsemigroup -Wnoncanonical-monoid-instances -Wnoncanonical-monad-instances
+    -Wredundant-constraints -Wunused-imports -Wunused-foralls -Wmissing-signatures -Wcompat
+    -Wno-missing-home-modules -Werror -fshow-warning-groups
+    -O -fspecialise-aggressively -fexpose-all-unfoldings
+  build-depends:
+      base >=4.12 && <4.13
+    , containers >=0.5 && <0.6
+    , data-default-class >=0.1 && <0.2
+    , directory <=1.4
+    , fana ==0.0.0.142
+    , filepath <=1.4
+    , mtl >=2.2 && <2.3
+    , optparse-applicative >=0.14 && <0.15
+    , text >=1.2 && <1.3
+    , xml >=1.3 && <1.4
+  default-language: Haskell2010
+  other-modules:
+      Technical.Else
+      Technical.Html
+      Technical.LineTree
+      Technical.ParsePropertyTree
+      Technical.Simco.Data
+      Technical.Simco.DataLines
+      Technical.Simco.DataRender
+      Technical.Simco.Layer
+      Technical.Simco.Lines
+      Technical.Simco.Test
+      Technical.TextTree.Data
+      Technical.TextTree.MindMap
+      Technical.Xml
+      Technical.Xml.Data
+      Technical.Xml.Render
+      WriteInTree.CommandLine
+      WriteInTree.Compile
+      WriteInTree.Convert
+      WriteInTree.Document.Core.Data
+      WriteInTree.Document.Core.Serial.InlineContent
+      WriteInTree.Document.Core.Serial.LanguageVersion
+      WriteInTree.Document.Core.Serial.Layers
+      WriteInTree.Document.Core.Serial.Link.Individual
+      WriteInTree.Document.Core.Serial.Link.InTree
+      WriteInTree.Document.Core.Serial.Paging
+      WriteInTree.Document.Core.Serial.Paragraph
+      WriteInTree.Document.Core.Serial.Parse
+      WriteInTree.Document.Core.Serial.RichTextTree.Comment
+      WriteInTree.Document.Core.Serial.RichTextTree.Export
+      WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaName
+      WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure
+      WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure
+      WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix
+      WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
+      WriteInTree.Document.Core.Serial.RichTextTree.Label.Lower
+      WriteInTree.Document.Core.Serial.RichTextTree.Label.InlineClassCoding
+      WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate
+      WriteInTree.Document.Core.Serial.RichTextTree.Label.Main
+      WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit
+      WriteInTree.Document.Core.Serial.RichTextTree.Ord
+      WriteInTree.Document.Core.Serial.RichTextTree.Path
+      WriteInTree.Document.Core.Serial.RichTextTree.Position
+      WriteInTree.Document.Core.Serial.UserIdentifiers
+      WriteInTree.Document.Core.ToOutput
+      WriteInTree.Document.Data
+      WriteInTree.Document.Folder
+      WriteInTree.Document.ReadFromFile
+      WriteInTree.Document.SepProps.Command_ShowDefault
+      WriteInTree.Document.SepProps.Data
+      WriteInTree.Document.SepProps.Parse
+      WriteInTree.Document.SepProps.Simco
+      WriteInTree.ListIdUs
+      WriteInTree.Output.Pagination
+      WriteInTree.Output.Sentence
+      WriteInTree.Output.Technical
+      WriteInTree.Output.Xml.Render
+
+executable write-in-tree
+  import : common
+  main-is: ../Main.hs
+
+test-suite try
+  import : common
+  type: exitcode-stdio-1.0
+  main-is: ../TestMain.hs

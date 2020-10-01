@@ -1,0 +1,90 @@
+div.wit-content
+{
+	margin-left: 1.0em;
+	padding-left: 1.0em;
+
+	border-style: solid;
+	border-width: 0.1em;
+	border-color: hsla(0, 0%, 50%, 0.5);
+
+	border-bottom-style: none;
+	border-top-style: none;
+	border-left-style: solid;
+	border-right-style: none;
+}
+
+body
+{
+	#background-color: black;
+	#color: hsla(120,50%,50%,1);
+    margin: auto;
+    padding: 1em;
+    max-width: 90em;
+}
+
+a:link, a:visited
+{
+	#color: hsla(60,50%,50%,1);
+}
+
+.code
+{
+	#color: hsla(90, 50%, 50%, 1);
+	font-family: monospace;
+}
+
+.code-block
+{
+	display: block;
+	background-color: white;
+	color: blue;
+	white-space: pre;
+	font-family: monospace;
+	-o-tab-size: 4;
+	-moz-tab-size: 4;
+	tab-size: 4;
+}
+
+.white-space-formatted
+{
+	white-space: pre;
+	font-family: monospace;
+}
+
+:target::before
+{
+    content:"";
+    display: inline-block;
+    width: 100%;
+    border: 0.1em solid orange;
+}
+
+#nav.wit-trunk-page, .wit-navigation-separator.wit-trunk-page
+#{
+#	display : none;
+#}
+
+.wit-nav-item::after
+{
+	content: " → ";
+		# alternatives : ▶
+}
+
+.wit-nav-current-page::after
+{
+	content: "";
+}
+
+.wit-nav-current-page
+{
+	font-size : 2em;
+	min-height : 2em;
+	font-weight : bolder;
+	white-space : nowrap;
+}
+
+.wit-page-break, .titled > section > p
+{
+	font-size : 1.2em;
+	font-weight : bolder;
+}

@@ -1,0 +1,29 @@
+module Main where
+
+
+import Prelude (IO)
+import Fana.Prelude
+import WriteInTree.ListIdUs (list_idus)
+
+import qualified System.Environment as Env
+
+import qualified Technical.Else as Tech
+import qualified WriteInTree.CommandLine as ClC
+import qualified WriteInTree.Compile as Compile
+import qualified WriteInTree.Document.SepProps.Command_ShowDefault as ShowDefaultProps
+import qualified WriteInTree.Convert as Convert
+
+
+main :: IO ()
+main = 
+	do
+		cl_arguments <- Env.getArgs
+		ClC.parse_new >>= program
+
+program :: ClC.Command -> IO ()
+program command =
+	case command of
+		ClC.CTranslate ifp ofp sentencing -> Compile.compile sentencing (Tech.FilePath ofp) ifp
+		ClC.CListIdUs ifp -> list_idus ifp
+		ClC.CShowDefaultDocProps -> ShowDefaultProps.doit
+		ClC.CConvert test_idempotence ip -> Convert.convert test_idempotence ip
