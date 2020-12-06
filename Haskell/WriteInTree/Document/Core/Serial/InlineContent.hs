@@ -10,7 +10,6 @@ import Data.Tree (Tree (..))
 import Fana.Haskell.DescribingClass
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import Prelude (($))
 
 import qualified Data.Tree as Tree
 import qualified Fana.Data.HasSingle as HasSingle

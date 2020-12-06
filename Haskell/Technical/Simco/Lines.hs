@@ -7,7 +7,7 @@ where
 
 import Fana.Prelude
 import Fana.Develop.Test.Define (Test)
-import Prelude ((||), Char, String)
+import Prelude (Char, String)
 
 import qualified Data.Char as Char
 import qualified Data.Either as Base

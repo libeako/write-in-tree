@@ -1,9 +1,8 @@
 module WriteInTree.CommandLine where
 
 
-import Data.Semigroup ((<>))
 import Fana.Prelude
-import Prelude (pure, FilePath, IO, String)
+import Prelude (FilePath, IO, String)
 
 import qualified Control.Applicative as Base
 import qualified Data.Monoid as Base

@@ -9,7 +9,6 @@ where
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 import Data.Tree (Tree)
-import Prelude (fst, snd)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position
 
 import qualified Data.Bifunctor as Bifunctor

@@ -11,7 +11,6 @@ import Control.Monad ((>=>))
 import Data.Default.Class
 import Data.Tree (Tree)
 import Fana.Prelude
-import Prelude (snd, pure)
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Either as Base

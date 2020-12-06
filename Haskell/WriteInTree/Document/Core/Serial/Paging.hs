@@ -5,12 +5,10 @@ module WriteInTree.Document.Core.Serial.Paging
 )
 where
 
-import Data.Monoid (Monoid (..))
 import Data.Tree (Tree)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import Prelude (fst, snd, (||))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Foldable as Fold

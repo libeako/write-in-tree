@@ -1,8 +1,9 @@
 module WriteInTree.Output.Technical where
 
+import Prelude (($!), String, (++), IO, FilePath)
+
 import qualified Data.Either as Ei
 import qualified Data.List as List
-import           Prelude (return, (>>), ($!), String, (++), IO, FilePath)
 import qualified Prelude as Base
 import qualified System.IO as IO
 import qualified System.IO.Error as IOE

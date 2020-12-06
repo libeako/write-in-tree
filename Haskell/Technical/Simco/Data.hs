@@ -6,7 +6,7 @@ module Technical.Simco.Data
 where
 
 import Fana.Prelude
-import Prelude (Bool, String)
+import Prelude (String)
 import Data.Tree (Tree(..))
 
 

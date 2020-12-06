@@ -5,7 +5,6 @@ module WriteInTree.Document.Core.Serial.UserIdentifiers
 )
 where
 
-import Data.Monoid (Monoid (..))
 import Data.Tree (Tree (..))
 import Fana.Data.Identified (Identified (Identified))
 import Fana.Prelude

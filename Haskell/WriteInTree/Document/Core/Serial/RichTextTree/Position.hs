@@ -8,7 +8,6 @@ where
 
 import Fana.Prelude
 import Data.Default.Class
-import Data.Monoid (Monoid (..))
 
 import qualified Data.Foldable as Fold
 import qualified Data.List as List

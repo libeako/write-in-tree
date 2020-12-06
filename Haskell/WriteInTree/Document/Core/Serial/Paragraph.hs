@@ -5,13 +5,11 @@ module WriteInTree.Document.Core.Serial.Paragraph
 )
 where
 
-import Control.Applicative ((<*))
 import Control.Monad ((>=>))
 import Data.Tree (Tree)
 import Fana.Haskell.DescribingClass
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import Prelude (fst, snd, sequenceA)
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Tree as Tree

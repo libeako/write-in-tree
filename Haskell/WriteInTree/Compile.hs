@@ -7,7 +7,7 @@ where
 
 import Control.Monad ((>=>))
 import Fana.Prelude
-import Prelude ((<>), IO, FilePath)
+import Prelude (IO, FilePath)
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Fana.Data.HeteroPair as HePair

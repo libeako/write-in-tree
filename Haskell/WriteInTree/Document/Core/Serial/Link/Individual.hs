@@ -14,7 +14,6 @@ import Fana.Haskell.DescribingClass
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import Prelude (fst, sequenceA)
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Tree as Tree

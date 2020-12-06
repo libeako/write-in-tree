@@ -4,10 +4,9 @@ module WriteInTree.Output.Xml.Render
 )
 where
 
-import Data.Bool (not, (&&))
-import Data.Default.Class (Default (..))
+import Data.Bool (not)
 import Fana.Prelude
-import Prelude (fst, snd, pure, String, FilePath)
+import Prelude (String, FilePath)
 
 import qualified Data.Foldable as Fold
 import qualified Data.List as List

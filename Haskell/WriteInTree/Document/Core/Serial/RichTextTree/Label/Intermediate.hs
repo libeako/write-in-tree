@@ -15,7 +15,7 @@ where
 import Data.Default.Class
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import Prelude (snd, (+))
+import Prelude ((+))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Foldable as Fold

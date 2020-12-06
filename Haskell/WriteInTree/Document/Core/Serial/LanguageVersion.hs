@@ -4,7 +4,6 @@ module WriteInTree.Document.Core.Serial.LanguageVersion where
 import Control.Monad ((>=>))
 import Data.Default.Class
 import Fana.Prelude
-import Prelude ((==))
 
 import qualified Control.Monad as Monad
 import qualified Data.Int as Int

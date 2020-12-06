@@ -9,7 +9,6 @@ where
 import Fana.Prelude
 import Fana.Develop.Test.Define (Test)
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
-import Prelude ((<>))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Foldable as Foldable

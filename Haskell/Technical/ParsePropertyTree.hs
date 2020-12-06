@@ -10,9 +10,7 @@ module Technical.ParsePropertyTree
 )
 where
 
-import Data.Traversable (sequenceA)
 import Fana.Prelude
-import Prelude (snd, ($))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Foldable as Base

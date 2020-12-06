@@ -5,7 +5,6 @@ module WriteInTree.Document.SepProps.Parse
 where
 
 import Fana.Prelude
-import Prelude (($))
 import WriteInTree.Document.Core.Serial.LanguageVersion (Version (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps(..))
 

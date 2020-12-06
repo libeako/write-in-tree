@@ -10,7 +10,6 @@ import Data.Tree (Tree (..))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import Prelude (fst)
 import WriteInTree.Document.Core.Serial.Link.Individual (MetaNodeName (..), Concrete)
 
 import qualified Data.Bifunctor as Bifunctor

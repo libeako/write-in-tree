@@ -7,7 +7,6 @@ where
 
 import Data.Tree (Tree)
 import Fana.Prelude
-import Prelude (fst)
 
 import qualified Data.List as List
 import qualified Data.Tree as Tree

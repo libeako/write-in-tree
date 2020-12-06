@@ -6,12 +6,11 @@ module Technical.Simco.Layer
 )
 where
 
-import Data.Monoid (Monoid (..))
 import Fana.Haskell.DescribingClass
 import Fana.Haskell.TypePair (Fst, Snd)
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import Prelude (snd, Int, (+), Char, String)
+import Prelude (Int, (+), Char, String)
 
 import qualified Data.Foldable as Base
 import qualified Data.Functor.Compose as Base

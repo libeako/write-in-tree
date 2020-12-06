@@ -9,7 +9,7 @@ where
 
 import Fana.Prelude
 import Fana.Data.Tree.Uniform (Tree (..))
-import Prelude (Bool, Eq (..), String)
+import Prelude (String)
 
 import qualified Data.Foldable as Base
 import qualified Data.Tree as Base

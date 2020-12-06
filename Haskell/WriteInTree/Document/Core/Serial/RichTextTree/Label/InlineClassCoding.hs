@@ -9,7 +9,6 @@ import Data.Functor.Identity (Identity (..))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import Prelude (snd)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (ClassName, Configuration)
 import WriteInTree.Document.SepProps.Data (InlineClass (..))

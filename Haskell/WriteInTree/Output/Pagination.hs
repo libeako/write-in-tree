@@ -6,7 +6,7 @@ import Data.Default.Class (Default (..))
 import Data.Foldable
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import Prelude ((&&), String)
+import Prelude (String)
 
 import qualified Data.Bifunctor as BiFr
 import qualified Data.Foldable as Fold
