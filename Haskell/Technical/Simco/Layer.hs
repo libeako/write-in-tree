@@ -17,7 +17,7 @@ import qualified Data.Functor.Compose as Base
 import qualified Data.List as List
 import qualified Data.Traversable as Traversable
 import qualified Data.Tree as Base
-import qualified Fana.Data.Tree.ParseFromElemList as TreeParse
+import qualified Fana.Data.Tree.SerializeHight as TreeSerial
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Parse as Serial
@@ -40,7 +40,7 @@ instance Fana.Showable Text LineIdentifier where
 		<> " [\"" <> Accu.single (line_content l) <> "\"]"
 
 data ParseError
-	= ErrorInHightListParsing (TreeParse.HightListParseError Text)
+	= ErrorInHightListParsing (TreeSerial.HightListParseError Text)
 	| ErrorInLineParsing LineIdentifier [Serial.Error Char]
 
 instance Fana.Showable Text ParseError where
@@ -57,11 +57,11 @@ type Layer l h = Optic.PartialIso ParseError (Fst l) (Snd l) (Fst h) (Snd h)
 type Layer' l h = Layer '(l, l) '(h, h)
 
 
-layer_indentation :: Layer' Text [(TreeParse.Hight, Text)]
+layer_indentation :: Layer' Text [(TreeSerial.Hight, Text)]
 layer_indentation = convert_from_describing_class_4 LineTree.coding_lines
 
-layer_tree_structure :: Layer' [(TreeParse.Hight, Text)] [Base.Tree Text]
-layer_tree_structure = Optic.piso_convert_error ErrorInHightListParsing TreeParse.serializer
+layer_tree_structure :: Layer' [(TreeSerial.Hight, Text)] [Base.Tree Text]
+layer_tree_structure = Optic.piso_convert_error ErrorInHightListParsing TreeSerial.serializer
 
 layer_text_tree :: Layer' Text [Base.Tree Text]
 layer_text_tree = layer_indentation >**> layer_tree_structure

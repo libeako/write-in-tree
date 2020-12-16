@@ -15,7 +15,7 @@ import qualified Data.Foldable as Foldable
 import qualified Data.List as List
 import qualified Prelude as Base
 
-import qualified Fana.Data.Tree.ParseFromElemList as TreeParse
+import qualified Fana.Data.Tree.SerializeHight as TreeSerial
 import qualified Fana.Develop.Test.Define as Test
 import qualified Fana.Optic.Concrete.Categories.Iso as Optic
 import qualified Fana.Serial.Bidir.Serializer as LR
@@ -36,7 +36,7 @@ lining =
 	in
 		Optic.Iso concat List.lines
 
-type Line = (TreeParse.Hight, String)
+type Line = (TreeSerial.Hight, String)
 
 indent_char :: Char
 indent_char = '\t'
