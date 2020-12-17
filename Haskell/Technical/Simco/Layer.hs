@@ -20,11 +20,11 @@ import qualified Data.Tree as Base
 import qualified Fana.Data.Tree.SerializeHight as TreeSerial
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
+import qualified Fana.Serial.Bidir.Instances.Text.Indent as Serial
 import qualified Fana.Serial.Bidir.Parse as Serial
 import qualified Fana.Serial.Bidir.Serializer as Serial
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Fana.Serial.Print.Show as Show
-import qualified Technical.LineTree as LineTree
 import qualified Technical.Simco.DataLines as SimcoDL
 import qualified Technical.Simco.Lines as Lines
 
@@ -58,7 +58,7 @@ type Layer' l h = Layer '(l, l) '(h, h)
 
 
 layer_indentation :: Layer' Text [(TreeSerial.Hight, Text)]
-layer_indentation = convert_from_describing_class_4 LineTree.coding_lines
+layer_indentation = convert_from_describing_class_4 Serial.lines_with_indent
 
 layer_tree_structure :: Layer' [(TreeSerial.Hight, Text)] [Base.Tree Text]
 layer_tree_structure = Optic.piso_convert_error ErrorInHightListParsing TreeSerial.serializer
