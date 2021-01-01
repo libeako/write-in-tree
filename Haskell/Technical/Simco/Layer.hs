@@ -6,7 +6,6 @@ module Technical.Simco.Layer
 )
 where
 
-import Fana.Haskell.DescribingClass
 import Fana.Haskell.TypePair (Fst, Snd)
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
@@ -56,15 +55,8 @@ instance Fana.Showable Text ParseError where
 type Layer l h = Optic.PartialIso ParseError (Fst l) (Snd l) (Fst h) (Snd h)
 type Layer' l h = Layer '(l, l) '(h, h)
 
-
-layer_indentation :: Layer' Text [(TreeSerial.Hight, Text)]
-layer_indentation = convert_from_describing_class_4 Serial.lines_with_indent
-
-layer_tree_structure :: Layer' [(TreeSerial.Hight, Text)] [Base.Tree Text]
-layer_tree_structure = Optic.piso_convert_error ErrorInHightListParsing TreeSerial.serializer
-
 layer_text_tree :: Layer' Text [Base.Tree Text]
-layer_text_tree = layer_indentation >**> layer_tree_structure
+layer_text_tree = Optic.piso_convert_error ErrorInHightListParsing Serial.text_tree
 
 layer_line :: Optic.PartialIso' [Serial.Error Char] Text SimcoDL.Node
 layer_line = Serial.to_partial_iso (Lines.serializer_line)
