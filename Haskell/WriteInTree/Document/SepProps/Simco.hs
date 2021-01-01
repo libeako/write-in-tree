@@ -31,9 +31,9 @@ import qualified WriteInTree.Document.SepProps.Parse as Parse
 type Text = String
 
 -- | renders the given data into simco language.
-to_simco :: DocSepProps -> [Simco.Node]
+to_simco :: DocSepProps -> [Simco.Tree]
 to_simco props = 
-	[ Simco.property "language-version" (Accu.extract (Fana.show (language_version props)))
+	[ Simco.make_property "language-version" (Accu.extract (Fana.show (language_version props)))
 		[Base.Node "the version of the language the document is written in" []]
 	]
 
