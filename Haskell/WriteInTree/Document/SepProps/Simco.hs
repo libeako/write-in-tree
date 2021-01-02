@@ -38,7 +38,7 @@ to_simco props =
 	]
 
 to_simco_tree :: DocSepProps -> Forest SimcoLow.Node
-to_simco_tree = to_simco >>> Simco.render_forest
+to_simco_tree = to_simco >>> map Simco.render
 
 
 data ParseError
