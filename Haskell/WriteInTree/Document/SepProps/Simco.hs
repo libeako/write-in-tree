@@ -36,7 +36,6 @@ to_simco props =
 	Simco.ItemsStructure
 		[
 			Simco.make_atom "language-version" (Accu.extract (Fana.show (language_version props)))
-				[Base.Node "the version of the language the document is written in" []]
 		]
 
 to_simco_tree :: DocSepProps -> Forest SimcoLow.Node
