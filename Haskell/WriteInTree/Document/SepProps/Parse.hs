@@ -64,12 +64,12 @@ type_structure = let
 		]
 
 
-parse_from_line_forest :: Base.Forest SimcoDL.Node -> Either (Accu.Accumulated Text) DocSepProps
+parse_from_line_forest :: Base.Forest SimcoDL.NodeWithActivity -> Either (Accu.Accumulated Text) DocSepProps
 parse_from_line_forest = 
 	let
-		modifier :: Base.Forest SimcoDL.Node -> Either (Accu.Accumulated Text) (DocSepProps -> DocSepProps)
+		modifier :: Base.Forest SimcoDL.NodeWithActivity -> Either (Accu.Accumulated Text) (DocSepProps -> DocSepProps)
 		modifier = id
-			>>> SimcoDL.forest_to_map 
+			>>> SimcoDL.to_props
 			>>> PropTree.Composite
 			>>> PropTree.parser_of_record type_structure
 	in 

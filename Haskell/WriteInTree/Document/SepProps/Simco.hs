@@ -29,9 +29,11 @@ import qualified WriteInTree.Document.SepProps.Parse as Parse
 type Text = String
 
 -- | renders the given data into simco language.
-to_simco :: DocSepProps -> Forest SimcoLow.Node
+to_simco :: DocSepProps -> Forest SimcoLow.NodeWithActivity
 to_simco props = 
-	[Base.Node (SimcoLow.make_atom "language-version" (Accu.extract (Fana.show (language_version props)))) []]
+	[
+		Base.Node (SimcoLow.Active, (SimcoLow.make_atom "language-version" (Accu.extract (Fana.show (language_version props))))) []
+	]
 
 data ParseError
 	= ParseErrorInSimcoLayer Simco.ParseError
@@ -42,7 +44,7 @@ instance Fana.Showable Text ParseError where
 		ParseErrorInSimcoLayer details -> "error parsing SimCo : " <> Fana.show details
 		ParseErrorInUpperLayer details -> "error parsing layer above SimCo : " <> Fana.show details
 
-upper_layer :: Optic.PartialIso' (Accu.Accumulated Text) (Base.Forest SimcoLow.Node) DocSepProps
+upper_layer :: Optic.PartialIso' (Accu.Accumulated Text) (Base.Forest SimcoLow.NodeWithActivity) DocSepProps
 upper_layer = Optic.PartialIso to_simco Parse.parse_from_line_forest
 
 whole_layer :: Optic.PartialIso' ParseError Text DocSepProps
