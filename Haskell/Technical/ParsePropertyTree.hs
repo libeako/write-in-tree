@@ -52,16 +52,16 @@ compose_modifiers = Base.foldr' (>>>) id
 
 parser_of_simple :: (Text -> Either ParseError v) -> Parser v
 parser_of_simple elem_parser = \case
-	PropTree.Single e -> map const (elem_parser e)
-	PropTree.Composite _ -> Left "a simple value is to be parsed but instead found a composite value in the input"
+	PropTree.MakeAtomicProperty e -> map const (elem_parser e)
+	PropTree.MakeCompositeProperty _ -> Left "a simple value is to be parsed but instead found a composite value in the input"
 
 parser_of_text :: Parser Base.String
 parser_of_text = parser_of_simple pure
 
 parser_of_record :: forall p . RecordType p -> Parser p
 parser_of_record record = \case
-	PropTree.Single e -> Left "a composite value [product] is to be parsed but can not be from a single input property"
-	PropTree.Composite m -> let
+	PropTree.MakeAtomicProperty e -> Left "a composite value [product] is to be parsed but can not be from a single input property"
+	PropTree.MakeCompositeProperty m -> let
 		with_field :: HiddenFieldOfProduct p -> Parser p
 		with_field (HiddenFieldOfProduct (FieldOfProduct lift parser)) sub_input = map lift (parser sub_input)
 		parser_of_field :: Text -> Parser p
@@ -85,8 +85,8 @@ parser_of_record record = \case
 
 parser_of_list :: forall e . e -> Parser e -> Parser [e]
 parser_of_list default_elem_value elem_parser = \case
-	PropTree.Single e -> Left "a composite value [list] is to be parsed but can not be from a single input property"
-	PropTree.Composite m -> let
+	PropTree.MakeAtomicProperty e -> Left "a composite value [list] is to be parsed but can not be from a single input property"
+	PropTree.MakeCompositeProperty m -> let
 		per_elem :: (Text, PropTree.Property) -> Either ParseError e
 		per_elem = snd >>> elem_parser >>> (map ($ default_elem_value))
 		in map const (traverse (per_elem) m)

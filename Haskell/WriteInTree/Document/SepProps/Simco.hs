@@ -20,7 +20,7 @@ import qualified Fana.Develop.Test.Define as Test
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.DataLines as SimcoLow -- low level data
+import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.Data as SimcoLow
 import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.Layer as Simco
 import qualified Fana.Serial.Print.Show as Fana
 import qualified WriteInTree.Document.SepProps.Parse as Parse

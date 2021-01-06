@@ -5,6 +5,7 @@ module WriteInTree.Document.SepProps.Parse
 where
 
 import Fana.Prelude
+import Fana.Serial.Bidir.Instances.Text.PropertyTree.Data
 import WriteInTree.Document.Core.Serial.LanguageVersion (Version (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps(..))
 
@@ -13,8 +14,7 @@ import qualified Data.Tree as Base
 import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
-import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Data as PropTree
-import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.DataLines as SimcoDL
+import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.Data as SimcoDL
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Technical.ParsePropertyTree as PropTree
 import qualified Prelude as Base
@@ -35,13 +35,13 @@ type_structure = let
 				else Left "reading this language version is not supported"
 		version_parser :: PropTree.Parser Version.Version
 		version_parser = \case
-			PropTree.Single version_text -> 
+			MakeAtomicProperty version_text -> 
 				map const
 					(
 						Bifunctor.first Fana.show (Version.version_from_text version_text)
 						>>= version_verifier
 					)
-			PropTree.Composite _ -> Left "expected single element but found composite"
+			MakeCompositeProperty _ -> Left "expected single element but found composite"
 		in PropTree.field_from_optic Props.lens_lang_ver_in_props version_parser
 	field_inline_classes :: PropTree.HiddenFieldOfProduct DocSepProps
 	field_inline_classes = let
@@ -69,8 +69,8 @@ parse_from_line_forest =
 	let
 		modifier :: Base.Forest SimcoDL.NodeWithActivity -> Either (Accu.Accumulated Text) (DocSepProps -> DocSepProps)
 		modifier = id
-			>>> SimcoDL.to_props
-			>>> PropTree.Composite
+			>>> SimcoDL.clean
+			>>> MakeCompositeProperty
 			>>> PropTree.parser_of_record type_structure
 	in 
 		modifier >>> map ($ def)
