@@ -20,8 +20,8 @@ import qualified Fana.Develop.Test.Define as Test
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.Data as SimcoLow
-import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.Layer as Simco
+import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.Data as SimcoData
+import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.IndentedTextSerial as SimcoSerial
 import qualified Fana.Serial.Print.Show as Fana
 import qualified WriteInTree.Document.SepProps.Parse as Parse
 
@@ -29,14 +29,14 @@ import qualified WriteInTree.Document.SepProps.Parse as Parse
 type Text = String
 
 -- | renders the given data into simco language.
-to_simco :: DocSepProps -> Forest SimcoLow.NodeWithActivity
+to_simco :: DocSepProps -> Forest SimcoData.NodeWithActivity
 to_simco props = 
 	[
-		Base.Node (SimcoLow.Active, (SimcoLow.make_atom "language-version" (Accu.extract (Fana.show (language_version props))))) []
+		Base.Node (SimcoData.Active, (SimcoData.make_atom "language-version" (Accu.extract (Fana.show (language_version props))))) []
 	]
 
 data ParseError
-	= ParseErrorInSimcoLayer Simco.ParseError
+	= ParseErrorInSimcoLayer SimcoSerial.ParseError
 	| ParseErrorInUpperLayer (Accu.Accumulated Text)
 
 instance Fana.Showable Text ParseError where
@@ -44,12 +44,12 @@ instance Fana.Showable Text ParseError where
 		ParseErrorInSimcoLayer details -> "error parsing SimCo : " <> Fana.show details
 		ParseErrorInUpperLayer details -> "error parsing layer above SimCo : " <> Fana.show details
 
-upper_layer :: Optic.PartialIso' (Accu.Accumulated Text) (Base.Forest SimcoLow.NodeWithActivity) DocSepProps
+upper_layer :: Optic.PartialIso' (Accu.Accumulated Text) (Base.Forest SimcoData.NodeWithActivity) DocSepProps
 upper_layer = Optic.PartialIso to_simco Parse.parse_from_line_forest
 
 whole_layer :: Optic.PartialIso' ParseError Text DocSepProps
 whole_layer = 
-	(Optic.piso_convert_error ParseErrorInSimcoLayer Simco.layer) >**>
+	(Optic.piso_convert_error ParseErrorInSimcoLayer SimcoSerial.serializer) >**>
 	(Optic.piso_convert_error ParseErrorInUpperLayer upper_layer)
 
 to_simco_text :: DocSepProps -> Text
@@ -64,7 +64,7 @@ parse_from_text = Optic.piso_interpret whole_layer
 test_simco_layer :: Test
 test_simco_layer = 
 	Test.single "simco layer"
-		(Optic.test_piso (Category2.empty, Category2.empty) [] [to_simco Default.def] Simco.layer)
+		(Optic.test_piso (Category2.empty, Category2.empty) [] [to_simco Default.def] SimcoSerial.serializer)
 
 test_upper_layer :: Test
 test_upper_layer = 
