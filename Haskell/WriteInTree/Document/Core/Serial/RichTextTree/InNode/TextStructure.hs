@@ -54,7 +54,7 @@ parse = \case
 	-- meta node
 	mc : rest | mc == meta_char -> case rest of
 		' ' : rest_of_rest | mc == meta_char -> Right (Left rest_of_rest)
-		(text@ (mc' : ' ' : _)) | mc' == meta_char -> Right (Right text)
+		(text@(mc' : ' ' : _)) | mc' == meta_char -> Right (Right text)
 		text -> Left (TextStructureError text)
 	-- a simple text node :
 	text -> Right (Right text)

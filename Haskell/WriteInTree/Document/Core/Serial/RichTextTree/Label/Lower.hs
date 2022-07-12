@@ -124,7 +124,7 @@ type IntermediateTree = DTree.Tree [] Intermediate.Any (ElemP Ts.Content') ()
 type IntermediateBranchTree = (ElemP Ts.Content', [IntermediateTree])
 
 parse_any :: Tree ElemStructured -> Either (Accu.Accumulated Text) IntermediateTree
-parse_any (tree@ (Tree.Node trunk children)) = 
+parse_any (tree@(Tree.Node trunk children)) = 
 	let
 		node_specific :: 
 			Either (Accu.Accumulated Text) 

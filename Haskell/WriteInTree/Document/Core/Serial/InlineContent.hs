@@ -70,7 +70,7 @@ parse_image (Tree.Node trunk children) = let
 		_ : _ : _ -> error trunk "picture node should have only 1 child, for file path"
 
 parse :: WholeIntermediate -> Parsed Whole
-parse (tree@ (Tree.Node trunk children)) = case HasSingle.elem trunk of
+parse (tree@(Tree.Node trunk children)) = case HasSingle.elem trunk of
 	Left mn -> case mn of
 		MnSpace -> map (Tree.Node (Data.Text (Right " ") <$ trunk)) (traverse parse children)
 		MnImage -> parse_image tree
