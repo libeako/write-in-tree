@@ -45,7 +45,7 @@ data Id e = Id
 	, source_of_id_value :: ElemP ()
 	, valueId :: e
 	}
-	deriving (Functor, Foldable, Traversable)
+	deriving (Eq, Functor, Foldable, Traversable)
 instance Fana.HasSingle Id where elem = valueId
 
 type IdT = Id Text
@@ -60,6 +60,7 @@ data Classes = Classes
 	{ source_of_classes_trunk :: Maybe Source
 	, classes :: ClassesMap
 	}
+	deriving (Eq)
 
 ofClasses_classes :: Optic.Lens' ClassesMap Classes
 ofClasses_classes = Optic.lens_from_get_set classes (\ e c -> c { classes = e })
@@ -113,7 +114,7 @@ data Labels id = Labels
 	{ id_of_Labels :: Maybe (Id id)
 	, classes_of_Labels :: Maybe Classes
 	}
-	deriving (Functor, Foldable, Traversable)
+	deriving (Eq, Functor, Foldable, Traversable)
 type LabelsT = Labels Text
 
 inLabels_id :: Optic.Traversal e1 e2 (Labels e1) (Labels e2)

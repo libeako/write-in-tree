@@ -51,7 +51,8 @@ data Elem id e = Elem
 	, ofElem_comment_children :: [Comment.CommentElem]
 	, ofElem_labels :: Intermediate.Labels id
 	, ofElem_core :: e
-	} deriving (Functor, Foldable, Traversable)
+	}
+	deriving (Eq, Functor, Foldable, Traversable)
 type ElemT = Elem Text (Ts.Content')
 
 instance Fana.HasSingle (Elem id) where elem = ofElem_core

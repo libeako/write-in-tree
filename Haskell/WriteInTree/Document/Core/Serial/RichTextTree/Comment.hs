@@ -50,7 +50,7 @@ data ElemD e = ElemD
 	, elemCommentChildren :: [CommentElem]
 	, elemValue :: e
 	}
-	deriving (Functor, Foldable, Traversable)
+	deriving (Eq, Functor, Foldable, Traversable)
 type ElemDT = ElemD Text
 
 ofElem_position :: Optic.Lens' Pos.PositionFields (ElemD e)

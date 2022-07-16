@@ -21,7 +21,7 @@ data Elem v = Elem
 		-- then they do not have automatic identifier
 	, elemValue :: v 
 	} 
-	deriving (Base.Show, Base.Functor, Base.Foldable, Base.Traversable)
+	deriving (Eq, Base.Show, Base.Functor, Base.Foldable, Base.Traversable)
 type Elem' = Elem Text
 
 type Tree v = Tf.Tree (Elem v)

@@ -29,12 +29,13 @@ data NodeIdUCore = NodeIdUCore
 type NodeIdU = Identified Int NodeIdUCore
 
 data InlineVisual a e = Text e | Image (a, FilePath)
-	deriving (Functor, Foldable, Traversable)
+	deriving (Eq, Functor, Foldable, Traversable)
 
 -- | Can be internal or external.
 data Link a ia = 
 	  LIn (a, ia) -- ^ | Internal.
 	| LEx (a, String) -- ^ | External.
+	deriving (Eq)
 
 type Link' al a ia = (a, (al, Link a ia))
 
@@ -45,7 +46,7 @@ data Inline (al :: Type) a ia e =
 	{ ilVisual :: InlineVisual a e
 	, ilLink :: Maybe (Link' al a ia)
 	}
-	deriving (Functor, Foldable, Traversable)
+	deriving (Eq, Functor, Foldable, Traversable)
 
 type Paragraph al a ia e = [(a, Inline al a ia e)]
 
@@ -57,6 +58,7 @@ data Node al a (id_u :: Type) ia e =
 		nodeContent :: (a, Paragraph al a ia e),
 		nodeIsSeparatePage :: Bool
 	}
+	deriving (Eq)
 
 inNode_source :: 
 	Optic.Lens 
@@ -90,6 +92,7 @@ data Document al a (id_u :: Type) ia e = Document
 	{
 	docTree :: StructureAsTree al a id_u ia e
 	}
+	deriving (Eq)
 
 
 -- | collects all the user identifiers in the document with their nodes.

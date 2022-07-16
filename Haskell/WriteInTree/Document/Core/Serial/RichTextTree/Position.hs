@@ -24,7 +24,7 @@ type Text = Base.String
 
 
 -- | the position of an element among its siblings.
-data PositionAtLevel = PositionAtLevel { ordinal :: Ord.Ordinal, text :: Text }
+data PositionAtLevel = PositionAtLevel { ordinal :: Ord.Ordinal, text :: Text } deriving (Eq)
 
 instance Fana.Showable Text PositionAtLevel where
 	show pos = Show.from_ShowS (("\"" <>) <<< (text pos <>) <<< ("\"" <>))
@@ -42,6 +42,7 @@ data PositionFields = PositionFields
 	, field_source_path :: Position
 		-- ^ absolute position of the node in the picture tree, with node text values.
 	}
+	deriving (Eq)
 
 ofPositionFields_ordinal :: Optic.Lens' Ord.Ordinal PositionFields
 ofPositionFields_ordinal = Optic.lens_from_get_set field_ordinal (\ e c -> c { field_ordinal = e })
