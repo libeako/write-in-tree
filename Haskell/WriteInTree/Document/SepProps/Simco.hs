@@ -7,7 +7,6 @@ module WriteInTree.Document.SepProps.Simco
 )
 where
 
-import Data.Tree (Forest)
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Develop.Test.Define (Test)
 import Fana.Prelude
@@ -28,11 +27,20 @@ import qualified WriteInTree.Document.SepProps.Parse as Parse
 
 type Text = String
 
+from_InlineClass_to_simco :: InlineClass -> SimcoData.Tree
+from_InlineClass_to_simco (InlineClass name code) = 
+	SimcoData.make_tree "-" 
+		[
+		SimcoData.make_atom "name" name,
+		SimcoData.make_atom "code" code
+		]
+
 -- | renders the given data into simco language.
-to_simco :: DocSepProps -> Forest SimcoData.NodeWithActivity
+to_simco :: DocSepProps -> SimcoData.Forest
 to_simco props = 
 	[
-		Base.Node (SimcoData.Active, (SimcoData.make_atom "language-version" (Accu.extract (Fana.show (language_version props))))) []
+		SimcoData.make_atom "language-version" (Accu.extract (Fana.show (language_version props))),
+		SimcoData.make_tree "inline-classes" (map from_InlineClass_to_simco (prop_inline_classes props))
 	]
 
 data ParseError

@@ -4,9 +4,9 @@ module WriteInTree.Convert
 )
 where
 
+import Prelude (IO)
 import Control.Monad (when)
 import Fana.Prelude
-import Prelude (IO)
 import System.FilePath (FilePath)
 
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
