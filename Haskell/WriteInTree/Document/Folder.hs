@@ -1,15 +1,16 @@
 module WriteInTree.Document.Folder
 (
 	FolderStructure(..),
-	read,
+	write, read,
 )
 where
 
 import Prelude (IO, String)
-import Data.Functor (void)
 import System.FilePath (FilePath, (</>))
 import Fana.Prelude
 import qualified Prelude as Base
+
+import qualified System.Directory as Directory
 
 
 data FolderStructure e = FolderStructure
@@ -23,7 +24,7 @@ data FolderStructure e = FolderStructure
 
 instance Applicative FolderStructure where
 	pure v = FolderStructure v v
-	f <*> x = FolderStructure 
+	f <*> x = FolderStructure
 		((fs_separate_properties f) (fs_separate_properties x))
 		((fs_tree f) (fs_tree x)) 
 
@@ -31,13 +32,13 @@ instance Applicative FolderStructure where
 folder_internal_structure :: FolderStructure String
 folder_internal_structure = FolderStructure "properties.simco.text" "tree.mm"
 
-read :: FilePath -> IO (FolderStructure String)
-read folder_path = traverse ((folder_path </>) >>> Base.readFile) folder_internal_structure
-
 write :: FilePath -> FolderStructure String -> IO ()
-write folder_path file_contents = 
+write folder_path file_contents =
 	let
 		write_file :: FilePath -> String -> IO ()
-		write_file relative_path file_content = Base.writeFile (folder_path </> relative_path) file_content
-	in (sequenceA >>> void) (liftA2 write_file folder_internal_structure  file_contents)
+		write_file relative_path = Base.writeFile (folder_path </> relative_path)
+		write_files = liftA2 write_file folder_internal_structure >>> sequenceA >>> map (const ())
+		in Directory.createDirectory folder_path *> write_files file_contents
 
+read :: FilePath -> IO (FolderStructure String)
+read folder_path = traverse ((folder_path </>) >>> Base.readFile) folder_internal_structure

@@ -14,7 +14,7 @@ data Command =
 	  CTranslate FilePath FilePath Bool -- ^ input and output paths, whether to sentence
 	| CListIdUs FilePath -- ^ lists user given node identifiers [params : input path]
 	| CShowDefaultDocProps -- ^ shows default document properties
-	| CConvert Bool FilePath
+	| CConvert Bool FilePath FilePath
 
 matevar_text__input_path :: String
 matevar_text__input_path = "INPUT-DOCUMENT-[FOLDER]"
@@ -35,9 +35,9 @@ option_output_path =
 	Parse.help "output [folder] path" <>
 	Parse.metavar metavar_text__output_filter
 
-option_whether_test_idempotence_of_serialization :: Parse.Mod Parse.FlagFields Bool
-option_whether_test_idempotence_of_serialization = 
-	Parse.long "test-idempotence-of-serialization" <>
+option_whether_to_do_readback_test :: Parse.Mod Parse.FlagFields Bool
+option_whether_to_do_readback_test = 
+	Parse.long "do-readback-test" <>
 	Parse.help "tests this software whether mutliple serialization loops produces the same result, to possibly catch bugs in the serialization of this software"
 
 flag_sentencing :: Parse.Parser Bool
@@ -84,12 +84,13 @@ parser_command_convert =
 	let
 		options :: Parse.Parser Command
 		options = 
-			Base.liftA2 CConvert 
-				(Parse.switch option_whether_test_idempotence_of_serialization)
-				(Parse.strOption option_input_path) 
+			Base.liftA3 CConvert 
+				(Parse.switch option_whether_to_do_readback_test)
+				(Parse.strOption option_input_path)
+				(Parse.strOption option_output_path)
 		description_text = "Convert document " <> matevar_text__input_path <> " to other format or version."
 	in
-		Parse.info options (Parse.progDesc description_text)
+		Parse.info options (Parse.progDesc description_text) 
 		*>>> Parse.command "convert" 
 
 parser_command_show_default_doc_props :: Parse.Mod Parse.CommandFields Command

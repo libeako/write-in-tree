@@ -1,9 +1,9 @@
-module WriteInTree.Document.ReadFromFile 
+module WriteInTree.Document.File
 (
 	Error, 
 	DocData, DocCoreData,
 	DocData'', DocCoreData'',
-	read, read''
+	write'', read, read''
 )
 where
 
@@ -29,17 +29,6 @@ import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
 
 type Text = Base.String
 
-
-data Error = 
-	  ErrorInCore (Pos.PositionedMb (Accu.Accumulated Text)) 
-	| ErrorInSeparateProperties SepPropsSimco.ParseError
-
-instance Fana.Showable Text Error where
-	show = \case
-		ErrorInCore details -> "error in reading core file : " <> Fana.show details
-		ErrorInSeparateProperties details -> "error in separate properties file : " <> Fana.show details
-		
-
 type WithConcreteDataParams t = t CoreData.NodeIdU CoreData.NodeIdU Text
 
 type A = Label.Elem Text
@@ -50,12 +39,39 @@ type DocCoreData'' = WithConcreteDataParams (CoreData.Document (A ()) (A ()))
 type DocData = WithConcreteDataParams (Data () ())
 type DocCoreData = WithConcreteDataParams (CoreData.Document () ())
 
+render_sep_props :: DocSepProps -> String
+render_sep_props = SepPropsSimco.to_simco_text
+
+render_core'' :: DocSepProps -> DocCoreData'' -> String
+render_core'' config = Optic.down (CoreSerial.layer config)
+
+render_all'' :: DocData'' -> FolderStructure String
+render_all'' d =
+	let
+		config = doc_sep_props d
+		config_text = render_sep_props config
+		core_text = render_core'' config (doc_core d)
+		in FolderStructure config_text core_text
+
+write'' :: FilePath -> DocData'' -> IO ()
+write'' address d = Folder.write address (render_all'' d)
+
+
+data Error =
+	  ErrorInCore (Pos.PositionedMb (Accu.Accumulated Text)) 
+	| ErrorInSeparateProperties SepPropsSimco.ParseError
+
+instance Fana.Showable Text Error where
+	show = \case
+		ErrorInCore details -> "error in reading core file : " <> Fana.show details
+		ErrorInSeparateProperties details -> "error in separate properties file : " <> Fana.show details
+
 
 parse_sep_props :: String -> Either Error DocSepProps
 parse_sep_props = SepPropsSimco.parse_from_text >>> Bifunctor.first ErrorInSeparateProperties
 
 parse_core'' :: DocSepProps -> String -> Either Error DocCoreData''
-parse_core'' config = Optic.piso_interpret (CoreSerial.layer_ready config) >>> Bifunctor.first ErrorInCore
+parse_core'' config = Optic.piso_interpret (CoreSerial.layer config) >>> Bifunctor.first ErrorInCore
 
 parse_core :: DocSepProps -> String -> Either Error DocCoreData
 parse_core config = Core.parse_from_string config >>> Bifunctor.first ErrorInCore

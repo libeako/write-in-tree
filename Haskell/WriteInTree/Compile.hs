@@ -17,7 +17,7 @@ import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.ToOutput as UsiToO
 import qualified WriteInTree.Document.Data as DocData
-import qualified WriteInTree.Document.ReadFromFile as DocRead
+import qualified WriteInTree.Document.File as DocRead
 import qualified WriteInTree.Output.Pagination as Page
 import qualified WriteInTree.Output.Technical as Ot
 import qualified WriteInTree.Output.Xml.Render as Ott

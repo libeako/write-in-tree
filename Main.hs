@@ -26,4 +26,4 @@ program command =
 		ClC.CTranslate ifp ofp sentencing -> Compile.compile sentencing (Tech.FilePath ofp) ifp
 		ClC.CListIdUs ifp -> list_idus ifp
 		ClC.CShowDefaultDocProps -> ShowDefaultProps.doit
-		ClC.CConvert test_idempotence ip -> Convert.convert test_idempotence ip
+		ClC.CConvert test_idempotence ip op -> Convert.convert test_idempotence ip op

@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.Layers
 (
-	layer_ready,
+	layer,
 	layer_test,
 )
 where
@@ -39,11 +39,10 @@ layer_document :: Optic.Iso' (StructureAsTree a) (Document a)
 layer_document = Optic.Iso Data.docTree Data.Document
 
 
--- | the set of layers that are already ready, considered bug-less
-layer_ready :: 
+layer ::
 	SepProps.DocSepProps -> 
 	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Document (Label.Elem Text))
-layer_ready sep_props = 
+layer sep_props = 
 	Category2.empty
 	>**>^ Optic.piso_convert_error convert_string_error Tt.layer 
 	>**>^ RichTt.layer
@@ -56,4 +55,4 @@ layer_ready sep_props =
 	>**>^ layer_document
 
 layer_test :: Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Document (Label.Elem Text))
-layer_test = layer_ready def
+layer_test = layer def

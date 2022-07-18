@@ -23,7 +23,7 @@ import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified WriteInTree.Document.Data as DocData
-import qualified WriteInTree.Document.ReadFromFile as DocRead
+import qualified WriteInTree.Document.File as DocRead
 import qualified WriteInTree.Output.Technical as Ot
 
 
