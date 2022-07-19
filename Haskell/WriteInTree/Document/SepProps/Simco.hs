@@ -13,6 +13,7 @@ import Fana.Prelude
 import Prelude (String)
 import WriteInTree.Document.SepProps.Data
 
+import qualified Prelude as Base
 import qualified Data.Default.Class as Default
 import qualified Data.Tree as Base
 import qualified Fana.Develop.Test.Define as Test
@@ -39,7 +40,7 @@ from_InlineClass_to_simco (InlineClass name code) =
 to_simco :: DocSepProps -> SimcoData.Forest
 to_simco props = 
 	[
-		SimcoData.make_atom "language-version" (Accu.extract (Fana.show (language_version props))),
+		SimcoData.make_atom "language-version" (Base.show (language_version props)),
 		SimcoData.make_tree "inline-classes" (map from_InlineClass_to_simco (prop_inline_classes props))
 	]
 

@@ -6,7 +6,6 @@ where
 
 import Fana.Prelude
 import Fana.Serial.Bidir.Instances.Text.PropertyTree.Data
-import WriteInTree.Document.Core.Serial.LanguageVersion (Version (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps(..))
 
 import qualified Data.Bifunctor as Bifunctor
@@ -29,18 +28,10 @@ type_structure :: PropTree.RecordType DocSepProps
 type_structure = let
 	field_version :: PropTree.HiddenFieldOfProduct DocSepProps
 	field_version = let
-		version_verifier :: Version -> Either (Accu.Accumulated Text) Version
-		version_verifier v = 
-			if v == Version 1 1 then Right v 
-				else Left "reading this language version is not supported"
 		version_parser :: PropTree.Parser Version.Version
 		version_parser = \case
 			MakeAtomicProperty version_text -> 
-				map const
-					(
-						Bifunctor.first Fana.show (Version.version_from_text version_text)
-						>>= version_verifier
-					)
+				map const (Bifunctor.first Fana.show (Version.version_from_text version_text))
 			MakeCompositeProperty _ -> Left "expected single element but found composite"
 		in PropTree.field_from_optic Props.lens_lang_ver_in_props version_parser
 	field_inline_classes :: PropTree.HiddenFieldOfProduct DocSepProps
