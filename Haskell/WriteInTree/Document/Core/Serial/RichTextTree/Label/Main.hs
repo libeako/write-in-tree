@@ -42,17 +42,17 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Comment as Comment
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.InlineClassCoding as Inline
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate as Intermediate
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Lower as Lower
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Comment.ElemD
+type ElemP = Path.CommentElemD
 type Source = ElemP ()
 type ElemPT = ElemP Text
 

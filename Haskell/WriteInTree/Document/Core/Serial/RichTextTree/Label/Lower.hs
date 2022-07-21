@@ -26,16 +26,16 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Comment as Comment
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure as Ms
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate as Intermediate
 
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Comment.ElemD
+type ElemP = Path.CommentElemD
 type Source = ElemP ()
 type ElemPT = ElemP Text
 
@@ -49,13 +49,13 @@ meta_name_to_text =
 		MnId -> "id"
 		MnClass -> "class"
 
-type ElemStructured = Comment.ElemD (Either MetaName Ts.Content')
+type ElemStructured = Path.CommentElemD (Either MetaName Ts.Content')
 
 layer_in_node :: 
-	Optic.PartialIso' (Pos.Positioned Ts.TextStructureError) (Tree Comment.ElemDT) (Tree ElemStructured)
+	Optic.PartialIso' (Pos.Positioned Ts.TextStructureError) (Tree Path.CommentElemDT) (Tree ElemStructured)
 layer_in_node = Ms.layer_1 meta_name_to_text
 
-show_error_at :: (Comment.ElemD e) -> Accu.Accumulated Text -> Accu.Accumulated Text
+show_error_at :: (Path.CommentElemD e) -> Accu.Accumulated Text -> Accu.Accumulated Text
 show_error_at position description = Fana.show (Pos.Positioned (Pos.get_position position) description)
 
 parse_id :: Tree ElemStructured -> Either (Accu.Accumulated Text) Intermediate.IdT
@@ -64,7 +64,7 @@ parse_id (Tree.Node trunk children) =
 		[child] -> 
 			let
 				child_node = Tree.rootLabel child
-				in case Comment.elemValue child_node of
+				in case Path.elemValue child_node of
 					Right (Right text) -> 
 						let
 							intermediate :: Intermediate.IdT
@@ -91,7 +91,7 @@ render_id x =
 
 parse_class :: Tree ElemStructured -> Either (Accu.Accumulated Text) Intermediate.Class
 parse_class (Tree.Node trunk _) = 
-	case Comment.elemValue trunk of
+	case Path.elemValue trunk of
 		Right (Right text) -> Right (Intermediate.Class (trunk $> ()) text)
 		_ -> 
 			let
@@ -111,7 +111,7 @@ render_classes' cs = let
 	new_trunk = let
 		content = Left MnClass
 		in case Intermediate.source_of_classes_trunk cs of
-			Nothing -> def @(Comment.ElemD ()) $> content
+			Nothing -> def @(Path.CommentElemD ()) $> content
 			Just s -> s $> content
 	in Tree.Node new_trunk (map render_class (TravKey.key_value_pairs (Intermediate.classes cs)))
 
@@ -130,7 +130,7 @@ parse_any (tree@(Tree.Node trunk children)) =
 			Either (Accu.Accumulated Text) 
 				(DTree.Discrimination [] Intermediate.Any (ElemP Ts.Content') IntermediateTree)
 		node_specific = 
-			case Comment.elemValue trunk of
+			case Path.elemValue trunk of
 				Left mn -> 
 					case mn of
 						MnId -> map (Intermediate.IntermId >>> DTree.Leaf) (parse_id tree)

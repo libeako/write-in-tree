@@ -28,15 +28,15 @@ import qualified Fana.Optic.Concrete.Categories.Lens as Optic
 import qualified Fana.Optic.Concrete.Categories.Prism as Optic
 import qualified Fana.Optic.Concrete.Categories.Traversal as Optic
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Comment as Comment
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate as Intermediate
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Comment.ElemD
+type ElemP = Path.CommentElemD
 type Source = ElemP ()
 type ElemPT = ElemP Text
 
@@ -86,16 +86,16 @@ instance Pos.HasPosition (Elem id e) where get_position = ofElem_position
 
 -- | convert an element from data to picture format.
 elem_dp :: Elem id e -> ElemP e
-elem_dp x = Comment.ElemD
-	{ Comment.elemId = ofElem_auto_id x
-	, Comment.elemPosition = ofElem_position x
-	, Comment.elemValue = ofElem_core x
+elem_dp x = Path.CommentElemD
+	{ Path.elemId = ofElem_auto_id x
+	, Path.elemPosition = ofElem_position x
+	, Path.elemValue = ofElem_core x
 	}
 -- | convert an element from picture to data format.
 elem_pd :: Intermediate.Labels id -> ElemP e -> Elem id e
 elem_pd labels p = Elem
-	{ ofElem_auto_id = Comment.elemId p
-	, ofElem_position = Comment.elemPosition p
+	{ ofElem_auto_id = Path.elemId p
+	, ofElem_position = Path.elemPosition p
 	, ofElem_labels = labels
-	, ofElem_core = Comment.elemValue p
+	, ofElem_core = Path.elemValue p
 	}

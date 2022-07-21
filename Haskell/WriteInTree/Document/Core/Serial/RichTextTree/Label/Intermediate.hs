@@ -27,13 +27,13 @@ import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Comment as Comment
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Comment.ElemD
+type ElemP = Path.CommentElemD
 type Source = ElemP ()
 
 data Id e = Id
@@ -82,7 +82,7 @@ add_new incoming_classes (Classes trunk_source old_classes) = let
 		updated_old_classes = old_classes
 		source_of_new_class :: Text -> Source
 		source_of_new_class name = let
-			in Comment.ElemD 
+			in Path.CommentElemD
 				Nothing 
 				(name : Fold.concat (Fold.toList (map Pos.get_position trunk_source)))
 				()

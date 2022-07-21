@@ -3,20 +3,25 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Path
 	DataElemO, DataElemOT,
 	layer,
 	lift_serialization_layer,
+	
+	CommentElemD (..), CommentElemDT,
+	comment_layer,
 )
 where
 
+import Data.Default.Class
+import Data.Tree (Tree)
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import Data.Tree (Tree)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Tree as Tree
 import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified Technical.TextTree.Data as Tt
 import qualified Prelude as Base
+import qualified Technical.TextTree.Data as Tt
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
@@ -79,3 +84,29 @@ lift_serialization_layer (Optic.PartialIso render parse) =
 		new_parse :: c pp -> Either (Positioned e) (c dp)
 		new_parse c = Bifunctor.first (Positioned (get_position c)) (traverse parse c)
 		in Optic.PartialIso (map render) new_parse
+
+
+-- | meaningful [not comment] element type at the data level.
+data CommentElemD e = CommentElemD
+	{ elemId :: Maybe Text
+	, elemPosition :: Pos.Position
+	, elemValue :: e
+	}
+	deriving (Eq, Functor, Foldable, Traversable)
+type CommentElemDT = CommentElemD Text
+
+instance Pos.HasPosition (CommentElemD e) where get_position = elemPosition
+instance Default e => Default (CommentElemD e) where def = CommentElemD def def def
+
+
+comment_elem_pd :: DataElemO Text -> CommentElemDT
+comment_elem_pd (pos, (Tt.Elem identifier text)) = CommentElemD
+	{ elemId = identifier
+	, elemPosition = pos
+	, elemValue = text 
+	}
+comment_elem_dp :: CommentElemDT -> DataElemO Text
+comment_elem_dp e = (Pos.get_position e, Tt.Elem (elemId e) (elemValue e))
+
+comment_layer :: Optic.Iso' (Tree (DataElemO Text)) (Tree CommentElemDT)
+comment_layer = Optic.Iso (map comment_elem_dp) (map comment_elem_pd)
