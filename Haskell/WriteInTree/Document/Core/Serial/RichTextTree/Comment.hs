@@ -1,7 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Comment
 (
 	ElemD (..), ElemDT, ofElem_position,
-	ParseError (..),
 	layer,
 )
 where
@@ -12,7 +11,6 @@ import Fana.Prelude
 
 import qualified Data.Tree as Base
 import qualified Data.Tree as Tree
-import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified Technical.TextTree.Data as Tt
@@ -52,16 +50,11 @@ elem_pd (position, (Tt.Elem identifier text)) = ElemD
 elem_dp :: ElemDT -> ElemPT
 elem_dp e = (Pos.get_position e, Tt.Elem (elemId e) (elemValue e))
 
-type ParseError = Pos.PositionedMb (Accu.Accumulated Text)
-
-type Errorable e = Either ParseError e
-
-parse :: Tree ElemPT -> Errorable (Tree ElemDT)
-parse (Base.Node trunk children) = map (Base.Node (elem_pd trunk)) (traverse parse children)
+parse :: Tree ElemPT -> Tree ElemDT
+parse (Base.Node trunk children) = Base.Node (elem_pd trunk) (map parse children)
 
 render :: Tree ElemDT -> Tree ElemPT
 render (Tree.Node elem children) = Tree.Node (elem_dp elem) (map render children)
 
-layer :: Optic.PartialIso' ParseError (Tree ElemPT) (Tree ElemDT)
-layer = Optic.PartialIso render parse
-
+layer :: Optic.Iso' (Tree ElemPT) (Tree ElemDT)
+layer = Optic.Iso render parse

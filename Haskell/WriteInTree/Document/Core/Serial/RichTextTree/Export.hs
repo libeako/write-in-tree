@@ -1,7 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Export
 (
 	Comment.ElemD (..), Comment.ElemDT,
-	Comment.ParseError (..),
 	layer,
 	Label.Elem (..),
 )
@@ -19,7 +18,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
 
 
-layer :: Optic.PartialIso' Comment.ParseError (Tree Tt.Elem') (Tree Comment.ElemDT)
+layer :: Optic.Iso' (Tree Tt.Elem') (Tree Comment.ElemDT)
 layer = 
 	convert_from_describing_class_4 Ord.layer 
 	>**> convert_from_describing_class_4 Path.layer 
