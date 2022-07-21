@@ -1,8 +1,9 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Position
 (
-	PositionAtLevel (..), Position, PositionFields (..), ofPositionFields_ordinal,
+	Position, PositionFields (..), ofPositionFields_ordinal,
 	HasPosition (..), Positioned (..), PositionedMb (..), 
-	position_error, without_position, maybefy_positioned, fill_position, 
+	position_error, without_position, maybefy_positioned, fill_position,
+	show_position,
 )
 where
 
@@ -15,25 +16,17 @@ import qualified Data.Maybe as Base
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Categories.Lens as Optic
 import qualified Fana.Serial.Print.Show as Fana
-import qualified Fana.Serial.Print.Show as Show
 import qualified Prelude as Base
 
 
 type Text = Base.String
 
+type Position = [Text]
 
--- | the position of an element among its siblings.
-data PositionAtLevel = PositionAtLevel { text :: Text } deriving (Eq)
-
-instance Fana.Showable Text PositionAtLevel where
-	show pos = Show.from_ShowS (("\"" <>) <<< (text pos <>) <<< ("\"" <>))
-
-type Position = [PositionAtLevel]
-
-instance Fana.Showable Text Position where
-	show pos = 
-		Fold.foldr' (<>) (Accu.single "at ") 
-			(List.intersperse (Accu.single " : ") (map Fana.show (List.reverse pos)))
+show_position :: Position -> Accu.Accumulated Text
+show_position pos = 
+	Fold.foldr' (<>) (Accu.single "at ") 
+		(List.intersperse (Accu.single " : ") (map Fana.show (List.reverse pos)))
 
 data PositionFields = PositionFields 
 	{ field_ordinal :: () 
@@ -84,7 +77,7 @@ fill_position a (PositionedMb pos val) = Positioned (Base.fromMaybe (get_positio
 instance Fana.Showable Text e => Fana.Showable Text (PositionedMb e) where
 	show pe = let
 		show_pos :: Position -> Accu.Accumulated Text
-		show_pos p = Fana.show p <> (Accu.single " : ")
+		show_pos p = show_position p <> (Accu.single " : ")
 		pos :: Accu.Accumulated Text
 		pos = Base.maybe mempty show_pos (position_mb pe)
 		in pos <> Fana.show (value_in_PositionedMb pe)

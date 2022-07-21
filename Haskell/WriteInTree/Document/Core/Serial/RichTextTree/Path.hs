@@ -28,15 +28,15 @@ type Text = Base.String
 -- | the real form of the picture element data type, as this layer gets it.
 type PictureElemO e = Tt.Elem e
 -- | the form of the picture element data type, as this layer prefers it.
-type PictureElemI e = (PositionAtLevel, Tt.Elem e)
+type PictureElemI e = (Text, Tt.Elem e)
 type PictureElemOT = PictureElemO Text
 type PictureElemIT = PictureElemI Text
 
 picture_oi :: PictureElemOT -> PictureElemIT
-picture_oi elem = (PositionAtLevel (Tt.elemValue elem), elem)
+picture_oi elem = (Tt.elemValue elem, elem)
 
 picture_io :: PictureElemI e -> PictureElemO e
-picture_io (PositionAtLevel _, elem) = elem
+picture_io (_, elem) = elem
 
 picture_elem_iso :: Optic.Iso' PictureElemOT PictureElemIT
 picture_elem_iso = Optic.Iso picture_io picture_oi
@@ -44,7 +44,7 @@ picture_elem_iso = Optic.Iso picture_io picture_oi
 picture_iso :: Optic.Iso' (Tree PictureElemOT) (Tree PictureElemIT)
 picture_iso = Optic.iso_up picture_elem_iso
 
-type DataElemO e = ([PositionAtLevel], Tt.Elem e)
+type DataElemO e = ([Text], Tt.Elem e)
 type DataElemI e = ([PictureElemI e], PictureElemI e)
 type DataElemOT = DataElemO Text
 type DataElemIT = DataElemI Text
@@ -56,7 +56,7 @@ data_io :: DataElemI e -> DataElemO e
 data_io (path, (pos, elem)) = (map fst path, elem)
 
 data_oi_2 :: Tt.Elem' -> PictureElemIT
-data_oi_2 elem = (PositionAtLevel (Tt.elemValue elem), elem)
+data_oi_2 elem = (Tt.elemValue elem, elem)
 
 up :: Tree (PictureElemI e) -> Tree (DataElemO e)
 up = tree_up >>> map data_io

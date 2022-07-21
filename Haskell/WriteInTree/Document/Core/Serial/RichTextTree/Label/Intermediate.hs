@@ -86,10 +86,7 @@ add_new incoming_classes (Classes trunk_source old_classes) = let
 				Nothing 
 				(
 					Pos.PositionFields ()
-						(
-							Pos.PositionAtLevel name : 
-							Fold.concat (Fold.toList (map Pos.get_position trunk_source))
-						)
+						(name : Fold.concat (Fold.toList (map Pos.get_position trunk_source)))
 				)
 				()
 		add_class :: Text -> Fn.Endo ClassesMap

@@ -36,7 +36,7 @@ identified_node_text_frame (identifier, path_to_trunk) =
 
 identified_node_text :: (Data.NodeIdU, Label.Elem Data.NodeIdU ()) -> String
 identified_node_text = 
-	BiFu.bimap (Identified.cargo >>> Data.nidun_u) (Pos.get_position >>> map Pos.text)
+	BiFu.bimap (Identified.cargo >>> Data.nidun_u) Pos.get_position
 	>>> identified_node_text_frame
 
 identified_nodes_of_doc :: Data.Document () () id_u ia Text -> [(id_u, Data.Node () () id_u ia Text)]

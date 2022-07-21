@@ -105,7 +105,7 @@ check_uniquness_of_id_u tree =
 				per_line :: Accu.Accumulated Text -> Accu.Accumulated Text
 				per_line content = "--- " <> content <> "\n"
 				node_writer :: ElemT -> Accu.Accumulated Text
-				node_writer = ofElem_source_path >>> Fana.show >>> per_line
+				node_writer = ofElem_source_path >>> Pos.show_position >>> per_line
 				message :: Accu.Accumulated Text
 				message = 
 					Fold.foldl' (<>) "the following nodes share a same user given identifier :\n"
