@@ -33,7 +33,6 @@ import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Comment as Comment
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate as Intermediate
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Ord as Ord
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
@@ -59,7 +58,7 @@ instance Fana.HasSingle (Elem id) where elem = ofElem_core
 ofElem_pos :: Optic.Lens' Pos.PositionFields (Elem id e)
 ofElem_pos = Optic.lens_from_get_set ofElem_position (\ e c -> c { ofElem_position = e })
 
-ofElem_ordinal :: Optic.Lens' Ord.Ordinal (Elem id e)
+ofElem_ordinal :: Optic.Lens' () (Elem id e)
 ofElem_ordinal = Pos.ofPositionFields_ordinal >**> ofElem_pos
 
 ofElem_source_path :: Elem id e -> Pos.Position

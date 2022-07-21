@@ -17,14 +17,13 @@ import qualified Fana.Optic.Concrete.Categories.Lens as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Fana.Serial.Print.Show as Show
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Ord as Ord
 
 
 type Text = Base.String
 
 
 -- | the position of an element among its siblings.
-data PositionAtLevel = PositionAtLevel { ordinal :: Ord.Ordinal, text :: Text } deriving (Eq)
+data PositionAtLevel = PositionAtLevel { ordinal :: (), text :: Text } deriving (Eq)
 
 instance Fana.Showable Text PositionAtLevel where
 	show pos = Show.from_ShowS (("\"" <>) <<< (text pos <>) <<< ("\"" <>))
@@ -37,14 +36,14 @@ instance Fana.Showable Text Position where
 			(List.intersperse (Accu.single " : ") (map Fana.show (List.reverse pos)))
 
 data PositionFields = PositionFields 
-	{ field_ordinal :: Ord.Ordinal 
+	{ field_ordinal :: () 
 		-- ^ relative position [the ordinal] of the node among its siblings.
 	, field_source_path :: Position
 		-- ^ absolute position of the node in the picture tree, with node text values.
 	}
 	deriving (Eq)
 
-ofPositionFields_ordinal :: Optic.Lens' Ord.Ordinal PositionFields
+ofPositionFields_ordinal :: Optic.Lens' () PositionFields
 ofPositionFields_ordinal = Optic.lens_from_get_set field_ordinal (\ e c -> c { field_ordinal = e })
 
 instance Default PositionFields where def = PositionFields def def

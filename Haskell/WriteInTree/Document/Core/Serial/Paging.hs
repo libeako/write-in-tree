@@ -23,7 +23,6 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaName a
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure as Ms
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix as Class
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Ord as Ord
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
@@ -77,16 +76,16 @@ has_page_class :: Label.Elem id e -> Bool
 has_page_class = Label.elem_has_class text_page_class
 
 core_parse' :: forall a id . a ~ Label.Elem id =>
-	Bool -> [Ord.Ordinal] -> CoreLTree a -> [CoreHTree a]
+	Bool -> [()] -> CoreLTree a -> [CoreHTree a]
 core_parse' separate_page_as_inherited ordinal_of_parent_among_siblings (Tree.Node (a, ei_paragraph) children) = let
-	make_children :: Bool -> [Ord.Ordinal] -> [CoreHTree a]
+	make_children :: Bool -> [()] -> [CoreHTree a]
 	make_children sp ord_prefix = Fold.concat 
 		(map (core_parse' sp (map Pos.ordinal (Pos.get_position a))) children)
 	on_regular :: Paragraph a -> [CoreHTree a]
 	on_regular paragraph = 
 		[
 			let
-				effective_ordinals :: [Ord.Ordinal]
+				effective_ordinals :: [()]
 				effective_ordinals = if separate_page_as_inherited then ordinal_of_parent_among_siblings else []
 				update_additional_info = store_separate_page_status separate_page_as_inherited
 				separate_page :: Bool

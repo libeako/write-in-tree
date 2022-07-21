@@ -44,13 +44,13 @@ instance Default e => Default (ElemD e) where def = ElemD def def def
 
 
 elem_pd :: ElemPT -> ElemDT
-elem_pd (position, (ordinal, (Tt.Elem identifier text))) = ElemD
+elem_pd (position, (Tt.Elem identifier text)) = ElemD
 	{ elemId = identifier
-	, elemPosition = Pos.PositionFields ordinal position
+	, elemPosition = Pos.PositionFields () position
 	, elemValue = text 
 	}
 elem_dp :: ElemDT -> ElemPT
-elem_dp e = (Pos.get_position e, (Pos.field_ordinal (elemPosition e), Tt.Elem (elemId e) (elemValue e)))	
+elem_dp e = (Pos.get_position e, Tt.Elem (elemId e) (elemValue e))
 
 meta_name_comment :: Text
 meta_name_comment = "comment"
