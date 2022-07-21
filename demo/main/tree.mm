@@ -4,6 +4,7 @@
 <node CREATED="1582808379998" ID="ID_446310165" MODIFIED="1582892920771" POSITION="right" TEXT="This is a software that transforms text-tree into html website. The name &quot;write-in-tree&quot; is meant to mean both a technology and a concrete software [the &quot;compiler&quot;]."/>
 <node CREATED="1582808379999" ID="ID_1534207874" MODIFIED="1582808379999" POSITION="right" TEXT="Is for those who want to write a book [or article], want to write and maintain it fast, without hassle, but beside the comfort of author also want to give the readers a convenient html website format."/>
 <node CREATED="1582808379998" ID="ID_291836033" MODIFIED="1582900060582" POSITION="right" TEXT="This software [the whole thing] is free."/>
+<node CREATED="1658432687821" ID="ID_1526836883" MODIFIED="1658432699934" POSITION="right" TEXT="This documentation is about language version 2."/>
 <node CREATED="1582900063683" FOLDED="true" ID="ID_105200887" MODIFIED="1582900250009" POSITION="right" TEXT="*** The Bad">
 <node CREATED="1582900087301" FOLDED="true" ID="ID_447801329" MODIFIED="1582900215216" TEXT="Parallel work on a document through multiple threads is usually not possible.">
 <node CREATED="1582900215700" ID="ID_1891298457" MODIFIED="1582900225946" TEXT="This is because the lack of good version controlling for tree structured data [like XML]."/>
@@ -156,9 +157,6 @@
 </node>
 <node CREATED="1582910472696" FOLDED="true" ID="ID_1408452053" MODIFIED="1582911014090" TEXT="*** The Rich Text Tree Format">
 <node CREATED="1582910480460" ID="ID_401763949" MODIFIED="1582910506033" TEXT="This is a text tree format with some additional features, but still views the document as a tree of text lines."/>
-<node CREATED="1582808380009" ID="ID_1564500218" MODIFIED="1582910641457" TEXT="*** Comment">
-<node CREATED="1582808380009" ID="ID_411769358" MODIFIED="1582910680509" TEXT="Under a &quot;comment&quot; meta node everything gets discarded."/>
-</node>
 <node CREATED="1582910692540" FOLDED="true" ID="ID_963040019" MODIFIED="1582910698557" TEXT="*** Labeling">
 <node CREATED="1582910699863" ID="ID_933333920" MODIFIED="1582910760733" TEXT="You can create an &quot;id&quot; and a &quot;class&quot; meta node for a node under it. Unders them list the label values as simple text child-nodes."/>
 </node>
@@ -290,8 +288,8 @@
 </node>
 <node CREATED="1582808379999" ID="ID_1782879385" MODIFIED="1582900802210" TEXT="This tutorial itself is WrittenInTree."/>
 </node>
-<node CREATED="1582938472694" ID="ID_414955035" MODIFIED="1582938475208" POSITION="right" TEXT="# comment">
-<node CREATED="1582924209951" FOLDED="true" ID="ID_256227671" MODIFIED="1582924209951" TEXT="how to build from source">
+<node CREATED="1582924209951" FOLDED="true" ID="ID_256227671" MODIFIED="1658432640255" POSITION="right" TEXT="How to Build from Source">
+<node CREATED="1658432339980" ID="ID_905619378" MODIFIED="1658432554901" TEXT="this is a bit combersome to do and requires some basic technical practice; also: i wrtoe this a long time ago, i only hope that it is uptodate"/>
 <node CREATED="1582924209951" FOLDED="true" ID="ID_1166095143" MODIFIED="1582924209951" TEXT="prerequesites">
 <node CREATED="1582924209951" ID="ID_932652976" MODIFIED="1582924209951" TEXT="version control">
 <node CREATED="1582924209951" ID="ID_1111862931" MODIFIED="1582924209951" TEXT="mercurial"/>
@@ -303,8 +301,8 @@
 <node CREATED="1582924209951" ID="ID_1260987876" MODIFIED="1582924209951" TEXT="package and build manager : &quot;cabal&quot;"/>
 </node>
 </node>
-<node CREATED="1582924209951" FOLDED="true" ID="ID_1516834276" MODIFIED="1582924209951" TEXT="the application consists of multiple source packages">
-<node CREATED="1582924209951" FOLDED="true" ID="ID_559083690" MODIFIED="1582924209951" TEXT="some of them are local - these must be handled manually">
+<node CREATED="1582924209951" ID="ID_1516834276" MODIFIED="1582924209951" TEXT="the application consists of multiple source packages">
+<node CREATED="1582924209951" ID="ID_559083690" MODIFIED="1582924209951" TEXT="some of them are local - these must be handled manually">
 <node CREATED="1582924209951" ID="ID_1685435898" MODIFIED="1582924209951" TEXT="they are transitively linked together"/>
 <node CREATED="1582924209951" ID="ID_853939020" MODIFIED="1582924209951" TEXT="all the packages are on bitbucket"/>
 <node CREATED="1582924209951" ID="ID_1798971444" MODIFIED="1582924209951" TEXT="the main package is here">
@@ -331,7 +329,6 @@
 <node CREATED="1582924209951" FOLDED="true" ID="ID_1033607784" MODIFIED="1582924209951" TEXT="in the folder of the main package [write-in-tree]">
 <node CREATED="1582924209951" ID="ID_99108767" MODIFIED="1582924209951" TEXT="command &apos;cabal build&apos;"/>
 <node CREATED="1582924209951" ID="ID_989342293" MODIFIED="1582924209951" TEXT="in folder &apos;dist/build/write-in-tree&apos; is the resultant executable"/>
-</node>
 </node>
 </node>
 </node>
