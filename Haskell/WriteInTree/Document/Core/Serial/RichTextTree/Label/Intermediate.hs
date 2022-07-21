@@ -82,13 +82,12 @@ add_new incoming_classes (Classes trunk_source old_classes) = let
 		updated_old_classes = old_classes
 		source_of_new_class :: Text -> Source
 		source_of_new_class name = let
-			ordinal = ()
 			in Comment.ElemD 
 				Nothing 
 				(
-					Pos.PositionFields ordinal 
+					Pos.PositionFields ()
 						(
-							Pos.PositionAtLevel ordinal name : 
+							Pos.PositionAtLevel name : 
 							Fold.concat (Fold.toList (map Pos.get_position trunk_source))
 						)
 				)

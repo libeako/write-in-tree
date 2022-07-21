@@ -33,10 +33,10 @@ type PictureElemOT = PictureElemO Text
 type PictureElemIT = PictureElemI Text
 
 picture_oi :: PictureElemOT -> PictureElemIT
-picture_oi elem = (PositionAtLevel () (Tt.elemValue elem), elem)
+picture_oi elem = (PositionAtLevel (Tt.elemValue elem), elem)
 
 picture_io :: PictureElemI e -> PictureElemO e
-picture_io (PositionAtLevel ord _, elem) = elem
+picture_io (PositionAtLevel _, elem) = elem
 
 picture_elem_iso :: Optic.Iso' PictureElemOT PictureElemIT
 picture_elem_iso = Optic.Iso picture_io picture_oi
@@ -56,7 +56,7 @@ data_io :: DataElemI e -> DataElemO e
 data_io (path, (pos, elem)) = (map fst path, elem)
 
 data_oi_2 :: Tt.Elem' -> PictureElemIT
-data_oi_2 elem = (PositionAtLevel () (Tt.elemValue elem), elem)
+data_oi_2 elem = (PositionAtLevel (Tt.elemValue elem), elem)
 
 up :: Tree (PictureElemI e) -> Tree (DataElemO e)
 up = tree_up >>> map data_io

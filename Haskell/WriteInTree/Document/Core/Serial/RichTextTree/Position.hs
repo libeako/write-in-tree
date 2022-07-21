@@ -23,7 +23,7 @@ type Text = Base.String
 
 
 -- | the position of an element among its siblings.
-data PositionAtLevel = PositionAtLevel { ordinal :: (), text :: Text } deriving (Eq)
+data PositionAtLevel = PositionAtLevel { text :: Text } deriving (Eq)
 
 instance Fana.Showable Text PositionAtLevel where
 	show pos = Show.from_ShowS (("\"" <>) <<< (text pos <>) <<< ("\"" <>))

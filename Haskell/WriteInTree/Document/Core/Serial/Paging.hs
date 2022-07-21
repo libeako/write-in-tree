@@ -80,7 +80,7 @@ core_parse' :: forall a id . a ~ Label.Elem id =>
 core_parse' separate_page_as_inherited ordinal_of_parent_among_siblings (Tree.Node (a, ei_paragraph) children) = let
 	make_children :: Bool -> [()] -> [CoreHTree a]
 	make_children sp ord_prefix = Fold.concat 
-		(map (core_parse' sp (map Pos.ordinal (Pos.get_position a))) children)
+		(map (core_parse' sp (map (const ()) (Pos.get_position a))) children)
 	on_regular :: Paragraph a -> [CoreHTree a]
 	on_regular paragraph = 
 		[
