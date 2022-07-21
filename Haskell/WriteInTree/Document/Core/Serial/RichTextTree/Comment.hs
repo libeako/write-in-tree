@@ -9,8 +9,6 @@ import Data.Default.Class
 import Data.Tree (Tree)
 import Fana.Prelude
 
-import qualified Data.Tree as Base
-import qualified Data.Tree as Tree
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified Technical.TextTree.Data as Tt
@@ -50,11 +48,5 @@ elem_pd (position, (Tt.Elem identifier text)) = ElemD
 elem_dp :: ElemDT -> ElemPT
 elem_dp e = (Pos.get_position e, Tt.Elem (elemId e) (elemValue e))
 
-parse :: Tree ElemPT -> Tree ElemDT
-parse (Base.Node trunk children) = Base.Node (elem_pd trunk) (map parse children)
-
-render :: Tree ElemDT -> Tree ElemPT
-render (Tree.Node elem children) = Tree.Node (elem_dp elem) (map render children)
-
 layer :: Optic.Iso' (Tree ElemPT) (Tree ElemDT)
-layer = Optic.Iso render parse
+layer = Optic.Iso (map elem_dp) (map elem_pd)

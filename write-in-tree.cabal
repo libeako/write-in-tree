@@ -76,7 +76,6 @@ common common
       WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate
       WriteInTree.Document.Core.Serial.RichTextTree.Label.Main
       WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit
-      WriteInTree.Document.Core.Serial.RichTextTree.Ord
       WriteInTree.Document.Core.Serial.RichTextTree.Path
       WriteInTree.Document.Core.Serial.RichTextTree.Position
       WriteInTree.Document.Core.Serial.UserIdentifiers
