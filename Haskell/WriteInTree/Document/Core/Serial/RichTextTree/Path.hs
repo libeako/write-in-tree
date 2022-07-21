@@ -75,7 +75,7 @@ core_iso = Optic.Iso down up
 layer :: Optic.Iso' (Tree PictureElemOT) (Tree DataElemOT)
 layer = picture_iso >**> core_iso
 
-lift_serialization_layer :: 
+lift_serialization_layer ::
 	forall c e pr pp dr dp .
 	(Traversable c, forall l . HasPosition (c l)) =>
 	Optic.PartialIso e pr pp dr dp -> Optic.PartialIso (Positioned e) (c pr) (c pp) (c dr) (c dp)
@@ -88,25 +88,23 @@ lift_serialization_layer (Optic.PartialIso render parse) =
 
 -- | meaningful [not comment] element type at the data level.
 data CommentElemD e = CommentElemD
-	{ elemId :: Maybe Text
-	, elemPosition :: Pos.Position
-	, elemValue :: e
+	{ elemPosition :: Pos.Position
+	, commentTtElem :: Tt.Elem e
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 type CommentElemDT = CommentElemD Text
 
 instance Pos.HasPosition (CommentElemD e) where get_position = elemPosition
-instance Default e => Default (CommentElemD e) where def = CommentElemD def def def
+instance Default e => Default (CommentElemD e) where def = CommentElemD def def
 
 
-comment_elem_pd :: DataElemO Text -> CommentElemDT
-comment_elem_pd (pos, (Tt.Elem identifier text)) = CommentElemD
-	{ elemId = identifier
-	, elemPosition = pos
-	, elemValue = text 
+path_to_comment :: DataElemO Text -> CommentElemDT
+path_to_comment (pos, (Tt.Elem identifier text)) = CommentElemD
+	{ elemPosition = pos
+	, commentTtElem = Tt.Elem identifier text
 	}
-comment_elem_dp :: CommentElemDT -> DataElemO Text
-comment_elem_dp e = (Pos.get_position e, Tt.Elem (elemId e) (elemValue e))
+comment_to_path :: CommentElemDT -> DataElemO Text
+comment_to_path e = (Pos.get_position e, commentTtElem e)
 
 comment_layer :: Optic.Iso' (Tree (DataElemO Text)) (Tree CommentElemDT)
-comment_layer = Optic.Iso (map comment_elem_dp) (map comment_elem_pd)
+comment_layer = Optic.Iso (map comment_to_path) (map path_to_comment)

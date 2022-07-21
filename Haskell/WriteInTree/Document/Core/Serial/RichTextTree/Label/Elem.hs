@@ -28,6 +28,7 @@ import qualified Fana.Optic.Concrete.Categories.Lens as Optic
 import qualified Fana.Optic.Concrete.Categories.Prism as Optic
 import qualified Fana.Optic.Concrete.Categories.Traversal as Optic
 import qualified Prelude as Base
+import qualified Technical.TextTree.Data as Tt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate as Intermediate
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
@@ -87,15 +88,14 @@ instance Pos.HasPosition (Elem id e) where get_position = ofElem_position
 -- | convert an element from data to picture format.
 elem_dp :: Elem id e -> ElemP e
 elem_dp x = Path.CommentElemD
-	{ Path.elemId = ofElem_auto_id x
-	, Path.elemPosition = ofElem_position x
-	, Path.elemValue = ofElem_core x
+	{ Path.elemPosition = ofElem_position x
+	, Path.commentTtElem = Tt.Elem (ofElem_auto_id x) (ofElem_core x)
 	}
 -- | convert an element from picture to data format.
 elem_pd :: Intermediate.Labels id -> ElemP e -> Elem id e
 elem_pd labels p = Elem
-	{ ofElem_auto_id = Path.elemId p
+	{ ofElem_auto_id = Tt.elemId (Path.commentTtElem p)
 	, ofElem_position = Path.elemPosition p
 	, ofElem_labels = labels
-	, ofElem_core = Path.elemValue p
+	, ofElem_core = Tt.elemValue (Path.commentTtElem p)
 	}

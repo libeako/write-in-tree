@@ -7,6 +7,7 @@ module Technical.TextTree.Data
 )
 where
 
+import Data.Default.Class
 import Fana.Prelude
 
 import qualified Data.Tree as Tf
@@ -23,6 +24,8 @@ data Elem v = Elem
 	} 
 	deriving (Eq, Base.Show, Base.Functor, Base.Foldable, Base.Traversable)
 type Elem' = Elem Text
+
+instance Default v => Default (Elem v) where def = Elem def def
 
 type Tree v = Tf.Tree (Elem v)
 type Tree' = Tree Text

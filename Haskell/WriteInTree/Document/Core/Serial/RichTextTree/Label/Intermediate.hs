@@ -27,6 +27,7 @@ import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
+import qualified Technical.TextTree.Data as Tt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
@@ -83,9 +84,8 @@ add_new incoming_classes (Classes trunk_source old_classes) = let
 		source_of_new_class :: Text -> Source
 		source_of_new_class name = let
 			in Path.CommentElemD
-				Nothing 
 				(name : Fold.concat (Fold.toList (map Pos.get_position trunk_source)))
-				()
+				(Tt.Elem Nothing ())
 		add_class :: Text -> Fn.Endo ClassesMap
 		add_class c = LensAt.ensure_existence_at c (source_of_new_class c)
 		in Fold.foldr' add_class updated_old_classes incoming_classes

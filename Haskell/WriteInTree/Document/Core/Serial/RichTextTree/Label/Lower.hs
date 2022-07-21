@@ -26,6 +26,7 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
+import qualified Technical.TextTree.Data as Tt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure as Ms
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
@@ -64,7 +65,7 @@ parse_id (Tree.Node trunk children) =
 		[child] -> 
 			let
 				child_node = Tree.rootLabel child
-				in case Path.elemValue child_node of
+				in case Tt.elemValue (Path.commentTtElem child_node) of
 					Right (Right text) -> 
 						let
 							intermediate :: Intermediate.IdT
@@ -91,7 +92,7 @@ render_id x =
 
 parse_class :: Tree ElemStructured -> Either (Accu.Accumulated Text) Intermediate.Class
 parse_class (Tree.Node trunk _) = 
-	case Path.elemValue trunk of
+	case Tt.elemValue (Path.commentTtElem trunk) of
 		Right (Right text) -> Right (Intermediate.Class (trunk $> ()) text)
 		_ -> 
 			let
@@ -130,7 +131,7 @@ parse_any (tree@(Tree.Node trunk children)) =
 			Either (Accu.Accumulated Text) 
 				(DTree.Discrimination [] Intermediate.Any (ElemP Ts.Content') IntermediateTree)
 		node_specific = 
-			case Path.elemValue trunk of
+			case Tt.elemValue (Path.commentTtElem trunk) of
 				Left mn -> 
 					case mn of
 						MnId -> map (Intermediate.IntermId >>> DTree.Leaf) (parse_id tree)
