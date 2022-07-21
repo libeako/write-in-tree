@@ -1,11 +1,8 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Path
 (
-	ElemHE, ElemHET,
+	ElemHE (..), ElemHET,
 	layer,
 	lift_serialization_layer,
-	
-	CommentElemD (..), CommentElemDT,
-	comment_layer,
 )
 where
 
@@ -54,16 +51,25 @@ l_elem_iso = Optic.Iso l_ie l_ei
 l_tree_iso :: Optic.Iso' (Tree ElemLET) (Tree ElemLIT)
 l_tree_iso = Optic.iso_up l_elem_iso
 
-type ElemHE e = ([Text], Tt.Elem e)
-type ElemHI e = ([ElemLI e], ElemLI e)
+
+data ElemHE e = ElemHE
+	{ elemPosition :: Pos.Position
+	, commentTtElem :: Tt.Elem e
+	}
+	deriving (Eq, Functor, Foldable, Traversable)
 type ElemHET = ElemHE Text
+
+instance Pos.HasPosition (ElemHE e) where get_position = elemPosition
+instance Default e => Default (ElemHE e) where def = ElemHE def def
+
+type ElemHI e = ([ElemLI e], ElemLI e)
 type ElemHIT = ElemHI Text
 
 tree_up :: Tree e -> Tree ([e], e)
 tree_up = Tree.with_path_to_trunk >>> map (Bifunctor.first (map Tree.rootLabel))
 
 h_io :: ElemHI e -> ElemHE e
-h_io (path, (pos, elem)) = (map fst path, elem)
+h_io (path, (pos, elem)) = ElemHE (map fst path) elem
 
 tt_li :: Tt.Elem' -> ElemLIT
 tt_li elem = (Tt.elemValue elem, elem)
@@ -72,7 +78,7 @@ up :: Tree (ElemLI e) -> Tree (ElemHE e)
 up = tree_up >>> map h_io
 
 down :: Tree ElemHET -> Tree ElemLIT
-down = map (snd >>> tt_li)
+down = map (commentTtElem >>> tt_li)
 
 core_iso :: Optic.Iso' (Tree ElemLIT) (Tree ElemHET)
 core_iso = Optic.Iso down up
@@ -89,27 +95,3 @@ lift_serialization_layer (Optic.PartialIso render parse) =
 		new_parse :: c pp -> Either (Positioned e) (c dp)
 		new_parse c = Bifunctor.first (Positioned (get_position c)) (traverse parse c)
 		in Optic.PartialIso (map render) new_parse
-
-
--- | meaningful [not comment] element type at the data level.
-data CommentElemD e = CommentElemD
-	{ elemPosition :: Pos.Position
-	, commentTtElem :: Tt.Elem e
-	}
-	deriving (Eq, Functor, Foldable, Traversable)
-type CommentElemDT = CommentElemD Text
-
-instance Pos.HasPosition (CommentElemD e) where get_position = elemPosition
-instance Default e => Default (CommentElemD e) where def = CommentElemD def def
-
-
-path_to_comment :: ElemHE Text -> CommentElemDT
-path_to_comment (pos, (Tt.Elem identifier text)) = CommentElemD
-	{ elemPosition = pos
-	, commentTtElem = Tt.Elem identifier text
-	}
-comment_to_path :: CommentElemDT -> ElemHE Text
-comment_to_path e = (Pos.get_position e, commentTtElem e)
-
-comment_layer :: Optic.Iso' (Tree (ElemHE Text)) (Tree CommentElemDT)
-comment_layer = Optic.Iso (map comment_to_path) (map path_to_comment)
