@@ -48,7 +48,6 @@ data Elem id e = Elem
 	{ ofElem_auto_id :: Maybe Text
 		-- ^ automatic identifier
 	, ofElem_position :: Pos.PositionFields
-	, ofElem_comment_children :: [Comment.CommentElem]
 	, ofElem_labels :: Intermediate.Labels id
 	, ofElem_core :: e
 	}
@@ -99,7 +98,6 @@ elem_dp :: Elem id e -> ElemP e
 elem_dp x = Comment.ElemD
 	{ Comment.elemId = ofElem_auto_id x
 	, Comment.elemPosition = ofElem_position x
-	, Comment.elemCommentChildren = ofElem_comment_children x
 	, Comment.elemValue = ofElem_core x
 	}
 -- | convert an element from picture to data format.
@@ -107,7 +105,6 @@ elem_pd :: Intermediate.Labels id -> ElemP e -> Elem id e
 elem_pd labels p = Elem
 	{ ofElem_auto_id = Comment.elemId p
 	, ofElem_position = Comment.elemPosition p
-	, ofElem_comment_children = Comment.elemCommentChildren p
 	, ofElem_labels = labels
 	, ofElem_core = Comment.elemValue p
 	}

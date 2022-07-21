@@ -99,7 +99,7 @@ add_new incoming_classes_names (Classes trunk_source old_classes) = let
 							Fold.concat (Fold.toList (map Pos.get_position trunk_source))
 						)
 				)
-				[] ()
+				()
 		add_class :: (Ord.SimpleOrdinal, Text) -> Fn.Endo ClassesMap
 		add_class c = LensAt.ensure_existence_at (snd c) (uncurry source_of_new_class c)
 		incoming_classes = List.zip (List.iterate (+1) 1) incoming_classes_names
