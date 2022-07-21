@@ -64,7 +64,6 @@ common common
       WriteInTree.Document.Core.Serial.Paging
       WriteInTree.Document.Core.Serial.Paragraph
       WriteInTree.Document.Core.Serial.Parse
-      WriteInTree.Document.Core.Serial.RichTextTree.Export
       WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaName
       WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure
       WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure
