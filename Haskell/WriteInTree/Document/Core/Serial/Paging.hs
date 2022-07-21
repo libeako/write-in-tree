@@ -76,29 +76,24 @@ has_page_class :: Label.Elem id e -> Bool
 has_page_class = Label.elem_has_class text_page_class
 
 core_parse' :: forall a id . a ~ Label.Elem id =>
-	Bool -> [()] -> CoreLTree a -> [CoreHTree a]
-core_parse' separate_page_as_inherited ordinal_of_parent_among_siblings (Tree.Node (a, ei_paragraph) children) = let
-	make_children :: Bool -> [()] -> [CoreHTree a]
-	make_children sp ord_prefix = Fold.concat 
-		(map (core_parse' sp (map (const ()) (Pos.get_position a))) children)
+	Bool -> CoreLTree a -> [CoreHTree a]
+core_parse' separate_page_as_inherited (Tree.Node (a, ei_paragraph) children) = let
+	make_children :: Bool ->[CoreHTree a]
+	make_children sp = Fold.concat (map (core_parse' sp) children)
 	on_regular :: Paragraph a -> [CoreHTree a]
-	on_regular paragraph = 
+	on_regular paragraph =
 		[
 			let
-				effective_ordinals :: [()]
-				effective_ordinals = if separate_page_as_inherited then ordinal_of_parent_among_siblings else []
 				update_additional_info = store_separate_page_status separate_page_as_inherited
 				separate_page :: Bool
 				separate_page = separate_page_as_inherited || has_page_class a
 				new_trunk = (update_additional_info a, (paragraph, separate_page))
-				in Tree.Node new_trunk (make_children False [])
+				in Tree.Node new_trunk (make_children False)
 		]
-	on_linked_contents :: MetaNodeName -> [CoreHTree a]
-	on_linked_contents = const (make_children True ordinal_of_parent_among_siblings)
-	in Base.either on_linked_contents on_regular ei_paragraph
+	in Base.either (const (make_children True)) on_regular ei_paragraph
 
 core_parse :: a ~ Label.Elem id => CoreLTree a -> Either (Accu.Accumulated Text) (CoreHTree a)
-core_parse = core_parse' True [] >>> \case
+core_parse = core_parse' True >>> \case
 	[single] -> Right single
 	_ : _ : _ -> 
 		Left 

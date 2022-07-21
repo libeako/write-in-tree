@@ -52,9 +52,6 @@ elem_pd (position, (Tt.Elem identifier text)) = ElemD
 elem_dp :: ElemDT -> ElemPT
 elem_dp e = (Pos.get_position e, Tt.Elem (elemId e) (elemValue e))
 
-meta_name_comment :: Text
-meta_name_comment = "comment"
-
 type ParseError = Pos.PositionedMb (Accu.Accumulated Text)
 
 type Errorable e = Either ParseError e
