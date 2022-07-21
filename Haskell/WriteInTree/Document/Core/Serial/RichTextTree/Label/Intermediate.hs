@@ -15,7 +15,6 @@ where
 import Data.Default.Class
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import Prelude ((+))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Foldable as Fold
@@ -86,10 +85,10 @@ add_new incoming_classes_names (Classes trunk_source old_classes) = let
 		updated_old_classes = let
 			lens_ordinal :: Optic.Lens' Ord.Ordinal Source
 			lens_ordinal = Category2.empty >**>^ Pos.ofPositionFields_ordinal >**>^ Comment.ofElem_position
-			in map (Optic.fn_up lens_ordinal (2 : )) old_classes
+			in map (Optic.fn_up lens_ordinal (() : )) old_classes
 		source_of_new_class :: Ord.SimpleOrdinal -> Text -> Source
 		source_of_new_class simple_ordinal name = let
-			ordinal = [1, simple_ordinal]
+			ordinal = [(), simple_ordinal]
 			in Comment.ElemD 
 				Nothing 
 				(
@@ -102,7 +101,7 @@ add_new incoming_classes_names (Classes trunk_source old_classes) = let
 				()
 		add_class :: (Ord.SimpleOrdinal, Text) -> Fn.Endo ClassesMap
 		add_class c = LensAt.ensure_existence_at (snd c) (uncurry source_of_new_class c)
-		incoming_classes = List.zip (List.iterate (+1) 1) incoming_classes_names
+		incoming_classes = List.zip (List.repeat ()) incoming_classes_names
 		in Fold.foldr' add_class updated_old_classes incoming_classes
 	in (Classes trunk_source updated_classes)
 
