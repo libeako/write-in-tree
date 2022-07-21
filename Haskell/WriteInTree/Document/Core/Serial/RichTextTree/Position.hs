@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Position
 (
-	Position, PositionFields (..),
+	Position,
 	HasPosition (..), Positioned (..), PositionedMb (..), 
 	position_error, without_position, maybefy_positioned, fill_position,
 	show_position,
@@ -22,11 +22,11 @@ type Text = Base.String
 type Position = [Text]
 
 show_position :: Position -> Accu.Accumulated Text
-show_position pos = 
-	Fold.foldr' (<>) (Accu.single "at ") 
-		(List.intersperse (Accu.single " : ") (map Fana.show (List.reverse pos)))
-
-type PositionFields = Position
+show_position =
+	List.reverse >>>
+	map Fana.show >>>
+	List.intersperse (Accu.single " : ") >>>
+	Fold.foldr' (<>) (Accu.single "at ")
 
 class HasPosition p where get_position :: p -> Position
 

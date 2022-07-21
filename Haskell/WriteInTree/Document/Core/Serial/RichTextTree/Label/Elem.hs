@@ -44,7 +44,7 @@ type ElemPT = ElemP Text
 data Elem id e = Elem
 	{ ofElem_auto_id :: Maybe Text
 		-- ^ automatic identifier
-	, ofElem_position :: Pos.PositionFields
+	, ofElem_position :: Pos.Position
 	, ofElem_labels :: Intermediate.Labels id
 	, ofElem_core :: e
 	}
@@ -53,7 +53,7 @@ type ElemT = Elem Text (Ts.Content')
 
 instance Fana.HasSingle (Elem id) where elem = ofElem_core
 
-ofElem_pos :: Optic.Lens' Pos.PositionFields (Elem id e)
+ofElem_pos :: Optic.Lens' Pos.Position (Elem id e)
 ofElem_pos = Optic.lens_from_get_set ofElem_position (\ e c -> c { ofElem_position = e })
 
 ofElem_id_u_content :: Elem id e -> Maybe id

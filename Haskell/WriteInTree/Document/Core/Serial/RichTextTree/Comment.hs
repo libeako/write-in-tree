@@ -30,13 +30,13 @@ type ElemPT = ElemP Text
 -- | meaningful [not comment] element type at the data level.
 data ElemD e = ElemD 
 	{ elemId :: Maybe Text
-	, elemPosition :: Pos.PositionFields
+	, elemPosition :: Pos.Position
 	, elemValue :: e
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 type ElemDT = ElemD Text
 
-ofElem_position :: Optic.Lens' Pos.PositionFields (ElemD e)
+ofElem_position :: Optic.Lens' Pos.Position (ElemD e)
 ofElem_position = Optic.lens_from_get_set elemPosition (\ e c -> c { elemPosition = e })
 
 instance Pos.HasPosition (ElemD e) where get_position = elemPosition
