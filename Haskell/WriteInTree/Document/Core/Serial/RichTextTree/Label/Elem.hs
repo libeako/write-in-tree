@@ -6,7 +6,6 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 	Intermediate.id_of_Labels,
 	fromElem_id_au_content,
 	ofElem_pos,
-	ofElem_source_path,
 	ofElem_class_values,
 	ofElem_id_u_content,
 	inElem_idu, inElem_labels,
@@ -57,9 +56,6 @@ instance Fana.HasSingle (Elem id) where elem = ofElem_core
 ofElem_pos :: Optic.Lens' Pos.PositionFields (Elem id e)
 ofElem_pos = Optic.lens_from_get_set ofElem_position (\ e c -> c { ofElem_position = e })
 
-ofElem_source_path :: Elem id e -> Pos.Position
-ofElem_source_path = ofElem_position >>> Pos.field_source_path
-
 ofElem_id_u_content :: Elem id e -> Maybe id
 ofElem_id_u_content = ofElem_labels >>> Intermediate.id_of_Labels >>> map Intermediate.valueId
 
@@ -86,7 +82,7 @@ elem_has_class :: Text -> Elem id e -> Bool
 elem_has_class class_text = ofElem_labels >>> Intermediate.labels_has_class class_text
 
 
-instance Pos.HasPosition (Elem id e) where get_position = ofElem_source_path
+instance Pos.HasPosition (Elem id e) where get_position = ofElem_position
 
 -- | convert an element from data to picture format.
 elem_dp :: Elem id e -> ElemP e

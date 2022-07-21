@@ -84,7 +84,7 @@ add_new incoming_classes (Classes trunk_source old_classes) = let
 		source_of_new_class name = let
 			in Comment.ElemD 
 				Nothing 
-				(Pos.PositionFields (name : Fold.concat (Fold.toList (map Pos.get_position trunk_source))))
+				(name : Fold.concat (Fold.toList (map Pos.get_position trunk_source)))
 				()
 		add_class :: Text -> Fn.Endo ClassesMap
 		add_class c = LensAt.ensure_existence_at c (source_of_new_class c)

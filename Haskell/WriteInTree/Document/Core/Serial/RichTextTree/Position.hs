@@ -8,7 +8,6 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Position
 where
 
 import Fana.Prelude
-import Data.Default.Class
 
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
@@ -27,14 +26,7 @@ show_position pos =
 	Fold.foldr' (<>) (Accu.single "at ") 
 		(List.intersperse (Accu.single " : ") (map Fana.show (List.reverse pos)))
 
-data PositionFields = PositionFields 
-	{
-		field_source_path :: Position
-		-- ^ absolute position of the node in the picture tree, with node text values.
-	}
-	deriving (Eq)
-
-instance Default PositionFields where def = PositionFields def
+type PositionFields = Position
 
 class HasPosition p where get_position :: p -> Position
 

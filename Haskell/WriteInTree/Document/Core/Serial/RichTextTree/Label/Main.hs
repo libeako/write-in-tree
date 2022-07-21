@@ -8,7 +8,6 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Main
 	layer,
 	fromElem_id_au_content,
 	ofElem_pos,
-	ofElem_source_path,
 	ofElem_class_values,
 	ofElem_id_u_content,
 	inElem_idu, inElem_labels,
@@ -105,7 +104,7 @@ check_uniquness_of_id_u tree =
 				per_line :: Accu.Accumulated Text -> Accu.Accumulated Text
 				per_line content = "--- " <> content <> "\n"
 				node_writer :: ElemT -> Accu.Accumulated Text
-				node_writer = ofElem_source_path >>> Pos.show_position >>> per_line
+				node_writer = ofElem_position >>> Pos.show_position >>> per_line
 				message :: Accu.Accumulated Text
 				message = 
 					Fold.foldl' (<>) "the following nodes share a same user given identifier :\n"

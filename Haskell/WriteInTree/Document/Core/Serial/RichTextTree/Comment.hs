@@ -39,14 +39,14 @@ type ElemDT = ElemD Text
 ofElem_position :: Optic.Lens' Pos.PositionFields (ElemD e)
 ofElem_position = Optic.lens_from_get_set elemPosition (\ e c -> c { elemPosition = e })
 
-instance Pos.HasPosition (ElemD e) where get_position = elemPosition >>> Pos.field_source_path
+instance Pos.HasPosition (ElemD e) where get_position = elemPosition
 instance Default e => Default (ElemD e) where def = ElemD def def def
 
 
 elem_pd :: ElemPT -> ElemDT
 elem_pd (position, (Tt.Elem identifier text)) = ElemD
 	{ elemId = identifier
-	, elemPosition = Pos.PositionFields position
+	, elemPosition = position
 	, elemValue = text 
 	}
 elem_dp :: ElemDT -> ElemPT
