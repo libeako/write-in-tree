@@ -22,7 +22,7 @@ type VersionNumber = Int.Int64
 type Version = VersionNumber
 
 current :: Version
-current = 1
+current = 2
 
 separator_char :: Base.Char
 separator_char = '.'
