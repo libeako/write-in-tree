@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Path
 (
-	DataElemO, DataElemOT,
+	ElemHE, ElemHET,
 	layer,
 	lift_serialization_layer,
 	
@@ -26,54 +26,59 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Text = Base.String
 
+{-
+	The 2 sides of this layer:
+		"h" = high level
+		"l" = low  level
+	
+	The 2 layers of any of the sides:
+		"e" = external
+		"i" = internal
+-}
 
--- the input and output types here may have inner ["i"] and outer ["o"] versions; 
--- the inner versions are more convenient for the inner working of this layer
 
--- | the real form of the picture element data type, as this layer gets it.
-type PictureElemO e = Tt.Elem e
--- | the form of the picture element data type, as this layer prefers it.
-type PictureElemI e = (Text, Tt.Elem e)
-type PictureElemOT = PictureElemO Text
-type PictureElemIT = PictureElemI Text
+type ElemLE e = Tt.Elem e
+type ElemLI e = (Text, Tt.Elem e)
+type ElemLET = ElemLE Text
+type ElemLIT = ElemLI Text
 
-picture_oi :: PictureElemOT -> PictureElemIT
-picture_oi elem = (Tt.elemValue elem, elem)
+l_ei :: ElemLET -> ElemLIT
+l_ei elem = (Tt.elemValue elem, elem)
 
-picture_io :: PictureElemI e -> PictureElemO e
-picture_io (_, elem) = elem
+l_ie :: ElemLI e -> ElemLE e
+l_ie (_, elem) = elem
 
-picture_elem_iso :: Optic.Iso' PictureElemOT PictureElemIT
-picture_elem_iso = Optic.Iso picture_io picture_oi
+l_elem_iso :: Optic.Iso' ElemLET ElemLIT
+l_elem_iso = Optic.Iso l_ie l_ei
 
-picture_iso :: Optic.Iso' (Tree PictureElemOT) (Tree PictureElemIT)
-picture_iso = Optic.iso_up picture_elem_iso
+l_tree_iso :: Optic.Iso' (Tree ElemLET) (Tree ElemLIT)
+l_tree_iso = Optic.iso_up l_elem_iso
 
-type DataElemO e = ([Text], Tt.Elem e)
-type DataElemI e = ([PictureElemI e], PictureElemI e)
-type DataElemOT = DataElemO Text
-type DataElemIT = DataElemI Text
+type ElemHE e = ([Text], Tt.Elem e)
+type ElemHI e = ([ElemLI e], ElemLI e)
+type ElemHET = ElemHE Text
+type ElemHIT = ElemHI Text
 
 tree_up :: Tree e -> Tree ([e], e)
 tree_up = Tree.with_path_to_trunk >>> map (Bifunctor.first (map Tree.rootLabel))
 
-data_io :: DataElemI e -> DataElemO e
-data_io (path, (pos, elem)) = (map fst path, elem)
+h_io :: ElemHI e -> ElemHE e
+h_io (path, (pos, elem)) = (map fst path, elem)
 
-data_oi_2 :: Tt.Elem' -> PictureElemIT
-data_oi_2 elem = (Tt.elemValue elem, elem)
+tt_li :: Tt.Elem' -> ElemLIT
+tt_li elem = (Tt.elemValue elem, elem)
 
-up :: Tree (PictureElemI e) -> Tree (DataElemO e)
-up = tree_up >>> map data_io
+up :: Tree (ElemLI e) -> Tree (ElemHE e)
+up = tree_up >>> map h_io
 
-down :: Tree DataElemOT -> Tree PictureElemIT
-down = map (snd >>> data_oi_2)
+down :: Tree ElemHET -> Tree ElemLIT
+down = map (snd >>> tt_li)
 
-core_iso :: Optic.Iso' (Tree PictureElemIT) (Tree DataElemOT)
+core_iso :: Optic.Iso' (Tree ElemLIT) (Tree ElemHET)
 core_iso = Optic.Iso down up
 
-layer :: Optic.Iso' (Tree PictureElemOT) (Tree DataElemOT)
-layer = picture_iso >**> core_iso
+layer :: Optic.Iso' (Tree ElemLET) (Tree ElemHET)
+layer = l_tree_iso >**> core_iso
 
 lift_serialization_layer ::
 	forall c e pr pp dr dp .
@@ -98,13 +103,13 @@ instance Pos.HasPosition (CommentElemD e) where get_position = elemPosition
 instance Default e => Default (CommentElemD e) where def = CommentElemD def def
 
 
-path_to_comment :: DataElemO Text -> CommentElemDT
+path_to_comment :: ElemHE Text -> CommentElemDT
 path_to_comment (pos, (Tt.Elem identifier text)) = CommentElemD
 	{ elemPosition = pos
 	, commentTtElem = Tt.Elem identifier text
 	}
-comment_to_path :: CommentElemDT -> DataElemO Text
+comment_to_path :: CommentElemDT -> ElemHE Text
 comment_to_path e = (Pos.get_position e, commentTtElem e)
 
-comment_layer :: Optic.Iso' (Tree (DataElemO Text)) (Tree CommentElemDT)
+comment_layer :: Optic.Iso' (Tree (ElemHE Text)) (Tree CommentElemDT)
 comment_layer = Optic.Iso (map comment_to_path) (map path_to_comment)
