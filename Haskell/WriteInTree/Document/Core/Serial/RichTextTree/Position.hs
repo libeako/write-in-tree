@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Position
 (
-	Position, PositionFields (..), ofPositionFields_ordinal,
+	Position, PositionFields (..),
 	HasPosition (..), Positioned (..), PositionedMb (..), 
 	position_error, without_position, maybefy_positioned, fill_position,
 	show_position,
@@ -14,7 +14,6 @@ import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Maybe as Base
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
-import qualified Fana.Optic.Concrete.Categories.Lens as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 
@@ -29,17 +28,13 @@ show_position pos =
 		(List.intersperse (Accu.single " : ") (map Fana.show (List.reverse pos)))
 
 data PositionFields = PositionFields 
-	{ field_ordinal :: () 
-		-- ^ relative position [the ordinal] of the node among its siblings.
-	, field_source_path :: Position
+	{
+		field_source_path :: Position
 		-- ^ absolute position of the node in the picture tree, with node text values.
 	}
 	deriving (Eq)
 
-ofPositionFields_ordinal :: Optic.Lens' () PositionFields
-ofPositionFields_ordinal = Optic.lens_from_get_set field_ordinal (\ e c -> c { field_ordinal = e })
-
-instance Default PositionFields where def = PositionFields def def
+instance Default PositionFields where def = PositionFields def
 
 class HasPosition p where get_position :: p -> Position
 

@@ -46,7 +46,7 @@ instance Default e => Default (ElemD e) where def = ElemD def def def
 elem_pd :: ElemPT -> ElemDT
 elem_pd (position, (Tt.Elem identifier text)) = ElemD
 	{ elemId = identifier
-	, elemPosition = Pos.PositionFields () position
+	, elemPosition = Pos.PositionFields position
 	, elemValue = text 
 	}
 elem_dp :: ElemDT -> ElemPT

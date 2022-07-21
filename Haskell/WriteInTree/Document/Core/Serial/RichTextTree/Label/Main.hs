@@ -7,7 +7,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Main
 	Configuration,
 	layer,
 	fromElem_id_au_content,
-	ofElem_ordinal,	ofElem_pos,
+	ofElem_pos,
 	ofElem_source_path,
 	ofElem_class_values,
 	ofElem_id_u_content,

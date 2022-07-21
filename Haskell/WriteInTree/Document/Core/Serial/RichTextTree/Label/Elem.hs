@@ -5,7 +5,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 	Intermediate.inLabel_id_source_mb,
 	Intermediate.id_of_Labels,
 	fromElem_id_au_content,
-	ofElem_ordinal,	ofElem_pos,
+	ofElem_pos,
 	ofElem_source_path,
 	ofElem_class_values,
 	ofElem_id_u_content,
@@ -18,7 +18,6 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 where
 
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
-import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 
 import qualified Data.Foldable as Fold
@@ -57,9 +56,6 @@ instance Fana.HasSingle (Elem id) where elem = ofElem_core
 
 ofElem_pos :: Optic.Lens' Pos.PositionFields (Elem id e)
 ofElem_pos = Optic.lens_from_get_set ofElem_position (\ e c -> c { ofElem_position = e })
-
-ofElem_ordinal :: Optic.Lens' () (Elem id e)
-ofElem_ordinal = Pos.ofPositionFields_ordinal >**> ofElem_pos
 
 ofElem_source_path :: Elem id e -> Pos.Position
 ofElem_source_path = ofElem_position >>> Pos.field_source_path
