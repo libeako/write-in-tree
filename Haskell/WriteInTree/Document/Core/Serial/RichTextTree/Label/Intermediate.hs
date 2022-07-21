@@ -13,14 +13,12 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate
 where
 
 import Data.Default.Class
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Maybe as Base
-import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.HasSingle as Fana
@@ -30,7 +28,6 @@ import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Comment as Comment
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Ord as Ord
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
@@ -78,17 +75,14 @@ index_classes = let
 	in map to_pair >>> MapI.from_list_of_uniques >>> Bifunctor.first error_message
 
 add_new :: [Text] -> Classes -> Classes
-add_new incoming_classes_names (Classes trunk_source old_classes) = let
+add_new incoming_classes (Classes trunk_source old_classes) = let
 	updated_classes :: ClassesMap
 	updated_classes = let
 		updated_old_classes :: ClassesMap
-		updated_old_classes = let
-			lens_ordinal :: Optic.Lens' Ord.Ordinal Source
-			lens_ordinal = Category2.empty >**>^ Pos.ofPositionFields_ordinal >**>^ Comment.ofElem_position
-			in map (Optic.fn_up lens_ordinal (() : )) old_classes
-		source_of_new_class :: Ord.SimpleOrdinal -> Text -> Source
-		source_of_new_class simple_ordinal name = let
-			ordinal = [(), simple_ordinal]
+		updated_old_classes = old_classes
+		source_of_new_class :: Text -> Source
+		source_of_new_class name = let
+			ordinal = ()
 			in Comment.ElemD 
 				Nothing 
 				(
@@ -99,9 +93,8 @@ add_new incoming_classes_names (Classes trunk_source old_classes) = let
 						)
 				)
 				()
-		add_class :: (Ord.SimpleOrdinal, Text) -> Fn.Endo ClassesMap
-		add_class c = LensAt.ensure_existence_at (snd c) (uncurry source_of_new_class c)
-		incoming_classes = List.zip (List.repeat ()) incoming_classes_names
+		add_class :: Text -> Fn.Endo ClassesMap
+		add_class c = LensAt.ensure_existence_at c (source_of_new_class c)
 		in Fold.foldr' add_class updated_old_classes incoming_classes
 	in (Classes trunk_source updated_classes)
 

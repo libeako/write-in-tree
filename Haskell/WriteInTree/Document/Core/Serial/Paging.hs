@@ -6,7 +6,6 @@ module WriteInTree.Document.Core.Serial.Paging
 where
 
 import Data.Tree (Tree)
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 
@@ -68,14 +67,6 @@ store_separate_page_status separate_page = if separate_page
 	then Optic.fn_up Label.inElem_labels (Label.add_new_classes_to_Labels [text_page_class])
 	else id
 
-prefix_with_ordinal :: [Ord.Ordinal] -> Fn.Endo (Label.Elem id e)
-prefix_with_ordinal = let
-	lens :: Optic.Lens' [Ord.SimpleOrdinal] (Label.Elem id e)
-	lens = Category2.empty >**>^ Pos.ofPositionFields_ordinal >**>^ Label.ofElem_pos
-	prefixer :: [Ord.Ordinal] -> Fn.Endo Ord.Ordinal
-	prefixer ords ord = Fold.concat (ords <> [ord])
-	in prefixer >>> Optic.fn_up lens
-
 type CoreLTree a = Tree (a (), Either MetaNodeName (Paragraph a))
 type CoreHTree a = Tree (a (), (Paragraph a, Bool))
 
@@ -97,9 +88,7 @@ core_parse' separate_page_as_inherited ordinal_of_parent_among_siblings (Tree.No
 			let
 				effective_ordinals :: [Ord.Ordinal]
 				effective_ordinals = if separate_page_as_inherited then ordinal_of_parent_among_siblings else []
-				update_additional_info = id
-					>>> store_separate_page_status separate_page_as_inherited
-					>>> prefix_with_ordinal effective_ordinals
+				update_additional_info = store_separate_page_status separate_page_as_inherited
 				separate_page :: Bool
 				separate_page = separate_page_as_inherited || has_page_class a
 				new_trunk = (update_additional_info a, (paragraph, separate_page))
