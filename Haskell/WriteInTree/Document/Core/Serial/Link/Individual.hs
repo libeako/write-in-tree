@@ -48,7 +48,7 @@ layer_text_structure = let
 	in Optic.PartialIso Right (Bifunctor.first (const (Accu.single error_description)))
 layer_text_structure_in_A :: Optic.PartialIso' ParseError (A (Visual Ts.Content')) (A (Visual Text))
 layer_text_structure_in_A =
-	Optic.piso_convert_error_with_input Pos.position_error 
+	Optic.piso_convert_error_with_low Pos.position_error 
 		((Optic.lift_piso >>> Optic.lift_piso) layer_text_structure)
 
 
@@ -96,12 +96,12 @@ layer_destination_type :: Optic.PartialIso' (Accu.Accumulated Text) Text Destina
 layer_destination_type = let
 	error_description = "link destination type not recognized"
 	in 
-		Optic.piso_convert_error_with_input (const (const error_description)) 
+		Optic.piso_convert_error_with_low (const (const error_description)) 
 			(Serial.enum render_DestinationType)
 
 layer_destination_type_whole :: Optic.PartialIso' ParseError (AB Text) (AB DestinationType)
 layer_destination_type_whole =
-	Optic.piso_convert_error_with_input (fst >>> Pos.position_error) (Optic.lift_piso layer_destination_type)
+	Optic.piso_convert_error_with_low (fst >>> Pos.position_error) (Optic.lift_piso layer_destination_type)
 
 type Core = (AB Text, AB Text)
 
@@ -148,7 +148,7 @@ layer_core_h = Optic.Iso render_to_core (uncurry parse_from_core)
 
 layer_core :: Pos.HasPosition l => Optic.PartialIso' ParseError (l, [Tree (A Text)]) (l, AB (Data.Link (A ()) Text))
 layer_core = Category2.empty
-	>**> Optic.piso_convert_error_with_input 
+	>**> Optic.piso_convert_error_with_low 
 		(\ i e -> Pos.position_error (fst i) e) 
 		(Optic.lift_piso layer_core_l_whole)
 	>**> Optic.lift_piso (layer_smart >**>^ layer_core_h)

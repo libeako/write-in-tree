@@ -10,10 +10,13 @@ import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 
 import qualified Data.Bifunctor as Bifunctor
+import qualified Data.Char as Base
 import qualified Data.Foldable as Fold
 import qualified Data.Tree as Tree
 import qualified Fana.Data.Either as Either
 import qualified Fana.Data.Function as Fn
+import qualified Fana.Data.Key.Map.Interface as Map
+import qualified Fana.Data.Key.Map.KeyIsString as MapS
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -45,16 +48,16 @@ render_MetaNodeName = \case { MnLinksTo -> text_linked_contents }
 layer_MetaName' :: Optic.PartialIso' (Accu.Accumulated Text) Text MetaNodeName
 layer_MetaName' = let
 	parse :: Text -> Either (Accu.Accumulated Text) MetaNodeName
-	parse = id 
+	parse = id
 		>>> Optic.up (Mn.iso render_MetaNodeName)
-		>>> Either.swap 
+		>>> Either.swap
 		>>> Bifunctor.first (const "unexpected meta node name")
 	in Optic.PartialIso render_MetaNodeName parse
 
 layer_MetaName :: (forall x . Pos.HasPosition (a x)) => Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text))
-	(a (), Either Text (Paragraph a)) 
+	(a (), Either Text (Paragraph a))
 	(a (), Either MetaNodeName (Paragraph a))
-layer_MetaName = Optic.piso_convert_error_with_input (fst >>> Pos.position_error) 
+layer_MetaName = Optic.piso_convert_error_with_low (fst >>> Pos.position_error)
 	(Optic.lift_piso (Ms.lift_layer_to_Left layer_MetaName'))
 
 -- | text value of node class signalling the separate page status
@@ -95,12 +98,12 @@ core_parse' separate_page_as_inherited (Tree.Node (a, ei_paragraph) children) = 
 core_parse :: a ~ Label.Elem id => CoreLTree a -> Either (Accu.Accumulated Text) (CoreHTree a)
 core_parse = core_parse' True >>> \case
 	[single] -> Right single
-	_ : _ : _ -> 
-		Left 
+	_ : _ : _ ->
+		Left
 			(
 				mempty
-				<> "the trunk may not be a \"" 
-				<> Accu.single text_linked_contents 
+				<> "the trunk may not be a \""
+				<> Accu.single text_linked_contents
 				<> "\" meta node"
 			)
 	_ -> Base.error "paging - parse - empty input tree"
@@ -113,11 +116,11 @@ type CoreHTree' = CoreHTree (Label.Elem Text)
 
 type NodeH a = Data.Node (a ()) (a ()) Text Text Text
 
-parse_into_node :: 
-	forall a . a ~ Label.Elem Text => 
+parse_into_node ::
+	forall a . a ~ Label.Elem Text =>
 	(a (), (Paragraph a, Bool)) -> Either (Pos.Positioned (Accu.Accumulated Text)) (NodeH a)
 parse_into_node (a, (paragraph, is_separate_page)) = let
-	make :: 
+	make ::
 		Text ->
 		Data.Node (a ()) (a ()) Text Text Text
 	make id_a = Data.Node id_a a (a, paragraph) is_separate_page
@@ -129,8 +132,8 @@ parse_into_node (a, (paragraph, is_separate_page)) = let
 render_from_node :: NodeH a -> (a (), (Paragraph a, Bool))
 render_from_node i = (fst (Data.nodeContent i), (snd (Data.nodeContent i), Data.nodeIsSeparatePage i))
 
-layer_h :: 
-	forall a . a ~ Label.Elem Text => 
+layer_h ::
+	forall a . a ~ Label.Elem Text =>
 	Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text)) (a (), (Paragraph a, Bool)) (NodeH a)
 layer_h = Optic.PartialIso render_from_node parse_into_node
 
@@ -138,10 +141,43 @@ layer_h = Optic.PartialIso render_from_node parse_into_node
 type HTree a = (Tree (NodeH a))
 type HTree' = HTree A
 
-layer :: 
-	(forall x . Pos.HasPosition (a x)) => (a ~ Label.Elem Text) => 
+translate_page_name_char :: Base.Char -> Base.Char
+translate_page_name_char c = if Base.isAlphaNum c then c else '-'
+
+translate_page_name :: Text -> Text
+translate_page_name = map translate_page_name_char
+
+pages :: Tree (NodeH a) -> [NodeH a]
+pages = toList >>> Base.filter Data.nodeIsSeparatePage
+
+address_of_page :: NodeH A -> Text
+address_of_page = Optic.to_list Data.texts_in_Node >>> Fold.fold >>> translate_page_name
+
+add_address_to_page :: NodeH A -> (Text, NodeH A)
+add_address_to_page n = (address_of_page n, n)
+
+key_page_map :: Tree (NodeH A) -> Either (Base.String, [NodeH A]) (MapS.Map Base.Char (NodeH A))
+key_page_map = pages >>> map add_address_to_page >>> Map.from_list_of_uniques
+
+page_name_repetition_in_document :: Tree (NodeH A) -> Maybe (Pos.PositionedMb (Accu.Accumulated Text))
+page_name_repetition_in_document tree =
+	case key_page_map tree of
+		Left repetition ->
+			let message =
+				Accu.single "Document is invalid. Page name ~ \"" <>
+				Accu.single (fst repetition) <>
+				Accu.single "\" is repeated"
+				in Just (Pos.without_position message)
+		Right _ -> Nothing
+
+layer ::
+	(a ~ Label.Elem Text) =>
 	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) (InputTree a) (Tree (NodeH a))
-layer = Category2.empty 
-	>**> Optic.piso_convert_error Pos.maybefy_positioned (Optic.lift_piso layer_MetaName)
-	>**> Optic.piso_convert_error Pos.without_position core_layer
-	>**> Optic.piso_convert_error Pos.maybefy_positioned (Optic.lift_piso layer_h)
+layer = 
+	let
+		s =
+			Category2.empty
+			>**> Optic.piso_convert_error Pos.maybefy_positioned (Optic.lift_piso layer_MetaName)
+			>**> Optic.piso_convert_error Pos.without_position core_layer
+			>**> Optic.piso_convert_error Pos.maybefy_positioned (Optic.lift_piso layer_h)
+		in s

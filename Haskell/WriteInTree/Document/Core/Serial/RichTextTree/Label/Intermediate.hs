@@ -73,7 +73,7 @@ index_classes = let
 	to_pair (Class s t) = (t, s)
 	error_message :: Text -> Accu.Accumulated Text
 	error_message text = "multiple instances of class \"" <> Accu.single text <> "\""
-	in map to_pair >>> MapI.from_list_of_uniques >>> Bifunctor.first error_message
+	in map to_pair >>> MapI.from_list_of_uniques >>> Bifunctor.first (fst >>> error_message)
 
 add_new :: [Text] -> Classes -> Classes
 add_new incoming_classes (Classes trunk_source old_classes) = let
