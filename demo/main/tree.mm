@@ -69,7 +69,7 @@
 <node TEXT="This is a software that transforms text-tree into html website. The name &quot;write-in-tree&quot; is meant to mean both a technology and a concrete software [the &quot;compiler&quot;]." POSITION="right" ID="ID_446310165"/>
 <node TEXT="Is for those who want to write a book [or article], want to write and maintain it fast, without hassle, but beside the comfort of author also want to give the readers a convenient html website format." POSITION="right" ID="ID_1534207874"/>
 <node TEXT="This software [the whole thing] is free." POSITION="right" ID="ID_291836033"/>
-<node TEXT="This documentation is about language version 2." POSITION="right" ID="ID_1526836883"/>
+<node TEXT="This documentation is about language version 3." POSITION="right" ID="ID_1526836883"/>
 <node TEXT="*** The Bad" POSITION="right" ID="ID_105200887">
 <node TEXT="Parallel work on a document through multiple threads is usually not possible." ID="ID_447801329">
 <node TEXT="This is because the lack of good version controlling for tree structured data [like XML]." ID="ID_1891298457"/>
@@ -94,9 +94,6 @@
 </node>
 <node TEXT="*** Popularity" POSITION="right" ID="ID_164399876">
 <node TEXT="Nobody uses or even knows about this tech known by the author of this tech." ID="ID_699435795"/>
-</node>
-<node TEXT="*** The Current Version " POSITION="right" ID="ID_1895828313">
-<node TEXT="of the language described in this tutor is 1.1." ID="ID_1298108279"/>
 </node>
 <node TEXT="*-&gt; Basic workflow" POSITION="right" ID="ID_1701096323">
 <node TEXT="You write your book&apos;s contents in text tree format first. A text tree is a tree of simple text lines." ID="ID_1538148038">

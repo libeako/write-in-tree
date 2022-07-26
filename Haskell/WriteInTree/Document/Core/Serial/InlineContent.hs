@@ -26,13 +26,12 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 type Text = Base.String
 
 
-data MetaNodeName = MnImage	| MnSpace
+data MetaNodeName = MnImage
 	deriving (Base.Enum, Base.Bounded)
 
 render_MetaNodeName :: MetaNodeName -> Text
 render_MetaNodeName = \case
 	MnImage -> "image"
-	MnSpace -> "space"
 
 type ElemIntermediate = Label.Elem Text (Either MetaNodeName Ts.Content')
 type Elem = Label.Elem Text (Data.InlineVisual (Label.Elem Text ()) Ts.Content')
@@ -72,7 +71,6 @@ parse_image (Tree.Node trunk children) = let
 parse :: WholeIntermediate -> Parsed Whole
 parse (tree@(Tree.Node trunk children)) = case HasSingle.elem trunk of
 	Left mn -> case mn of
-		MnSpace -> map (Tree.Node (Data.Text (Right " ") <$ trunk)) (traverse parse children)
 		MnImage -> parse_image tree
 	Right normal_text -> map (Tree.Node (Data.Text normal_text <$ trunk)) (traverse parse children)
 
