@@ -115,7 +115,7 @@ wrap_by_header_content =
 		Just header -> wrap_subcontent_by_div >>> pure >>> (header :)
 
 
-render_inline_visual :: UI.InlineVisual a Text -> Xml.ContentL
+render_inline_visual :: UI.InlineVisual Text -> Xml.ContentL
 render_inline_visual (UI.Text t) = Xml.text t
 
 render_link :: Maybe (OData.Link OData.AO UI.NodeIdU) -> OData.Site UI.NodeIdU -> Fn.Endo Xml.ContentL

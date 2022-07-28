@@ -10,7 +10,7 @@ import qualified WriteInTree.Output.Pagination as O
 type Text = Base.String
 
 
-translateInlineVisual :: UI.InlineVisual () Text -> UI.InlineVisual () Text
+translateInlineVisual :: UI.InlineVisual Text -> UI.InlineVisual Text
 translateInlineVisual (UI.Text t) = UI.Text t
 
 translateLink :: UI.Link () UI.NodeIdU -> O.Link O.AI UI.NodeIdU

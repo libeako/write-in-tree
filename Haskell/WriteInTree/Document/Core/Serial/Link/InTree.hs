@@ -34,7 +34,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 type Text = Base.String
 type A = Label.Elem Text -- additional info wrapper
 type AB = (,) (A ())
-type Visual = Data.InlineVisual (A ())
+type Visual = Data.InlineVisual
 type Inline = Data.Inline (A ()) (A ()) Text
 type InputTreeOfLink l r = (l, [Tree (Either l r)])
 type InputTreeOfLink' = InputTreeOfLink (A MetaNodeName) (A (Visual Ts.Content'))

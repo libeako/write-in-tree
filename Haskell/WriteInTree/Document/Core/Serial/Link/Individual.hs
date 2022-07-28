@@ -32,7 +32,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 type Text = Base.String
 type A = Label.Elem Text -- additional info wrapper
 type AB = (,) (A ())
-type Visual = Data.InlineVisual (A ())
+type Visual = Data.InlineVisual
 
 data MetaNodeName = MnLink deriving (Base.Enum, Base.Bounded)
 
