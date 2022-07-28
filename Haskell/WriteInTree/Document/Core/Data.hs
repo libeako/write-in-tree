@@ -48,7 +48,7 @@ data Inline (al :: Type) a ia e =
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 
-type Paragraph al a ia e = [(a, Inline al a ia e)]
+type Paragraph al a ia e = (a, Inline al a ia e)
 
 data Node al a (id_u :: Type) ia e =
 	Node
@@ -188,29 +188,19 @@ internal_address_in_Inline =
 		>**>^ Optic.prism_Maybe 
 		>**>^ link_in_Inline @a
 
-inlines_in_Paragraph :: 
-	Optic.Traversal 
-		(Inline al a ia1 e) (Inline al a ia2 e) 
-		(Paragraph al a ia1 e) (Paragraph al a ia2 e)
-inlines_in_Paragraph = Category2.empty >**>^ Optic.lens_2 >**>^ Optic.from_Traversable
-
 ofParagraph_additional :: Optic.Traversal a1 a2 (Paragraph al a1 ia e) (Paragraph al a2 ia e)
-ofParagraph_additional = 
-	Category2.empty
-	>**>^ Optic.product (Category2.empty, ofInline_additional) 
-	>**>^ Optic.from_Traversable
+ofParagraph_additional = Optic.product (Category2.empty, ofInline_additional)
 
 ofParagraph_additional_to_link :: Optic.Traversal al1 al2 (Paragraph al1 a ia e) (Paragraph al2 a ia e)
 ofParagraph_additional_to_link = 
 	Category2.empty 
 	>**>^ ofInline_additional_to_link 
-	>**>^ Optic.lens_2 
-	>**>^ Optic.from_Traversable
+	>**>^ Optic.lens_2
 
 inlines_in_Node :: 
 	forall al a id_u ia1 ia2 e .
 	Optic.Traversal (Inline al a ia1 e) (Inline al a ia2 e) (Node al a id_u ia1 e) (Node al a id_u ia2 e)
-inlines_in_Node = inlines_in_Paragraph >**>^ inNode_content_elem
+inlines_in_Node = Category2.empty >**>^ Optic.lens_2 >**>^ inNode_content_elem
 
 links_in_Node :: 
 	forall al a id_u ia1 ia2 e .
@@ -223,7 +213,7 @@ texts_in_Node :: forall u e id_u ia al . Optic.Traversal' e (Node al u id_u ia e
 texts_in_Node = Category2.empty
 	>**>^ text_in_InlineVisual
 	>**>^ visual_in_Inline
-	>**>^ inlines_in_Paragraph
+	>**>^ Optic.lens_2
 	>**>^ inNode_content_elem
 
 wit_source_in_Node :: 
@@ -276,7 +266,7 @@ internal_address_in_node ::
 	Optic.Traversal ia1 ia2 (Node al u id_u ia1 e) (Node al u id_u ia2 e)
 internal_address_in_node = 
 	Category2.empty
-	>**>^ internal_address_in_Inline >**>^ inlines_in_Paragraph
+	>**>^ internal_address_in_Inline >**>^ Optic.lens_2
 	>**>^ inNode_content_elem
 
 node_in_tree ::

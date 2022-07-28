@@ -26,7 +26,7 @@ translateInline i = UI.Inline
 	}
 
 translateParagraph :: UI.Paragraph () () UI.NodeIdU Text -> O.Paragraph O.AI UI.NodeIdU
-translateParagraph p = (map >>> map) translateInline p
+translateParagraph p = map translateInline p
 
 translateStructure :: UI.StructureAsTree () () UI.NodeIdU UI.NodeIdU Text -> O.Structure O.AI UI.NodeIdU
 translateStructure (Tree.Node trunk children) = 

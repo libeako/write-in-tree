@@ -287,7 +287,6 @@
 <node TEXT="*** Structural Element Types" ID="ID_1606462910">
 <node TEXT="*** Paragraph" ID="ID_507452569">
 <node TEXT="Each leaf text node represents a paragraph." ID="ID_924539501"/>
-<node TEXT="Several paragraphs can be united into 1 single by putting them under a &quot;# paragraph&quot; node. This may be necessary if you want to make only a portion of a paragraph a link." ID="ID_1093758359"/>
 </node>
 <node TEXT="*** Section" ID="ID_538371265">
 <node TEXT="Paragraphs can be grouped into a section - just put them under a plain text node, whose content will be the title of the section." ID="ID_1928147339"/>
