@@ -4,10 +4,9 @@ module WriteInTree.Document.Core.Data where
 
 import Data.Maybe (catMaybes)
 import Fana.Data.Identified (Identified)
-import Fana.Haskell.DescribingClass
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import Prelude (String, Int, FilePath)
+import Prelude (String, Int)
 
 import qualified Data.Tree as Tree
 import qualified Data.Foldable as Fold
@@ -28,9 +27,6 @@ data NodeIdUCore = NodeIdUCore
 -- | at this stage of the application this type is used instead of the user-given string alone.
 type NodeIdU = Identified Int NodeIdUCore
 
-data InlineVisual e = Text e
-	deriving (Eq, Functor, Foldable, Traversable)
-
 -- | Can be internal or external.
 data Link a ia = 
 	  LIn (a, ia) -- ^ | Internal.
@@ -43,7 +39,7 @@ type Link' al a ia = (a, (al, Link a ia))
 -- type parameter 'al' hold additional info specifically of links;
 data Inline (al :: Type) a ia e = 
 	Inline
-	{ ilVisual :: InlineVisual e
+	{ ilVisual :: e
 	, ilLink :: Maybe (Link' al a ia)
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
@@ -102,24 +98,6 @@ uids_int_doc_with_nodes = docTree >>> Fold.toList >>> map attach_its_uid_to_node
 
 -- optics :
 
-picture_in_InlineVisual :: forall a1 a2 e . Optic.AffineTraversal (a1, FilePath) (a2, FilePath) (InlineVisual e) (InlineVisual e)
-picture_in_InlineVisual =
-	Optic.AffineTraversal
-		(
-		\ (Text e) ->
-			let
-				r :: InlineVisual e
-				r = Text e
-				in (Left r, const r)
-		)
-
-text_in_InlineVisual :: Optic.Prism' e (InlineVisual e)
-text_in_InlineVisual = 
-	Optic.from_up_and_match Text (\ c1 -> case c1 of { Text t -> Right t })
-
-ofInlineVisual_additional :: Optic.AffineTraversal a1 a2 (InlineVisual e) (InlineVisual e)
-ofInlineVisual_additional = Category2.empty >**>^ Optic.lens_1 >**>^ picture_in_InlineVisual
-
 ofLink_internals :: 
 	Optic.Iso 
 		(Either (a1, ia1) (a1, String)) (Either (a2, ia2) (a2, String))
@@ -143,11 +121,11 @@ ofLink'_additional = let
 
 ofInline_internals ::
 	Optic.Iso
-		((InlineVisual e, Maybe (Link' al a1 ia))) ((InlineVisual e, Maybe (Link' al a2 ia)))
+		((e, Maybe (Link' al a1 ia))) ((e, Maybe (Link' al a2 ia)))
 		(Inline al a1 ia e) (Inline al a2 ia e)
 ofInline_internals = Optic.Iso (\ (Inline v l) -> (v, l)) (uncurry Inline)
 
-visual_in_Inline :: Optic.Lens' (InlineVisual e) (Inline al u ia e)
+visual_in_Inline :: Optic.Lens' e (Inline al u ia e)
 visual_in_Inline = Optic.lens_from_get_set ilVisual (\ e c -> c { ilVisual = e })
 
 link_in_Inline ::
@@ -159,14 +137,12 @@ link_in_Inline = Optic.lens_from_get_set ilLink (\ e c -> c { ilLink = e })
 
 ofInline_additional :: forall al ia e a1 a2 . Optic.Traversal a1 a2 (Inline al a1 ia e) (Inline al a2 ia e)
 ofInline_additional = let
-	from_visual ::  Optic.Traversal a1 a2 (InlineVisual e) (InlineVisual e)
-	from_visual = convert_from_describing_class_4 ofInlineVisual_additional
 	from_link :: Optic.Traversal a1 a2 (Maybe (Link' al a1 ia)) (Maybe (Link' al a2 ia))
 	from_link = Category2.empty >**>^ ofLink'_additional >**>^ Optic.prism_Maybe
 	from_internals ::
 		Optic.Traversal a1 a2
-			(InlineVisual e, Maybe (Link' al a1 ia)) (InlineVisual e, Maybe (Link' al a2 ia))
-	from_internals = Optic.product (from_visual, from_link)
+			(e, Maybe (Link' al a1 ia)) (e, Maybe (Link' al a2 ia))
+	from_internals = from_link >**>^ Optic.lens_2
 	in Category2.empty >**>^ from_internals >**>^ ofInline_internals
 
 ofInline_additional_to_link ::
@@ -218,7 +194,6 @@ links_in_Node = Category2.empty >**>^ link_in_Inline @a @ia1 @ia2 >**>^ inlines_
 
 texts_in_Node :: forall u e id_u ia al . Optic.Traversal' e (Node al u id_u ia e)
 texts_in_Node = Category2.empty
-	>**>^ text_in_InlineVisual
 	>**>^ visual_in_Inline
 	>**>^ Optic.lens_2
 	>**>^ inNode_content_elem

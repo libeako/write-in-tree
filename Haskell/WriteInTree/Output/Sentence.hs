@@ -22,19 +22,18 @@ split_part =
 	let
 		step :: D.Inline al u ia Text -> (D.Inline al u ia Text, Maybe (D.Inline al u ia Text))
 		step inline =
-			case D.ilVisual inline of
-				D.Text text ->
-					let
-						is_delimiter :: Char -> Bool
-						is_delimiter = (== ';')
-						(before_delimiter, rest) = List.break is_delimiter text
-						pure_rest = List.dropWhile is_delimiter rest
-						current = Optic.fill D.visual_in_Inline (D.Text before_delimiter) inline
-						future = 
-							case rest of
-								[] -> Nothing
-								_ -> Just (Optic.fill D.visual_in_Inline (D.Text pure_rest) inline)
-						in (current, future)
+			let
+				text = D.ilVisual inline
+				is_delimiter :: Char -> Bool
+				is_delimiter = (== ';')
+				(before_delimiter, rest) = List.break is_delimiter text
+				pure_rest = List.dropWhile is_delimiter rest
+				current = Optic.fill D.visual_in_Inline before_delimiter inline
+				future = 
+					case rest of
+						[] -> Nothing
+						_ -> Just (Optic.fill D.visual_in_Inline pure_rest inline)
+				in (current, future)
 		in map step
 
 possibly_empty_sentences :: D.Inline () a ia Text -> [D.Inline () a ia Text]

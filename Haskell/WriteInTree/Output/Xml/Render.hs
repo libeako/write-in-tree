@@ -115,8 +115,8 @@ wrap_by_header_content =
 		Just header -> wrap_subcontent_by_div >>> pure >>> (header :)
 
 
-render_inline_visual :: UI.InlineVisual Text -> Xml.ContentL
-render_inline_visual (UI.Text t) = Xml.text t
+render_inline_visual :: Text -> Xml.ContentL
+render_inline_visual t = Xml.text t
 
 render_link :: Maybe (OData.Link OData.AO UI.NodeIdU) -> OData.Site UI.NodeIdU -> Fn.Endo Xml.ContentL
 render_link =
@@ -138,14 +138,14 @@ unite_neighboring_texts =
 	\case
 		[] -> []
 		[x] -> [x]
-		(UI.Inline (UI.Text t1) Nothing : UI.Inline (UI.Text t2) Nothing : rest) ->
-			UI.Inline (UI.Text (t1 <> t2)) Nothing : unite_neighboring_texts rest
+		(UI.Inline t1 Nothing : UI.Inline t2 Nothing : rest) ->
+			UI.Inline (t1 <> t2) Nothing : unite_neighboring_texts rest
 		(to_not_change : rest) -> to_not_change : unite_neighboring_texts rest
 
 render_possibly_sentence :: OData.Site UI.NodeIdU -> OData.Inline OData.AO UI.NodeIdU -> Xml.ContentL
 render_possibly_sentence site inline =
 	case inline of
-		UI.Inline (UI.Text t) Nothing ->
+		UI.Inline t Nothing ->
 			Xml.element_as_content ((pure >>> Html.classify_into [text_class_sentence]) (render_inline inline site))
 		_ -> render_inline inline site
 

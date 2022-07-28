@@ -40,7 +40,7 @@ layer_move_additional_info = Optic.iso_up HasSingle.iso_separate
 
 layer_either :: Optic.Iso' (Inline a Ts.Content') (Either Text (Inline a Text))
 layer_either = let
-	down = Base.either (Left >>> Data.Text >>> flip Data.Inline Nothing) (map Right)
+	down = Base.either (Left >>> flip Data.Inline Nothing) (map Right)
 	in Optic.Iso down sequenceA
 
 type CoreElemL a = (a (), Either Text (Inline a Text))

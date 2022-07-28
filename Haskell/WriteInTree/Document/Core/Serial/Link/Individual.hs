@@ -32,11 +32,10 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 type Text = Base.String
 type A = Label.Elem Text -- additional info wrapper
 type AB = (,) (A ())
-type Visual = Data.InlineVisual
 
 data MetaNodeName = MnLink deriving (Base.Enum, Base.Bounded)
 
-type Concrete t = t (A MetaNodeName) (A (Visual Ts.Content'))
+type Concrete t = t (A MetaNodeName) (A Ts.Content')
 type WholeL l r = (l, [Tree (Either l r)])
 type WholeL' = Concrete WholeL
 type ParseError = Pos.Positioned (Accu.Accumulated Text)
@@ -46,26 +45,10 @@ layer_text_structure :: Optic.PartialIso' (Accu.Accumulated Text) Ts.Content' Te
 layer_text_structure = let
 	error_description = "descendants of a link header node must be of type regular"
 	in Optic.PartialIso Right (Bifunctor.first (const (Accu.single error_description)))
-layer_text_structure_in_A :: Optic.PartialIso' ParseError (A (Visual Ts.Content')) (A (Visual Text))
+layer_text_structure_in_A :: Optic.PartialIso' ParseError (A Ts.Content') (A Text)
 layer_text_structure_in_A =
 	Optic.piso_convert_error_with_low Pos.position_error 
-		((Optic.lift_piso >>> Optic.lift_piso) layer_text_structure)
-
-
-parse_visual :: forall e . A (Visual e) -> A e
-parse_visual i = let
-	v :: Visual e
-	v = HasSingle.elem i
-	in case v of
-		Data.Text e -> e <$ i
-
-layer_visual :: Optic.Iso' (A (Visual e)) (A e)
-layer_visual = Optic.Iso (map Data.Text) parse_visual
-
-
-layer_visual_whole :: Optic.PartialIso' ParseError (A (Visual Ts.Content')) (A Text)
-layer_visual_whole = layer_text_structure_in_A >**>^ layer_visual
-
+		((Optic.lift_piso) layer_text_structure)
 
 layer_either :: forall l r e . l ~ A e => Optic.PartialIso' ParseError (Either l r) r
 layer_either = let
@@ -75,11 +58,10 @@ layer_either = let
 		>>> flip Pos.Positioned "node under link head node must not be link head"
 	in Optic.PartialIso Right (Bifunctor.first error)
 
-
 layer_either_whole :: 
 	l ~ A e => 
-	Optic.PartialIso' ParseError (Either l (A (Visual Ts.Content'))) (A Text)
-layer_either_whole = layer_either >**> layer_visual_whole
+	Optic.PartialIso' ParseError (Either l (A Ts.Content')) (A Text)
+layer_either_whole = layer_either >**> layer_text_structure_in_A
 
 
 data DestinationType = Internal | External deriving (Base.Enum, Base.Bounded)
@@ -163,7 +145,7 @@ layer_with_trunk = Optic.Iso render_trunk parse_trunk
 
 layer_general :: 
 	l ~ A MetaNodeName => 
-	Optic.PartialIso' ParseError (l, [Tree (Either l (A (Visual Ts.Content')))]) (AB (AB (Data.Link (A ()) Text)))
+	Optic.PartialIso' ParseError (l, [Tree (Either l (A Ts.Content'))]) (AB (AB (Data.Link (A ()) Text)))
 layer_general = Category2.empty
 	>**>^ (Optic.lift_piso >>> Optic.lift_piso >>> Optic.lift_piso) layer_either_whole 
 	>**>^ layer_core 

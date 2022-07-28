@@ -34,14 +34,13 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 type Text = Base.String
 type A = Label.Elem Text -- additional info wrapper
 type AB = (,) (A ())
-type Visual = Data.InlineVisual
 type Inline = Data.Inline (A ()) (A ()) Text
 type InputTreeOfLink l r = (l, [Tree (Either l r)])
-type InputTreeOfLink' = InputTreeOfLink (A MetaNodeName) (A (Visual Ts.Content'))
+type InputTreeOfLink' = InputTreeOfLink (A MetaNodeName) (A Ts.Content')
 type LinksSeparated l r = Tree (r, [(l, [Tree (Either l r)])])
 type LinkSeparated l r = Tree (r, Maybe (l, [Tree (Either l r)]))
-type ElemL = A (Visual Ts.Content')
-type ContainerL e = Tree (A (Visual e))
+type ElemL = A Ts.Content'
+type ContainerL e = Tree (A e)
 type ElemEither = Either (A MetaNodeName) (A Ts.Content')
 type ElemH = ElemL
 type WholeL = ContainerL Ts.Content'
@@ -62,24 +61,11 @@ layer_first = let
 
 layer_meta_name_tree :: Optic.Iso' (ContainerL Ts.Content') (ContainerL (Either MetaNodeName Ts.Content'))
 layer_meta_name_tree = 
-	(Optic.iso_up >>> Optic.iso_up >>> Optic.iso_up)
+	(Optic.iso_up >>> Optic.iso_up)
 		(Ms.layer_in_node_text render_MetaNodeName)
 
-parse_either_from_visual :: Visual (Either l r) -> Either l (Visual r)
-parse_either_from_visual (Data.Text ei) = Base.either Left (Data.Text >>> Right) ei
-
-
-render_either_into_visual :: Either l (Visual r) -> Visual (Either l r)
-render_either_into_visual = Base.either (Left >>> Data.Text) (map Right)
-
-layer_either_with_visual :: Optic.Iso' (Visual (Either l r)) (Either l (Visual r))
-layer_either_with_visual = Optic.Iso render_either_into_visual parse_either_from_visual
-
-layer_inside_elem :: Optic.Iso' (Visual Ts.Content') (Either MetaNodeName (Visual Ts.Content'))
-layer_inside_elem = 
-	Category2.empty
-	>**> Optic.iso_up (Ms.layer_in_node_text render_MetaNodeName)
-	>**> layer_either_with_visual
+layer_inside_elem :: Optic.Iso' Ts.Content' (Either MetaNodeName Ts.Content')
+layer_inside_elem = Ms.layer_in_node_text render_MetaNodeName
 
 layer_Either :: forall a l r . Fana.HasSingle a => Optic.Iso' (a (Either l r)) (Either (a l) (a r))
 layer_Either = let
@@ -90,7 +76,7 @@ layer_Either = let
 
 layer_inside_node :: 
 	Fana.HasSingle a => 
-	Optic.Iso' (a (Visual Ts.Content')) (Either (a MetaNodeName) (a (Visual Ts.Content')))
+	Optic.Iso' (a Ts.Content') (Either (a MetaNodeName) (a Ts.Content'))
 layer_inside_node = Optic.iso_up layer_inside_elem >**> layer_Either
 
 
@@ -136,17 +122,17 @@ layer_first_link_of_node = let
 	in Optic.PartialIso render parse
 
 
-attach_link_to_visual :: (A (Visual Ts.Content'), Maybe (AB (AB (Data.Link (A ()) Text)))) -> A (Inline Ts.Content')
+attach_link_to_visual :: (A Ts.Content', Maybe (AB (AB (Data.Link (A ()) Text)))) -> A (Inline Ts.Content')
 attach_link_to_visual (visual, link) = map (flip Data.Inline link) visual
 
-detach_link_to_visual :: A (Inline Ts.Content') -> (A (Visual Ts.Content'), Maybe (AB (AB (Data.Link (A ()) Text))))
+detach_link_to_visual :: A (Inline Ts.Content') -> (A Ts.Content', Maybe (AB (AB (Data.Link (A ()) Text))))
 detach_link_to_visual i = let
 	inline :: Inline Ts.Content'
 	inline = HasSingle.elem i
 	in (Data.ilVisual inline <$ i, Data.ilLink inline)
 
 layer_tach_link_to_visual :: 
-	Optic.Iso' (A (Visual Ts.Content'), Maybe (AB (AB (Data.Link (A ()) Text)))) (A (Inline Ts.Content'))
+	Optic.Iso' (A Ts.Content', Maybe (AB (AB (Data.Link (A ()) Text)))) (A (Inline Ts.Content'))
 layer_tach_link_to_visual = Optic.Iso detach_link_to_visual attach_link_to_visual
 
 
