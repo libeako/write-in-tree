@@ -28,7 +28,7 @@ data NodeIdUCore = NodeIdUCore
 -- | at this stage of the application this type is used instead of the user-given string alone.
 type NodeIdU = Identified Int NodeIdUCore
 
-data InlineVisual a e = Text e | Image (a, FilePath)
+data InlineVisual a e = Text e
 	deriving (Eq, Functor, Foldable, Traversable)
 
 -- | Can be internal or external.
@@ -102,13 +102,20 @@ uids_int_doc_with_nodes = docTree >>> Fold.toList >>> map attach_its_uid_to_node
 
 -- optics :
 
-picture_in_InlineVisual :: Optic.Prism (a1, FilePath) (a2, FilePath) (InlineVisual a1 e) (InlineVisual a2 e)
-picture_in_InlineVisual = 
-	Optic.from_up_and_match Image (\case  { Image t -> Right t; Text t -> Left (Text t) })
+picture_in_InlineVisual :: forall a1 a2 e. Optic.AffineTraversal (a1, FilePath) (a2, FilePath) (InlineVisual a1 e) (InlineVisual a2 e)
+picture_in_InlineVisual =
+	Optic.AffineTraversal
+		(
+		\ (Text e) ->
+			let
+				r :: InlineVisual a2 e
+				r = Text e
+				in (Left r, const r)
+		)
 
 text_in_InlineVisual :: Optic.Prism' e (InlineVisual ai e)
 text_in_InlineVisual = 
-	Optic.from_up_and_match Text (\ c1 -> case c1 of { Text t -> Right t; Image _ -> Left c1 })
+	Optic.from_up_and_match Text (\ c1 -> case c1 of { Text t -> Right t })
 
 ofInlineVisual_additional :: Optic.AffineTraversal a1 a2 (InlineVisual a1 e) (InlineVisual a2 e)
 ofInlineVisual_additional = Category2.empty >**>^ Optic.lens_1 >**>^ picture_in_InlineVisual

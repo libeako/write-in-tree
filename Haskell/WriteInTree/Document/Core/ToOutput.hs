@@ -12,7 +12,6 @@ type Text = Base.String
 
 translateInlineVisual :: UI.InlineVisual () Text -> UI.InlineVisual () Text
 translateInlineVisual (UI.Text t) = UI.Text t
-translateInlineVisual (UI.Image p) = UI.Image p
 
 translateLink :: UI.Link () UI.NodeIdU -> O.Link O.AI UI.NodeIdU
 translateLink (UI.LIn ia) = UI.LIn (map Right ia)

@@ -271,9 +271,6 @@
 <node TEXT="*** Text" ID="ID_367424141">
 <node TEXT="They are simply just entered without any special formatting." ID="ID_1461762866"/>
 </node>
-<node TEXT="*** Image" ID="ID_531503458">
-<node TEXT="Represented by an &quot;# image&quot; node. This node must have exactly 1 chlid, a plain text node containing the path to the image file." ID="ID_1412565511"/>
-</node>
 <node TEXT="*** Links" ID="ID_1343525210">
 <node TEXT="Any inline element may be a link. To make a node link, attach exactly 1 child to it, a &quot;links-to&quot; node. This node should have exactly 2 children:" ID="ID_14035244">
 <node TEXT="The type of link: &quot;external&quot; or &quot;internal&quot;." ID="ID_1831456204"/>

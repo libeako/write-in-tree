@@ -23,7 +23,6 @@ split_part =
 		step :: D.Inline al u ia Text -> (D.Inline al u ia Text, Maybe (D.Inline al u ia Text))
 		step inline =
 			case D.ilVisual inline of
-				D.Image _ -> (inline, Nothing)
 				D.Text text ->
 					let
 						is_delimiter :: Char -> Bool

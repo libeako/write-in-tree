@@ -116,12 +116,7 @@ wrap_by_header_content =
 
 
 render_inline_visual :: UI.InlineVisual a Text -> Xml.ContentL
-render_inline_visual =
-	\ case
-		UI.Text t -> Xml.text t
-		UI.Image (_, file_path) -> 
-			let head = Xml.Head "img" [("src", file_path)] def
-			in Xml.element_as_content (Xml.tree head [])
+render_inline_visual (UI.Text t) = Xml.text t
 
 render_link :: Maybe (OData.Link OData.AO UI.NodeIdU) -> OData.Site UI.NodeIdU -> Fn.Endo Xml.ContentL
 render_link =

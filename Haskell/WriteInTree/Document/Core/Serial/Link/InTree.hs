@@ -66,9 +66,8 @@ layer_meta_name_tree =
 		(Ms.layer_in_node_text render_MetaNodeName)
 
 parse_either_from_visual :: Visual (Either l r) -> Either l (Visual r)
-parse_either_from_visual = \case
-	Data.Text ei -> Base.either Left (Data.Text >>> Right) ei
-	Data.Image fp -> Right (Data.Image fp)
+parse_either_from_visual (Data.Text ei) = Base.either Left (Data.Text >>> Right) ei
+
 
 render_either_into_visual :: Either l (Visual r) -> Visual (Either l r)
 render_either_into_visual = Base.either (Left >>> Data.Text) (map Right)

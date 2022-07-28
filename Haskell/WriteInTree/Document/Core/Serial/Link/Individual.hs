@@ -52,22 +52,19 @@ layer_text_structure_in_A =
 		((Optic.lift_piso >>> Optic.lift_piso) layer_text_structure)
 
 
-parse_visual :: forall e . A (Visual e) -> Either ParseError (A e)
+parse_visual :: forall e . A (Visual e) -> A e
 parse_visual i = let
 	v :: Visual e
 	v = HasSingle.elem i
 	in case v of
-		Data.Text e -> Right (e <$ i)
-		Data.Image _ -> let
-			error_description = "node under link head node must not be of special inline type"
-			in Left (Pos.Positioned (Pos.get_position i) error_description)
+		Data.Text e -> e <$ i
 
-layer_visual :: Optic.PartialIso' ParseError (A (Visual e)) (A e)
-layer_visual = Optic.PartialIso (map Data.Text) parse_visual
+layer_visual :: Optic.Iso' (A (Visual e)) (A e)
+layer_visual = Optic.Iso (map Data.Text) parse_visual
 
 
 layer_visual_whole :: Optic.PartialIso' ParseError (A (Visual Ts.Content')) (A Text)
-layer_visual_whole = layer_text_structure_in_A >**> layer_visual
+layer_visual_whole = layer_text_structure_in_A >**>^ layer_visual
 
 
 layer_either :: forall l r e . l ~ A e => Optic.PartialIso' ParseError (Either l r) r
