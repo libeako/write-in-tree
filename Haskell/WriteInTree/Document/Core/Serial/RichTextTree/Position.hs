@@ -1,7 +1,8 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Position
 (
 	Position,
-	HasPosition (..), Positioned (..), PositionedMb (..), 
+	HasPosition (..), Positioned (..), PositionedMb (..),
+	position_error_in_piso,
 	position_error, without_position, maybefy_positioned, fill_position,
 	show_position,
 )
@@ -9,10 +10,12 @@ where
 
 import Fana.Prelude
 
+import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Maybe as Base
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
+import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 
@@ -43,6 +46,17 @@ instance HasPosition (Positioned e) where get_position = position
 
 position_error :: HasPosition a => a -> e -> Positioned e
 position_error = get_position >>> Positioned
+
+position_error_in_piso ::
+	forall e pr pp dr dp .
+	HasPosition pp =>
+	Optic.PartialIso e pr pp dr dp ->
+	Optic.PartialIso (Positioned e) pr pp dr dp
+position_error_in_piso (Optic.PartialIso render parse) =
+	let
+		new_parse :: pp -> Either (Positioned e) dp
+		new_parse = (get_position >>> Positioned >>> Bifunctor.first) <*> parse
+		in Optic.PartialIso render new_parse
 
 -- | maybe positioned.
 data PositionedMb e = PositionedMb

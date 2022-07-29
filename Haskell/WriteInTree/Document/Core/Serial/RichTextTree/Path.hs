@@ -2,7 +2,6 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Path
 (
 	ElemHE (..), ElemHET,
 	layer,
-	lift_serialization_layer,
 )
 where
 
@@ -85,13 +84,3 @@ core_iso = Optic.Iso down up
 
 layer :: Optic.Iso' (Tree ElemLET) (Tree ElemHET)
 layer = l_tree_iso >**> core_iso
-
-lift_serialization_layer ::
-	forall c e pr pp dr dp .
-	(Traversable c, forall l . HasPosition (c l)) =>
-	Optic.PartialIso e pr pp dr dp -> Optic.PartialIso (Positioned e) (c pr) (c pp) (c dr) (c dp)
-lift_serialization_layer (Optic.PartialIso render parse) =
-	let
-		new_parse :: c pp -> Either (Positioned e) (c dp)
-		new_parse c = Bifunctor.first (Positioned (get_position c)) (traverse parse c)
-		in Optic.PartialIso (map render) new_parse

@@ -16,7 +16,6 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaName as Mn
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
@@ -67,7 +66,7 @@ layer_1 ::
 		(c (p Text))
 		(c (p (Either mn Ts.Content')))
 layer_1 meta_name_to_text = 
-	Optic.lift_piso (Path.lift_serialization_layer 
+	Optic.lift_piso ((Optic.lift_piso >>> Pos.position_error_in_piso)
 		(Ts.layer >**> convert_from_describing_class_4 (layer_in_node_text meta_name_to_text)))
 
 -- | a not first layer in in-node text processing.

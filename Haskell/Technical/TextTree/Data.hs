@@ -3,7 +3,7 @@ module Technical.TextTree.Data
 (
 	Text,
 	Elem(..), Elem', 
-	Tree, Tree'
+	Tree, TreeT
 )
 where
 
@@ -28,4 +28,4 @@ type Elem' = Elem Text
 instance Default v => Default (Elem v) where def = Elem def def
 
 type Tree v = Tf.Tree (Elem v)
-type Tree' = Tree Text
+type TreeT = Tree Text

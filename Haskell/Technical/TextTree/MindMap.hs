@@ -141,17 +141,17 @@ layer_xml :: Optic.PartialIso' () Text Xml.Element
 layer_xml = Optic.PartialIso Xml.showTopElement (Xml.parseXMLDoc >>> Either.upgrade_Maybe)
 
 -- | mindmap layer.
-layer_mm :: Optic.PartialIso' ParseErrorMindMap Xml.Element Data.Tree'
+layer_mm :: Optic.PartialIso' ParseErrorMindMap Xml.Element Data.TreeT
 layer_mm = Optic.PartialIso render_to_whole_mm_file (parse_from_xml_element >>> extract_single_elem)
 
-layer :: Optic.PartialIso' ParseError Text Data.Tree'
+layer :: Optic.PartialIso' ParseError Text Data.TreeT
 layer = 
 	(Optic.piso_convert_error (const XmlParseError) layer_xml) >**> 
 	(Optic.piso_convert_error MindmapParseError layer_mm)
 
 
-render :: Data.Tree' -> Text
+render :: Data.TreeT -> Text
 render = Optic.down layer
 
-parse :: Text -> Base.Either ParseError Data.Tree'
+parse :: Text -> Base.Either ParseError Data.TreeT
 parse = Optic.interpret layer
