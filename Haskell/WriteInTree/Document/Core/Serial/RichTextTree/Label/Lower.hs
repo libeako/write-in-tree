@@ -65,7 +65,7 @@ parse_id (Tree.Node trunk children) =
 		[child] -> 
 			let
 				child_node = Tree.rootLabel child
-				in case Tt.elemValue (Path.commentTtElem child_node) of
+				in case Tt.elemValue (Path.inElemCore child_node) of
 					Right (Right text) -> 
 						let
 							intermediate :: Intermediate.IdT
@@ -92,7 +92,7 @@ render_id x =
 
 parse_class :: Tree ElemStructured -> Either (Accu.Accumulated Text) Intermediate.Class
 parse_class (Tree.Node trunk _) = 
-	case Tt.elemValue (Path.commentTtElem trunk) of
+	case Tt.elemValue (Path.inElemCore trunk) of
 		Right (Right text) -> Right (Intermediate.Class (trunk $> ()) text)
 		_ -> 
 			let
@@ -131,7 +131,7 @@ parse_any (tree@(Tree.Node trunk children)) =
 			Either (Accu.Accumulated Text) 
 				(DTree.Discrimination [] Intermediate.Any (ElemP Ts.Content') IntermediateTree)
 		node_specific = 
-			case Tt.elemValue (Path.commentTtElem trunk) of
+			case Tt.elemValue (Path.inElemCore trunk) of
 				Left mn -> 
 					case mn of
 						MnId -> map (Intermediate.IntermId >>> DTree.Leaf) (parse_id tree)

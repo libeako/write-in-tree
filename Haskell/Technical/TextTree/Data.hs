@@ -2,7 +2,7 @@
 module Technical.TextTree.Data
 (
 	Text,
-	Elem(..), Elem', 
+	Elem(..), ElemT, 
 	Tree, TreeT
 )
 where
@@ -23,7 +23,7 @@ data Elem v = Elem
 	, elemValue :: v 
 	} 
 	deriving (Eq, Base.Show, Base.Functor, Base.Foldable, Base.Traversable)
-type Elem' = Elem Text
+type ElemT = Elem Text
 
 instance Default v => Default (Elem v) where def = Elem def def
 

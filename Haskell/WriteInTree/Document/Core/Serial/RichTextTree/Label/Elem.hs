@@ -88,14 +88,14 @@ instance Pos.HasPosition (Elem id e) where get_position = ofElem_position
 -- | convert an element from data to picture format.
 elem_dp :: Elem id e -> ElemP e
 elem_dp x = Path.ElemHE
-	{ Path.elemPosition = ofElem_position x
-	, Path.commentTtElem = Tt.Elem (ofElem_auto_id x) (ofElem_core x)
+	{ Path.inElemPos = ofElem_position x
+	, Path.inElemCore = Tt.Elem (ofElem_auto_id x) (ofElem_core x)
 	}
 -- | convert an element from picture to data format.
 elem_pd :: Intermediate.Labels id -> ElemP e -> Elem id e
 elem_pd labels p = Elem
-	{ ofElem_auto_id = Tt.elemId (Path.commentTtElem p)
-	, ofElem_position = Path.elemPosition p
+	{ ofElem_auto_id = Tt.elemId (Path.inElemCore p)
+	, ofElem_position = Path.inElemPos p
 	, ofElem_labels = labels
-	, ofElem_core = Tt.elemValue (Path.commentTtElem p)
+	, ofElem_core = Tt.elemValue (Path.inElemCore p)
 	}
