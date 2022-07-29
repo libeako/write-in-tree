@@ -36,7 +36,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediat
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Path.ElemHE
+type ElemP = Path.ElemH
 type Source = ElemP ()
 type ElemPT = ElemP Text
 
@@ -50,13 +50,13 @@ meta_name_to_text =
 		MnId -> "id"
 		MnClass -> "class"
 
-type ElemStructured = Path.ElemHE (Either MetaName Ts.Content')
+type ElemStructured = Path.ElemH (Either MetaName Ts.Content')
 
 layer_in_node :: 
-	Optic.PartialIso' (Pos.Positioned Ts.TextStructureError) (Tree Path.ElemHET) (Tree ElemStructured)
+	Optic.PartialIso' (Pos.Positioned Ts.TextStructureError) (Tree Path.ElemHT) (Tree ElemStructured)
 layer_in_node = Ms.layer_1 meta_name_to_text
 
-show_error_at :: (Path.ElemHE e) -> Accu.Accumulated Text -> Accu.Accumulated Text
+show_error_at :: (Path.ElemH e) -> Accu.Accumulated Text -> Accu.Accumulated Text
 show_error_at position description = Fana.show (Pos.Positioned (Pos.get_position position) description)
 
 parse_id :: Tree ElemStructured -> Either (Accu.Accumulated Text) Intermediate.IdT
@@ -112,7 +112,7 @@ render_classes' cs = let
 	new_trunk = let
 		content = Left MnClass
 		in case Intermediate.source_of_classes_trunk cs of
-			Nothing -> def @(Path.ElemHE ()) $> content
+			Nothing -> def @(Path.ElemH ()) $> content
 			Just s -> s $> content
 	in Tree.Node new_trunk (map render_class (TravKey.key_value_pairs (Intermediate.classes cs)))
 

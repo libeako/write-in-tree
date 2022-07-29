@@ -52,7 +52,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Path.ElemHE
+type ElemP = Path.ElemH
 type Source = ElemP ()
 type ElemPT = ElemP Text
 
