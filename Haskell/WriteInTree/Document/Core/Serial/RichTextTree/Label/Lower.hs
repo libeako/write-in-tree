@@ -1,7 +1,7 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Lower
 (
-	IntermediateTree, IntermediateBranchTree, render_trunk,
-	render_labels_into_siblings, parse_labels_from_siblings,
+	IntermediateTreeP, IntermediateTreeR, IntermediateBranchTreeP, IntermediateBranchTreeR,
+	render_trunk, render_labels_into_siblings, parse_labels_from_siblings,
 	layer,
 )
 where
@@ -36,12 +36,12 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediat
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Path.ElemHP
-type Source = ElemP ()
-type ElemPT = ElemP Text
+type ElemLR e = Path.ElemHR e
+type ElemLRT = Path.ElemHRT
+type ElemLP = Path.ElemHP
+type ElemLPT = ElemLP Text
 
 data MetaName = MnId | MnClass
-	
 	deriving (Bounded, Enum)
 
 meta_name_to_text :: MetaName -> Text
@@ -50,16 +50,19 @@ meta_name_to_text =
 		MnId -> "id"
 		MnClass -> "class"
 
-type ElemStructured = Path.ElemHP (Either MetaName Ts.Content')
+type ElemStructuredR = Path.ElemHR (Either MetaName Ts.Content')
+type ElemStructuredP = Path.ElemHP (Either MetaName Ts.Content')
 
 layer_in_node :: 
-	Optic.PartialIso' (Pos.Positioned Ts.TextStructureError) (Tree Path.ElemHPT) (Tree ElemStructured)
+	Optic.PartialIso (Pos.Positioned Ts.TextStructureError)
+		(Tree ElemLRT) (Tree Path.ElemHPT)
+		(Tree ElemStructuredR) (Tree ElemStructuredP)
 layer_in_node = Ms.layer_1 meta_name_to_text
 
 show_error_at :: (Path.ElemHP e) -> Accu.Accumulated Text -> Accu.Accumulated Text
 show_error_at position description = Fana.show (Pos.Positioned (Pos.get_position position) description)
 
-parse_id :: Tree ElemStructured -> Either (Accu.Accumulated Text) Intermediate.IdT
+parse_id :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.IdT
 parse_id (Tree.Node trunk children) = 
 	case children of
 		[child] -> 
@@ -81,16 +84,16 @@ parse_id (Tree.Node trunk children) =
 							in Left (show_error_at child_node description)
 		_ -> Left (show_error_at trunk "number of children of an identifier node must be 1")
 
-render_id :: Intermediate.IdT -> Tree ElemStructured
+render_id :: Intermediate.IdT -> Tree ElemStructuredR
 render_id x = 
 	let
-		trunk :: ElemStructured
-		trunk = Intermediate.source_of_id_trunk x $> Left MnId
-		child :: ElemStructured
-		child = Intermediate.source_of_id_value x $> Right (Right (Intermediate.valueId x))
+		trunk :: ElemStructuredR
+		trunk = Path.inElemHPCore (Intermediate.source_of_id_trunk x) $> Left MnId
+		child :: ElemStructuredR
+		child = Path.inElemHPCore (Intermediate.source_of_id_value x) $> Right (Right (Intermediate.valueId x))
 		in Tree.Node trunk [Tree.Node child []]
 
-parse_class :: Tree ElemStructured -> Either (Accu.Accumulated Text) Intermediate.Class
+parse_class :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.Class
 parse_class (Tree.Node trunk _) = 
 	case Tt.elemValue (Path.inElemHPCore trunk) of
 		Right (Right text) -> Right (Intermediate.Class (trunk $> ()) text)
@@ -99,37 +102,40 @@ parse_class (Tree.Node trunk _) =
 				description = "the node holding a class name must be regular text, not a meta node"
 				in Left (show_error_at trunk description)
 
-render_class :: (Text, ElemP ()) -> Tree ElemStructured
-render_class (name, source) = Tree.Node (source $> Right (Right name)) []
+render_class :: (Text, ElemLP ()) -> Tree ElemStructuredR
+render_class (name, source) = Tree.Node (Path.inElemHPCore source $> Right (Right name)) []
 
-parse_classes :: Tree ElemStructured -> Either (Accu.Accumulated Text) Intermediate.Classes
+parse_classes :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.Classes
 parse_classes (Tree.Node trunk children) = 
 	map (Intermediate.Classes (Just (trunk $> ()))) (traverse parse_class children >>= Intermediate.index_classes)
 
-render_classes' :: Intermediate.Classes -> Tree ElemStructured
+render_classes' :: Intermediate.Classes -> Tree ElemStructuredR
 render_classes' cs = let
-	new_trunk :: ElemStructured
+	new_trunk :: ElemStructuredR
 	new_trunk = let
 		content = Left MnClass
 		in case Intermediate.source_of_classes_trunk cs of
-			Nothing -> def @(Path.ElemHP ()) $> content
-			Just s -> s $> content
+			Nothing -> def @(Path.ElemHR ()) $> content
+			Just s -> Path.inElemHPCore s $> content
 	in Tree.Node new_trunk (map render_class (TravKey.key_value_pairs (Intermediate.classes cs)))
 
-render_classes :: Intermediate.Classes -> Maybe (Tree ElemStructured)
-render_classes cs = let
-	preliminary = render_classes' cs
-	in if List.null (Tree.subForest preliminary) then Nothing else Just preliminary
+render_classes :: Intermediate.Classes -> Maybe (Tree ElemStructuredR)
+render_classes cs =
+	let
+		preliminary = render_classes' cs
+		in if List.null (Tree.subForest preliminary) then Nothing else Just preliminary
 
-type IntermediateTree = DTree.Tree [] Intermediate.Any (ElemP Ts.Content') ()
-type IntermediateBranchTree = (ElemP Ts.Content', [IntermediateTree])
+type IntermediateTreeR = DTree.Tree [] Intermediate.Any (ElemLR Ts.Content') ()
+type IntermediateTreeP = DTree.Tree [] Intermediate.Any (ElemLP Ts.Content') ()
+type IntermediateBranchTreeR = (ElemLR Ts.Content', [IntermediateTreeR])
+type IntermediateBranchTreeP = (ElemLP Ts.Content', [IntermediateTreeP])
 
-parse_any :: Tree ElemStructured -> Either (Accu.Accumulated Text) IntermediateTree
+parse_any :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) IntermediateTreeP
 parse_any (tree@(Tree.Node trunk children)) = 
 	let
 		node_specific :: 
 			Either (Accu.Accumulated Text) 
-				(DTree.Discrimination [] Intermediate.Any (ElemP Ts.Content') IntermediateTree)
+				(DTree.Discrimination [] Intermediate.Any (ElemLP Ts.Content') IntermediateTreeP)
 		node_specific = 
 			case Tt.elemValue (Path.inElemHPCore trunk) of
 				Left mn -> 
@@ -139,26 +145,29 @@ parse_any (tree@(Tree.Node trunk children)) =
 				Right text -> map (DTree.Joint (trunk $> text)) (traverse parse_any children)
 		in map (FanaTree.assemble ()) node_specific
 
-parse_trunk :: IntermediateTree -> Either (Accu.Accumulated Text) IntermediateBranchTree
+parse_trunk :: IntermediateTreeP -> Either (Accu.Accumulated Text) IntermediateBranchTreeP
 parse_trunk = 
 	FanaTree.children >>> 
 	\ case
 		DTree.Leaf _ -> Left "the whole tree is a label which is invalid"
 		DTree.Joint trunk children -> Right (trunk, children)
 
-render_trunk :: IntermediateBranchTree -> IntermediateTree
+render_trunk :: IntermediateBranchTreeR -> IntermediateTreeR
 render_trunk = uncurry DTree.Joint >>> FanaTree.assemble ()
 
-layer_trunk :: Optic.PartialIso' (Accu.Accumulated Text) IntermediateTree IntermediateBranchTree
+layer_trunk ::
+	Optic.PartialIso (Accu.Accumulated Text)
+		IntermediateTreeR IntermediateTreeP
+		IntermediateBranchTreeR IntermediateBranchTreeP
 layer_trunk = Optic.PartialIso render_trunk parse_trunk
 
-parse_all_any :: Tree ElemStructured -> Either (Accu.Accumulated Text) IntermediateBranchTree
+parse_all_any :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) IntermediateBranchTreeP
 parse_all_any = parse_any >=> parse_trunk
 
-render_any_branch :: IntermediateBranchTree -> Tree ElemStructured
+render_any_branch :: IntermediateBranchTreeR -> Tree ElemStructuredR
 render_any_branch (elem, children) = Tree.Node (map Right elem) (Base.catMaybes (map render_any children))
 
-render_any :: IntermediateTree -> Maybe (Tree ElemStructured)
+render_any :: IntermediateTreeR -> Maybe (Tree ElemStructuredR)
 render_any tree = 
 	case FanaTree.children tree of
 		DTree.Leaf inter -> 
@@ -167,13 +176,19 @@ render_any tree =
 				Intermediate.IntermClass inter_class -> render_classes inter_class
 		DTree.Joint elem children -> Just (render_any_branch (elem, children))
 
-render_all_any :: IntermediateBranchTree -> Tree ElemStructured
+render_all_any :: IntermediateBranchTreeR -> Tree ElemStructuredR
 render_all_any = render_any_branch
 
-layer_any :: Optic.PartialIso' (Accu.Accumulated Text) (Tree ElemStructured) IntermediateBranchTree
+layer_any ::
+	Optic.PartialIso (Accu.Accumulated Text)
+	(Tree ElemStructuredR) (Tree ElemStructuredP)
+	IntermediateBranchTreeR IntermediateBranchTreeP
 layer_any = Optic.PartialIso render_all_any parse_all_any
 
-layer :: Optic.PartialIso' (Accu.Accumulated Text) (Tree ElemPT) IntermediateBranchTree
+layer ::
+	Optic.PartialIso (Accu.Accumulated Text)
+	(Tree ElemLRT) (Tree ElemLPT)
+	IntermediateBranchTreeR IntermediateBranchTreeP
 layer = (Optic.piso_convert_error Fana.show layer_in_node) >**> layer_any
 
 

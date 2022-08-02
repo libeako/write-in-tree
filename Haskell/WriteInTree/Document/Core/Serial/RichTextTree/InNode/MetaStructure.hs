@@ -57,14 +57,17 @@ layer_in_node_text meta_name_to_text =
 
 -- | a first layer in in-node text processing
 layer_1 ::
-	forall c p mn .
+	forall c pr pp mn .
 	(Base.Enum mn, Base.Bounded mn) =>
-	(Traversable p, forall l . Pos.HasPosition (p l)) =>
+	Functor pr =>
+	(Traversable pp, forall l . Pos.HasPosition (pp l)) =>
 	Traversable c =>
 	(mn -> Text) ->
-	Optic.PartialIso' (Pos.Positioned Ts.TextStructureError) 
-		(c (p Text))
-		(c (p (Either mn Ts.Content')))
+	Optic.PartialIso (Pos.Positioned Ts.TextStructureError) 
+		(c (pr Text))
+		(c (pp Text))
+		(c (pr (Either mn Ts.Content')))
+		(c (pp (Either mn Ts.Content')))
 layer_1 meta_name_to_text = 
 	Optic.lift_piso ((Optic.lift_piso >>> Pos.position_error_in_piso)
 		(Ts.layer >**> convert_from_describing_class_4 (layer_in_node_text meta_name_to_text)))

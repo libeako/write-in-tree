@@ -24,7 +24,10 @@ import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configuration)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Lower 
-	(IntermediateTree, IntermediateBranchTree, render_labels_into_siblings, parse_labels_from_siblings)
+	(
+		IntermediateTreeP, IntermediateTreeR, IntermediateBranchTreeP, IntermediateBranchTreeR,
+		render_labels_into_siblings, parse_labels_from_siblings
+	)
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Either as Base
@@ -52,17 +55,19 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Char = Base.Char
 type Text = [Char]
+type ElemLR e = Path.ElemHR e
+type ElemLRT = Path.ElemHRT
 type ElemP = Path.ElemHP
 type Source = ElemP ()
 type ElemPT = ElemP Text
 
 
 parse_from_intermediate_branch :: 
-	(ElemP Ts.Content', [IntermediateTree]) -> 
+	(ElemP Ts.Content', [IntermediateTreeP]) -> 
 	Either (Accu.Accumulated Text) (Tree ElemT)
 parse_from_intermediate_branch (elem, children) =
 	let
-		child_to_Either :: IntermediateTree -> Either Intermediate.Any (ElemP Ts.Content', [IntermediateTree])
+		child_to_Either :: IntermediateTreeP -> Either Intermediate.Any (ElemP Ts.Content', [IntermediateTreeP])
 		child_to_Either tree =
 			case FanaTree.children tree of
 				DTree.Leaf l -> Left l
@@ -111,27 +116,30 @@ check_uniquness_of_id_u tree =
 						(map node_writer list)
 				in Left message
 
-parse_from_intermediate :: IntermediateBranchTree -> Either (Accu.Accumulated Text) (Tree ElemT)
+parse_from_intermediate :: IntermediateBranchTreeP -> Either (Accu.Accumulated Text) (Tree ElemT)
 parse_from_intermediate (b, c) = parse_from_intermediate_branch (b, c) >>= check_uniquness_of_id_u
 
-render_into_intermediate :: Tree ElemT -> IntermediateBranchTree
+render_into_intermediate :: Tree ElemT -> IntermediateBranchTreeR
 render_into_intermediate (Tree.Node elem children) = 
 	let
-		regular_new_children, labeling_new_children, new_children :: [IntermediateTree]
+		regular_new_children, labeling_new_children, new_children :: [IntermediateTreeR]
 		regular_new_children = map (render_into_intermediate >>> Lower.render_trunk) children
 		labeling_new_children = 
 			(render_labels_into_siblings >>> (map (DTree.leaf ()))) 
 				(ofElem_labels elem)
 		new_children = Fold.concat [regular_new_children, labeling_new_children]
-		in (elem_dp elem, new_children)
+		in (Path.inElemHPCore (elem_dp elem), new_children)
 
-layer_up_from_intermediate :: Optic.PartialIso' (Accu.Accumulated Text) IntermediateBranchTree (Tree ElemT)
+layer_up_from_intermediate ::
+	Optic.PartialIso (Accu.Accumulated Text)
+		IntermediateBranchTreeR IntermediateBranchTreeP
+		(Tree ElemT) (Tree ElemT)
 layer_up_from_intermediate = Optic.PartialIso render_into_intermediate parse_from_intermediate
 
 
 type Data = Tree ElemT
 
-layer :: Configuration -> Optic.PartialIso' (Accu.Accumulated Text) (Tree ElemPT) Data
+layer :: Configuration -> Optic.PartialIso (Accu.Accumulated Text) (Tree ElemLRT) (Tree ElemPT) Data Data
 layer config = Cat2.empty
 	>**> Lower.layer 
 	>**> layer_up_from_intermediate 

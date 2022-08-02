@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Path
 (
-	ElemHP (..), ElemHPT,
+	ElemHR, ElemHRT, ElemHP (..), ElemHPT,
 	layer,
 )
 where
@@ -20,15 +20,10 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Text = Base.String
 
-{-
-	The 2 sides of this layer:
-		"h" = high level
-		"l" = low  level
--}
-
 type ElemL e = Tt.Elem e
 type ElemLT = ElemL Text
-
+type ElemHR e = Tt.Elem e
+type ElemHRT = ElemHR Text
 data ElemHP e = ElemHP
 	{ inElemHPPos :: Pos.Position
 	, inElemHPCore :: Tt.Elem e
@@ -42,5 +37,5 @@ instance Default e => Default (ElemHP e) where def = ElemHP def def
 parse :: Tree ElemLT -> Tree ElemHPT
 parse = Tree.with_path_to_trunk >>> map (Bifunctor.first (map (Tree.rootLabel >>> Tt.elemValue)) >>> uncurry ElemHP)
 
-layer :: Optic.Iso' (Tree ElemLT) (Tree ElemHPT)
-layer = Optic.Iso (map inElemHPCore) parse
+layer :: Optic.Iso (Tree ElemLT) (Tree ElemLT) (Tree ElemHRT) (Tree ElemHPT)
+layer = Optic.Iso id parse
