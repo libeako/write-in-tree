@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Path
 (
-	ElemH (..), ElemHT,
+	ElemHP (..), ElemHPT,
 	layer,
 )
 where
@@ -29,18 +29,18 @@ type Text = Base.String
 type ElemL e = Tt.Elem e
 type ElemLT = ElemL Text
 
-data ElemH e = ElemH
-	{ inElemPos :: Pos.Position
-	, inElemCore :: Tt.Elem e
+data ElemHP e = ElemHP
+	{ inElemHPPos :: Pos.Position
+	, inElemHPCore :: Tt.Elem e
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
-type ElemHT = ElemH Text
+type ElemHPT = ElemHP Text
 
-instance Pos.HasPosition (ElemH e) where get_position = inElemPos
-instance Default e => Default (ElemH e) where def = ElemH def def
+instance Pos.HasPosition (ElemHP e) where get_position = inElemHPPos
+instance Default e => Default (ElemHP e) where def = ElemHP def def
 
-parse :: Tree ElemLT -> Tree ElemHT
-parse = Tree.with_path_to_trunk >>> map (Bifunctor.first (map (Tree.rootLabel >>> Tt.elemValue)) >>> uncurry ElemH)
+parse :: Tree ElemLT -> Tree ElemHPT
+parse = Tree.with_path_to_trunk >>> map (Bifunctor.first (map (Tree.rootLabel >>> Tt.elemValue)) >>> uncurry ElemHP)
 
-layer :: Optic.Iso' (Tree ElemLT) (Tree ElemHT)
-layer = Optic.Iso (map inElemCore) parse
+layer :: Optic.Iso' (Tree ElemLT) (Tree ElemHPT)
+layer = Optic.Iso (map inElemHPCore) parse

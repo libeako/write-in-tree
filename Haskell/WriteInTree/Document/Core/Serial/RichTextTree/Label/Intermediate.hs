@@ -34,7 +34,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Path.ElemH
+type ElemP = Path.ElemHP
 type Source = ElemP ()
 
 data Id e = Id
@@ -83,7 +83,7 @@ add_new incoming_classes (Classes trunk_source old_classes) = let
 		updated_old_classes = old_classes
 		source_of_new_class :: Text -> Source
 		source_of_new_class name = let
-			in Path.ElemH
+			in Path.ElemHP
 				(name : Fold.concat (Fold.toList (map Pos.get_position trunk_source)))
 				(Tt.Elem Nothing ())
 		add_class :: Text -> Fn.Endo ClassesMap

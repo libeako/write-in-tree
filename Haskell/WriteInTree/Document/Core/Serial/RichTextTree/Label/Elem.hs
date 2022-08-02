@@ -37,7 +37,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Path.ElemH
+type ElemP = Path.ElemHP
 type Source = ElemP ()
 type ElemPT = ElemP Text
 
@@ -87,15 +87,15 @@ instance Pos.HasPosition (Elem id e) where get_position = ofElem_position
 
 -- | convert an element from data to picture format.
 elem_dp :: Elem id e -> ElemP e
-elem_dp x = Path.ElemH
-	{ Path.inElemPos = ofElem_position x
-	, Path.inElemCore = Tt.Elem (ofElem_auto_id x) (ofElem_core x)
+elem_dp x = Path.ElemHP
+	{ Path.inElemHPPos = ofElem_position x
+	, Path.inElemHPCore = Tt.Elem (ofElem_auto_id x) (ofElem_core x)
 	}
 -- | convert an element from picture to data format.
 elem_pd :: Intermediate.Labels id -> ElemP e -> Elem id e
 elem_pd labels p = Elem
-	{ ofElem_auto_id = Tt.elemId (Path.inElemCore p)
-	, ofElem_position = Path.inElemPos p
+	{ ofElem_auto_id = Tt.elemId (Path.inElemHPCore p)
+	, ofElem_position = Path.inElemHPPos p
 	, ofElem_labels = labels
-	, ofElem_core = Tt.elemValue (Path.inElemCore p)
+	, ofElem_core = Tt.elemValue (Path.inElemHPCore p)
 	}

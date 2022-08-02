@@ -36,7 +36,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediat
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Path.ElemH
+type ElemP = Path.ElemHP
 type Source = ElemP ()
 type ElemPT = ElemP Text
 
@@ -50,13 +50,13 @@ meta_name_to_text =
 		MnId -> "id"
 		MnClass -> "class"
 
-type ElemStructured = Path.ElemH (Either MetaName Ts.Content')
+type ElemStructured = Path.ElemHP (Either MetaName Ts.Content')
 
 layer_in_node :: 
-	Optic.PartialIso' (Pos.Positioned Ts.TextStructureError) (Tree Path.ElemHT) (Tree ElemStructured)
+	Optic.PartialIso' (Pos.Positioned Ts.TextStructureError) (Tree Path.ElemHPT) (Tree ElemStructured)
 layer_in_node = Ms.layer_1 meta_name_to_text
 
-show_error_at :: (Path.ElemH e) -> Accu.Accumulated Text -> Accu.Accumulated Text
+show_error_at :: (Path.ElemHP e) -> Accu.Accumulated Text -> Accu.Accumulated Text
 show_error_at position description = Fana.show (Pos.Positioned (Pos.get_position position) description)
 
 parse_id :: Tree ElemStructured -> Either (Accu.Accumulated Text) Intermediate.IdT
@@ -65,7 +65,7 @@ parse_id (Tree.Node trunk children) =
 		[child] -> 
 			let
 				child_node = Tree.rootLabel child
-				in case Tt.elemValue (Path.inElemCore child_node) of
+				in case Tt.elemValue (Path.inElemHPCore child_node) of
 					Right (Right text) -> 
 						let
 							intermediate :: Intermediate.IdT
@@ -92,7 +92,7 @@ render_id x =
 
 parse_class :: Tree ElemStructured -> Either (Accu.Accumulated Text) Intermediate.Class
 parse_class (Tree.Node trunk _) = 
-	case Tt.elemValue (Path.inElemCore trunk) of
+	case Tt.elemValue (Path.inElemHPCore trunk) of
 		Right (Right text) -> Right (Intermediate.Class (trunk $> ()) text)
 		_ -> 
 			let
@@ -112,7 +112,7 @@ render_classes' cs = let
 	new_trunk = let
 		content = Left MnClass
 		in case Intermediate.source_of_classes_trunk cs of
-			Nothing -> def @(Path.ElemH ()) $> content
+			Nothing -> def @(Path.ElemHP ()) $> content
 			Just s -> s $> content
 	in Tree.Node new_trunk (map render_class (TravKey.key_value_pairs (Intermediate.classes cs)))
 
@@ -131,7 +131,7 @@ parse_any (tree@(Tree.Node trunk children)) =
 			Either (Accu.Accumulated Text) 
 				(DTree.Discrimination [] Intermediate.Any (ElemP Ts.Content') IntermediateTree)
 		node_specific = 
-			case Tt.elemValue (Path.inElemCore trunk) of
+			case Tt.elemValue (Path.inElemHPCore trunk) of
 				Left mn -> 
 					case mn of
 						MnId -> map (Intermediate.IntermId >>> DTree.Leaf) (parse_id tree)
