@@ -89,10 +89,10 @@ render_id x =
 		child = Tt.Elem Nothing (Right (Right x))
 		in Tree.Node trunk [Tree.Node child []]
 
-parse_class :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.Class
+parse_class :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Text
 parse_class (Tree.Node trunk _) = 
 	case Tt.elemValue (Path.inElemHPCore trunk) of
-		Right (Right text) -> Right (Intermediate.Class text)
+		Right (Right text) -> Right text
 		_ -> 
 			let
 				description = "the node holding a class name must be regular text, not a meta node"

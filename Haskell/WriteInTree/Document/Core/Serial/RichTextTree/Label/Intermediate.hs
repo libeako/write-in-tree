@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate
 (
-	Class (..), ClassesMap, Classes (..),
+	ClassesMap, Classes (..),
 	ofClasses_classes,
 	Any (..),
 	Labels (..), LabelsT, no_Labels,
@@ -20,6 +20,7 @@ import qualified Data.List as List
 import qualified Data.Maybe as Base
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Data.Function as Fn
+import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Data.Key.LensToMaybeElement as LensAt
 import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
@@ -35,7 +36,6 @@ type Source = ElemP ()
 
 type ClassesMap = StringyMap.Map Char ()
 
-data Class = Class { classValue :: Text }
 data Classes = Classes
 	{ source_of_classes_trunk :: Maybe Source
 	, classes :: ClassesMap
@@ -50,13 +50,11 @@ instance Default Classes where def = Classes def def
 data Any = IntermId Text | IntermClass Classes
 
 
-index_classes :: [Class] -> Either (Accu.Accumulated Text) ClassesMap
+index_classes :: [Text] -> Either (Accu.Accumulated Text) ClassesMap
 index_classes = let
-	to_pair :: Class -> (Text, ())
-	to_pair (Class t) = (t, ())
 	error_message :: Text -> Accu.Accumulated Text
 	error_message text = "multiple instances of class \"" <> Accu.single text <> "\""
-	in map to_pair >>> MapI.from_list_of_uniques >>> Bifunctor.first (fst >>> error_message)
+	in map (Pair.before ()) >>> MapI.from_list_of_uniques >>> Bifunctor.first (fst >>> error_message)
 
 add_new :: [Text] -> Classes -> Classes
 add_new incoming_classes (Classes trunk_source old_classes) = let
