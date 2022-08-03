@@ -4,7 +4,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate
 	Class (..), ClassesMap, Classes (..),
 	ofClasses_classes,
 	Any (..),
-	Labels (..), LabelsT,
+	Labels (..), LabelsT, no_Labels,
 	inLabels_id, inLabel_id_source_mb, ofLabels_classes, labels_has_class, add_new_classes_to_Labels,
 	index_classes,
 	contains,
@@ -38,9 +38,8 @@ type ElemP = Path.ElemHP
 type Source = ElemP ()
 
 data Id e = Id
-	{ source_of_id_trunk :: ElemP ()
-	, source_of_id_value :: ElemP ()
-	, valueId :: e
+	{
+		valueId :: e
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 instance Fana.HasSingle Id where elem = valueId
@@ -101,6 +100,9 @@ data Labels id = Labels
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 type LabelsT = Labels Text
+
+no_Labels :: Labels id
+no_Labels = Labels Nothing Nothing
 
 inLabels_id :: Optic.Traversal e1 e2 (Labels e1) (Labels e2)
 inLabels_id = Optic.from_Traversable

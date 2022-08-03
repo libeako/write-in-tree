@@ -73,9 +73,10 @@ parse_id (Tree.Node trunk children) =
 						let
 							intermediate :: Intermediate.IdT
 							intermediate = Intermediate.Id
-								{ Intermediate.source_of_id_trunk = trunk $> ()
-								, Intermediate.source_of_id_value = child_node $> ()
-								, Intermediate.valueId = text
+								{
+									-- ~ Intermediate.source_of_id_trunk = trunk $> ()
+									-- ~ Intermediate.source_of_id_value = child_node $> ()
+									Intermediate.valueId = text
 								}
 							in Right intermediate
 					_ -> 
@@ -88,9 +89,9 @@ render_id :: Intermediate.IdT -> Tree ElemStructuredR
 render_id x = 
 	let
 		trunk :: ElemStructuredR
-		trunk = Path.inElemHPCore (Intermediate.source_of_id_trunk x) $> Left MnId
+		trunk = Tt.Elem Nothing (Left MnId)
 		child :: ElemStructuredR
-		child = Path.inElemHPCore (Intermediate.source_of_id_value x) $> Right (Right (Intermediate.valueId x))
+		child = Tt.Elem Nothing (Right (Right (Intermediate.valueId x)))
 		in Tree.Node trunk [Tree.Node child []]
 
 parse_class :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.Class
