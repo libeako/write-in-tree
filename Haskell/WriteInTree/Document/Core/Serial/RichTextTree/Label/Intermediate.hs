@@ -25,9 +25,7 @@ import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
-import qualified Technical.TextTree.Data as Tt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Char = Base.Char
@@ -35,9 +33,9 @@ type Text = [Char]
 type ElemP = Path.ElemHP
 type Source = ElemP ()
 
-type ClassesMap = StringyMap.Map Char Source
+type ClassesMap = StringyMap.Map Char ()
 
-data Class = Class { classSource :: ElemP (), classValue :: Text }
+data Class = Class { classValue :: Text }
 data Classes = Classes
 	{ source_of_classes_trunk :: Maybe Source
 	, classes :: ClassesMap
@@ -54,8 +52,8 @@ data Any = IntermId Text | IntermClass Classes
 
 index_classes :: [Class] -> Either (Accu.Accumulated Text) ClassesMap
 index_classes = let
-	to_pair :: Class -> (Text, Source)
-	to_pair (Class s t) = (t, s)
+	to_pair :: Class -> (Text, ())
+	to_pair (Class t) = (t, ())
 	error_message :: Text -> Accu.Accumulated Text
 	error_message text = "multiple instances of class \"" <> Accu.single text <> "\""
 	in map to_pair >>> MapI.from_list_of_uniques >>> Bifunctor.first (fst >>> error_message)
@@ -66,13 +64,8 @@ add_new incoming_classes (Classes trunk_source old_classes) = let
 	updated_classes = let
 		updated_old_classes :: ClassesMap
 		updated_old_classes = old_classes
-		source_of_new_class :: Text -> Source
-		source_of_new_class name = let
-			in Path.ElemHP
-				(name : Fold.concat (Fold.toList (map Pos.get_position trunk_source)))
-				(Tt.Elem Nothing ())
 		add_class :: Text -> Fn.Endo ClassesMap
-		add_class c = LensAt.ensure_existence_at c (source_of_new_class c)
+		add_class c = LensAt.ensure_existence_at c ()
 		in Fold.foldr' add_class updated_old_classes incoming_classes
 	in (Classes trunk_source updated_classes)
 
