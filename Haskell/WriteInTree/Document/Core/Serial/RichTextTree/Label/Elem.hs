@@ -66,7 +66,7 @@ ofElem_class_values :: Elem id e -> [Text]
 ofElem_class_values = id 
 	>>> ofElem_labels 
 	>>> Intermediate.classes_of_Labels 
-	>>> map (Intermediate.classes >>> TravKey.keys) 
+	>>> map TravKey.keys
 	>>> Fold.concat
 
 inElem_labels :: Optic.Lens (Intermediate.Labels id_1) (Intermediate.Labels id_2) (Elem id_1 e) (Elem id_2 e)
@@ -75,7 +75,7 @@ inElem_labels = Optic.lens_from_get_set ofElem_labels (\ p w -> w { ofElem_label
 inElem_idu :: Optic.Traversal (id_1) (id_2) (Elem id_1 e) (Elem id_2 e)
 inElem_idu = Intermediate.inLabels_id >**>^ inElem_labels
 
-ofElem_classes :: Optic.AffineTraversal' Intermediate.Classes (Elem id e)
+ofElem_classes :: Optic.AffineTraversal' Intermediate.ClassesMap (Elem id e)
 ofElem_classes = Category2.empty >**>^ Optic.prism_Maybe >**>^ Intermediate.ofLabels_classes >**>^ inElem_labels
 
 elem_has_class :: Text -> Elem id e -> Bool

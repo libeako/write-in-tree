@@ -64,7 +64,6 @@ move_class_out_from_elem :: ClassName -> Elem Text e -> (Maybe ClassName, Elem T
 move_class_out_from_elem class_name = let
 	traversal = Category2.empty
 		>**>^ Map.lens_at class_name 
-		>**>^ Intermediate.ofClasses_classes 
 		>**>^ Optic.prism_Maybe 
 		>**>^ Intermediate.ofLabels_classes
 		>**>^ inElem_labels

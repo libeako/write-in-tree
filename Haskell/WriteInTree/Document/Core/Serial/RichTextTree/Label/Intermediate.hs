@@ -1,7 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate
 (
-	ClassesMap, Classes (..),
-	ofClasses_classes,
+	ClassesMap,
 	Any (..),
 	Labels (..), LabelsT, no_Labels,
 	inLabels_id, inLabel_id_source_mb, ofLabels_classes, labels_has_class, add_new_classes_to_Labels,
@@ -26,25 +25,14 @@ import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Path.ElemHP
-type Source = ElemP ()
 
 type ClassesMap = StringyMap.Map Char ()
 
-data Classes = Classes { classes :: ClassesMap }
-	deriving (Eq)
-
-ofClasses_classes :: Optic.Lens' ClassesMap Classes
-ofClasses_classes = Optic.lens_from_get_set classes (\ e c -> c { classes = e })
-
-instance Default Classes where def = Classes def
-
-data Any = IntermId Text | IntermClass Classes
+data Any = IntermId Text | IntermClass ClassesMap
 
 
 index_classes :: [Text] -> Either (Accu.Accumulated Text) ClassesMap
@@ -53,22 +41,22 @@ index_classes = let
 	error_message text = "multiple instances of class \"" <> Accu.single text <> "\""
 	in map (Pair.before ()) >>> MapI.from_list_of_uniques >>> Bifunctor.first (fst >>> error_message)
 
-add_new :: [Text] -> Classes -> Classes
-add_new incoming_classes (Classes old_classes) = let
+add_new :: [Text] -> ClassesMap -> ClassesMap
+add_new incoming_classes old_classes = let
 	updated_classes :: ClassesMap
 	updated_classes = let
 		add_class :: Text -> Fn.Endo ClassesMap
 		add_class c = LensAt.ensure_existence_at c ()
 		in Fold.foldr' add_class old_classes incoming_classes
-	in (Classes updated_classes)
+	in updated_classes
 
-contains :: Text -> Classes -> Bool
-contains class_text = classes >>> LensAt.get_at class_text >>> Base.isJust
+contains :: Text -> ClassesMap -> Bool
+contains class_text = LensAt.get_at class_text >>> Base.isJust
 
 -- | user given labels of a node.
 data Labels id = Labels
 	{ id_of_Labels :: Maybe id
-	, classes_of_Labels :: Maybe Classes
+	, classes_of_Labels :: Maybe ClassesMap
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 type LabelsT = Labels Text
@@ -85,14 +73,14 @@ inLabel_id_source_mb ::
 		(Labels id_1) (Labels id_2)
 inLabel_id_source_mb = Optic.lens_from_get_set id_of_Labels (\ p w -> w { id_of_Labels = p })
 
-ofLabels_classes :: Optic.Lens' (Maybe Classes) (Labels id)
+ofLabels_classes :: Optic.Lens' (Maybe ClassesMap) (Labels id)
 ofLabels_classes = Optic.lens_from_get_set classes_of_Labels (\ e c -> c { classes_of_Labels = e })
 
 add_new_classes_to_Labels :: [Text] -> Fn.Endo (Labels id)
 add_new_classes_to_Labels additional = let
-	new_imc :: Fn.Endo (Maybe Classes)
+	new_imc :: Fn.Endo (Maybe ClassesMap)
 	new_imc = let
-		real_addition :: Fn.Endo (Maybe Classes)
+		real_addition :: Fn.Endo (Maybe ClassesMap)
 		real_addition = Base.fromMaybe def >>> (add_new additional) >>> Just
 		in if List.null additional then id else real_addition
 	in Optic.fn_up ofLabels_classes new_imc

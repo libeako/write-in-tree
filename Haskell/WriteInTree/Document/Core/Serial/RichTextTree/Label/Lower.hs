@@ -101,19 +101,19 @@ parse_class (Tree.Node trunk _) =
 render_class :: (Text, ()) -> Tree ElemStructuredR
 render_class (name, source) = Tree.Node (Tt.Elem Nothing (Right (Right name))) []
 
-parse_classes :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.Classes
+parse_classes :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.ClassesMap
 parse_classes (Tree.Node trunk children) = 
-	map Intermediate.Classes (traverse parse_class children >>= Intermediate.index_classes)
+	traverse parse_class children >>= Intermediate.index_classes
 
-render_classes' :: Intermediate.Classes -> Tree ElemStructuredR
+render_classes' :: Intermediate.ClassesMap -> Tree ElemStructuredR
 render_classes' cs = let
 	new_trunk :: ElemStructuredR
 	new_trunk = let
 		content = Left MnClass
 		in def @(Path.ElemHR ()) $> content
-	in Tree.Node new_trunk (map render_class (TravKey.key_value_pairs (Intermediate.classes cs)))
+	in Tree.Node new_trunk (map render_class (TravKey.key_value_pairs cs))
 
-render_classes :: Intermediate.Classes -> Maybe (Tree ElemStructuredR)
+render_classes :: Intermediate.ClassesMap -> Maybe (Tree ElemStructuredR)
 render_classes cs =
 	let
 		preliminary = render_classes' cs
@@ -186,10 +186,10 @@ layer ::
 layer = (Optic.piso_convert_error Fana.show layer_in_node) >**> layer_any
 
 
-sort_intermediate_nodes :: [Intermediate.Any] -> ([Text], [Intermediate.Classes])
+sort_intermediate_nodes :: [Intermediate.Any] -> ([Text], [Intermediate.ClassesMap])
 sort_intermediate_nodes = 
 	let
-		to_either :: Intermediate.Any -> Either Text Intermediate.Classes
+		to_either :: Intermediate.Any -> Either Text Intermediate.ClassesMap
 		to_either = 
 			\case 
 				Intermediate.IntermId x -> Left x
@@ -204,7 +204,7 @@ parse_maybe_from_list =
 		_ -> Left "multiple labeling nodes with the same type is not valid"
 
 parse_labels_from_sorted :: 
-	([Text], [Intermediate.Classes]) ->
+	([Text], [Intermediate.ClassesMap]) ->
 	Either (Accu.Accumulated Text) Intermediate.LabelsT
 parse_labels_from_sorted (identifiers, classes') = 
 	liftA2 Intermediate.Labels (parse_maybe_from_list identifiers) (parse_maybe_from_list classes')
