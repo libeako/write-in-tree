@@ -31,7 +31,7 @@ type Text = Base.String
 convert_string_error :: Fana.Showable Text s => s -> Pos.PositionedMb (Accu.Accumulated Text)
 convert_string_error = Fana.show >>> Pos.PositionedMb Nothing
 
-type DataWithConcreteParams t a = t (a ()) (a ()) Data.NodeIdU Data.NodeIdU Text
+type DataWithConcreteParams t a = t (a ()) Data.NodeIdU Data.NodeIdU Text
 type StructureAsTree a = DataWithConcreteParams Data.StructureAsTree a
 type Document a = DataWithConcreteParams Data.Document a
 

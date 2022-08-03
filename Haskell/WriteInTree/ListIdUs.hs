@@ -39,7 +39,7 @@ identified_node_text =
 	BiFu.bimap (Identified.cargo >>> Data.nidun_u) Pos.get_position
 	>>> identified_node_text_frame
 
-identified_nodes_of_doc :: Data.Document () () id_u ia Text -> [(id_u, Data.Node () () id_u ia Text)]
+identified_nodes_of_doc :: Data.Document () id_u ia Text -> [(id_u, Data.Node () id_u ia Text)]
 identified_nodes_of_doc = 
 	Data.docTree >>> Optic.to_list Data.node_in_tree >>> map Data.attach_its_uid_to_node >>> Base.catMaybes
 
@@ -48,7 +48,7 @@ list_idus =
 	let
 		error_to_output :: DocRead.Error -> Ot.Output
 		error_to_output = Fana.show >>> Accu.extract >>> Left
-		doc_to_output :: DocData.Data () () Data.NodeIdU Data.NodeIdU Text -> Ot.Output
+		doc_to_output :: DocData.Data () Data.NodeIdU Data.NodeIdU Text -> Ot.Output
 		doc_to_output = 
 			DocData.doc_core
 			>>> identified_nodes_of_doc 

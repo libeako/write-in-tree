@@ -25,12 +25,12 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Text = Base.String
 
-type Inline a e = Data.Inline (a ()) (a ()) Text e
+type Inline a e = Data.Inline (a ()) Text e
 type InputElem a e = a (Inline a e)
 type InputElemPair a e = (a (), Inline a e)
-type OutputElem a e = (a (), Data.Paragraph (a ()) (a ()) Text e)
+type OutputElem a e = (a (), Data.Paragraph (a ()) Text e)
 type A = Label.Elem Text
-type Paragraph a = Data.Paragraph (a ()) (a ()) Text Text
+type Paragraph a = Data.Paragraph (a ()) Text Text
 
 
 layer_move_additional_info :: 

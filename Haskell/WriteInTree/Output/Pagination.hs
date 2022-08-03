@@ -42,9 +42,9 @@ ofAO_is_page_break =
 instance Default AO where def = AO False
 
 type Link a (id_u :: Type) = UI.Link a (LinkInternalTarget id_u)
-type Inline a (id_u :: Type) = UI.Inline () a (LinkInternalTarget id_u) Text
-type Paragraph a (id_u :: Type) = UI.Paragraph () a (LinkInternalTarget id_u) Text
-type Node a (id_u :: Type) = UI.Node () a id_u (LinkInternalTarget id_u) Text
+type Inline a (id_u :: Type) = UI.Inline a (LinkInternalTarget id_u) Text
+type Paragraph a (id_u :: Type) = UI.Paragraph a (LinkInternalTarget id_u) Text
+type Node a (id_u :: Type) = UI.Node a id_u (LinkInternalTarget id_u) Text
 
 type Structure a (id_u :: Type) = Tree.Tree (Node a id_u)
 

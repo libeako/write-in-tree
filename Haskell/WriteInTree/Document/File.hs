@@ -33,11 +33,11 @@ type WithConcreteDataParams t = t CoreData.NodeIdU CoreData.NodeIdU Text
 
 type A = Label.Elem Text
 
-type DocData'' = WithConcreteDataParams (Data (A ()) (A ()))
-type DocCoreData'' = WithConcreteDataParams (CoreData.Document (A ()) (A ()))
+type DocData'' = WithConcreteDataParams (Data (A ()))
+type DocCoreData'' = WithConcreteDataParams (CoreData.Document (A ()))
 
-type DocData = WithConcreteDataParams (Data () ())
-type DocCoreData = WithConcreteDataParams (CoreData.Document () ())
+type DocData = WithConcreteDataParams (Data ())
+type DocCoreData = WithConcreteDataParams (CoreData.Document ())
 
 render_sep_props :: DocSepProps -> String
 render_sep_props = SepPropsSimco.to_simco_text
