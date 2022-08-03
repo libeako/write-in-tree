@@ -18,7 +18,7 @@ translateInline :: UI.Inline () UI.NodeIdU Text -> O.Inline O.AI UI.NodeIdU
 translateInline i = UI.Inline 
 	{ 
 		UI.ilVisual = UI.ilVisual i, 
-		UI.ilLink = (map >>> map >>> map) translateLink (UI.ilLink i)
+		UI.ilLink = (map >>> map) translateLink (UI.ilLink i)
 	}
 
 translateParagraph :: UI.Paragraph () UI.NodeIdU Text -> O.Paragraph O.AI UI.NodeIdU

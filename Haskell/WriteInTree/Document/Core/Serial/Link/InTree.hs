@@ -34,7 +34,6 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 type Text = Base.String
 type A = Label.Elem Text -- additional info wrapper
 type AB = (,) (A ())
-type A0 = (,) ()
 type Inline = Data.Inline (A ()) Text
 type InputTreeOfLink l r = (l, [Tree (Either l r)])
 type InputTreeOfLink' = InputTreeOfLink (A MetaNodeName) (A Ts.Content')
@@ -123,19 +122,18 @@ layer_first_link_of_node = let
 	in Optic.PartialIso render parse
 
 
-attach_link_to_visual :: (A Ts.Content', Maybe (AB (A0 (Data.Link (A ()) Text)))) -> A (Inline Ts.Content')
-attach_link_to_visual (visual, link) =
-	map (flip Data.Inline (map (Bifunctor.second (Bifunctor.first (const ()))) link)) visual
+attach_link_to_visual :: (A Ts.Content', Maybe (AB (Data.Link (A ()) Text))) -> A (Inline Ts.Content')
+attach_link_to_visual (visual, link) = map (flip Data.Inline link) visual
 
-detach_link_to_visual :: A (Inline Ts.Content') -> (A Ts.Content', Maybe (AB (A0 (Data.Link (A ()) Text))))
+detach_link_to_visual :: A (Inline Ts.Content') -> (A Ts.Content', Maybe (AB (Data.Link (A ()) Text)))
 detach_link_to_visual i =
 	let
 		inline :: Inline Ts.Content'
 		inline = HasSingle.elem i
-		in (Data.ilVisual inline  <$ i, map (Bifunctor.second (Bifunctor.first (const ()))) (Data.ilLink inline))
+		in (Data.ilVisual inline  <$ i, Data.ilLink inline)
 
 layer_tach_link_to_visual :: 
-	Optic.Iso' (A Ts.Content', Maybe (AB (A0 (Data.Link (A ()) Text)))) (A (Inline Ts.Content'))
+	Optic.Iso' (A Ts.Content', Maybe (AB (Data.Link (A ()) Text))) (A (Inline Ts.Content'))
 layer_tach_link_to_visual = Optic.Iso detach_link_to_visual attach_link_to_visual
 
 

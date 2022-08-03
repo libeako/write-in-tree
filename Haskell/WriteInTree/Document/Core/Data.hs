@@ -22,22 +22,22 @@ type Text = Base.String
 -- | we are going to use "a" as name for of type parameter of addition information
 
 
-data NodeIdUCore = NodeIdUCore 
+data NodeIdUCore = NodeIdUCore
 	{ nidun_a :: Text, nidun_u :: Text, nidun_path_to_trunk :: [String] }
 -- | at this stage of the application this type is used instead of the user-given string alone.
 type NodeIdU = Identified Int NodeIdUCore
 
 -- | Can be internal or external.
-data Link a ia = 
+data Link a ia =
 	  LIn (a, ia) -- ^ | Internal.
 	| LEx (a, String) -- ^ | External.
 	deriving (Eq)
 
-type Link' a ia = (a, ((), Link a ia))
+type Link' a ia = (a, Link a ia)
 
 -- | .
 -- type parameter 'al' hold additional info specifically of links;
-data Inline a ia e = 
+data Inline a ia e =
 	Inline
 	{ ilVisual :: e
 	, ilLink :: Maybe (Link' a ia)
@@ -113,9 +113,9 @@ ofLink_additional = Category2.empty >**>^ Optic.sum (Optic.lens_1, Optic.lens_1)
 ofLink'_additional :: forall ia a1 a2 . Optic.Traversal a1 a2 (Link' a1 ia) (Link' a2 ia)
 ofLink'_additional = let
 	trav :: forall app . Applicative app => (a1 -> app a2) -> (Link' a1 ia -> app (Link' a2 ia))
-	trav e (a, (_, l)) = let
-		result_part_2 :: app ((), Link a2 ia)
-		result_part_2 = map (Pair.after ()) (Optic.traverse ofLink_additional e l)
+	trav e (a, l) = let
+		result_part_2 :: app (Link a2 ia)
+		result_part_2 = Optic.traverse ofLink_additional e l
 		in liftA2 (,) (e a) result_part_2
 	in Optic.Traversal trav
 
@@ -161,7 +161,6 @@ internal_address_in_Inline =
 	in 
 		Category2.empty
 		>**>^ internal_address_in_Link' @a
-		>**>^ Optic.lens_2
 		>**>^ Optic.lens_2
 		>**>^ Optic.prism_Maybe 
 		>**>^ link_in_Inline @a
