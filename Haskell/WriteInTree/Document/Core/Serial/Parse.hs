@@ -20,8 +20,7 @@ type Text = String
 
 delete_additional_info_from_node :: Data.Node al a id_u ia e -> Data.Node () () id_u ia e
 delete_additional_info_from_node = id
-	>>> Optic.fill Data.ofNode_additional () 
-	>>> Optic.fill Data.ofNode_additional_to_link ()
+	>>> Optic.fill Data.ofNode_additional ()
 
 parse_from_string ::
 	SepProps.DocSepProps ->

@@ -33,7 +33,7 @@ data Link a ia =
 	| LEx (a, String) -- ^ | External.
 	deriving (Eq)
 
-type Link' al a ia = (a, (al, Link a ia))
+type Link' al a ia = (a, ((), Link a ia))
 
 -- | .
 -- type parameter 'al' hold additional info specifically of links;
@@ -113,9 +113,9 @@ ofLink_additional = Category2.empty >**>^ Optic.sum (Optic.lens_1, Optic.lens_1)
 ofLink'_additional :: forall al ia a1 a2 . Optic.Traversal a1 a2 (Link' al a1 ia) (Link' al a2 ia)
 ofLink'_additional = let
 	trav :: forall app . Applicative app => (a1 -> app a2) -> (Link' al a1 ia -> app (Link' al a2 ia))
-	trav e (a, (al, l)) = let
-		result_part_2 :: app (al, Link a2 ia)
-		result_part_2 = map (Pair.after al) (Optic.traverse ofLink_additional e l)
+	trav e (a, (_, l)) = let
+		result_part_2 :: app ((), Link a2 ia)
+		result_part_2 = map (Pair.after ()) (Optic.traverse ofLink_additional e l)
 		in liftA2 (,) (e a) result_part_2
 	in Optic.Traversal trav
 
@@ -145,11 +145,6 @@ ofInline_additional = let
 	from_internals = from_link >**>^ Optic.lens_2
 	in Category2.empty >**>^ from_internals >**>^ ofInline_internals
 
-ofInline_additional_to_link ::
-	forall a ia e al1 al2 . Optic.Traversal al1 al2 (Inline al1 a ia e) (Inline al2 a ia e)
-ofInline_additional_to_link =
-	Category2.empty >**>^ Optic.lens_1 >**>^ Optic.lens_2 >**>^ Optic.prism_Maybe >**>^ link_in_Inline
-
 internal_address_in_Link :: Optic.Prism (a, ia1) (a, ia2) (Link a ia1) (Link a ia2)
 internal_address_in_Link = 
 	Optic.from_up_and_match LIn (\case { LIn ia -> Right ia; LEx t -> Left (LEx t) })
@@ -173,12 +168,6 @@ internal_address_in_Inline =
 
 ofParagraph_additional :: Optic.Traversal a1 a2 (Paragraph al a1 ia e) (Paragraph al a2 ia e)
 ofParagraph_additional = Optic.product (Category2.empty, ofInline_additional)
-
-ofParagraph_additional_to_link :: Optic.Traversal al1 al2 (Paragraph al1 a ia e) (Paragraph al2 a ia e)
-ofParagraph_additional_to_link = 
-	Category2.empty 
-	>**>^ ofInline_additional_to_link 
-	>**>^ Optic.lens_2
 
 inlines_in_Node :: 
 	forall al a id_u ia1 ia2 e .
@@ -238,10 +227,6 @@ ofNode_additional =
 	Category2.empty 
 	>**>^ Optic.product (Category2.empty, ofParagraph_additional) 
 	>**>^ inNode_content
-
-ofNode_additional_to_link :: 
-	Optic.Traversal al1 al2 (Node al1 a id_u ia e) (Node al2 a id_u ia e)
-ofNode_additional_to_link = Category2.empty >**>^ ofParagraph_additional_to_link >**>^ inNode_content_elem
 
 internal_address_in_node :: 
 	forall al u ia1 ia2 id_u e .

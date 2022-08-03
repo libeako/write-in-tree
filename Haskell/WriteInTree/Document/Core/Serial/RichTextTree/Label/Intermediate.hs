@@ -64,6 +64,8 @@ type LabelsT = Labels Text
 no_Labels :: Labels id
 no_Labels = Labels Nothing Nothing
 
+instance Default (Labels id) where def = no_Labels
+
 inLabels_id :: Optic.Traversal e1 e2 (Labels e1) (Labels e2)
 inLabels_id = Optic.from_Traversable
 

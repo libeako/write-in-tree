@@ -18,6 +18,7 @@ import Fana.Prelude
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Tree as Tree
 import qualified Fana.Data.HasSingle as HasSingle
+import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -25,13 +26,14 @@ import qualified Fana.Serial.Bidir.Instances.Enum as Serial
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
 type A = Label.Elem Text -- additional info wrapper
 type AB = (,) (A ())
+type A0 = (,) ()
 
 data MetaNodeName = MnLink deriving (Base.Enum, Base.Bounded)
 
@@ -78,9 +80,18 @@ layer_destination_type = let
 		Optic.piso_convert_error_with_low (const (const error_description)) 
 			(Serial.enum render_DestinationType)
 
-layer_destination_type_whole :: Optic.PartialIso' ParseError (AB Text) (AB DestinationType)
+lift_piso_to_weird :: forall e l h . Optic.PartialIso' e l h -> Optic.PartialIso' e (AB l) (A0 h)
+lift_piso_to_weird piso =
+	let
+		render :: A0 h -> AB l
+		render = snd >>> Optic.piso_down piso >>> Pair.after (Label.default_Elem_context ())
+		parse :: AB l -> Either e (A0 h)
+		parse = snd >>> Optic.piso_interpret piso >>> map (Pair.after ())
+		in Optic.PartialIso render parse
+
+layer_destination_type_whole :: Optic.PartialIso' ParseError (AB Text) (A0 DestinationType)
 layer_destination_type_whole =
-	Optic.piso_convert_error_with_low (fst >>> Pos.position_error) (Optic.lift_piso layer_destination_type)
+	Optic.piso_convert_error_with_low (fst >>> Pos.position_error) (lift_piso_to_weird layer_destination_type)
 
 type Core = (AB Text, AB Text)
 
@@ -100,7 +111,7 @@ layer_core_l_whole =
 	convert_from_describing_class_4 ((Optic.iso_up >>> Optic.iso_up) HasSingle.iso_separate)
 	>**> layer_core_l
 	
-type CoreSmart = (AB DestinationType, AB Text)
+type CoreSmart = (A0 DestinationType, AB Text)
 
 layer_smart :: Optic.PartialIso' ParseError Core CoreSmart
 layer_smart = Category2.empty 
@@ -111,10 +122,10 @@ layer_smart = Category2.empty
 create_link :: DestinationType -> AB Text -> Data.Link (A ()) Text
 create_link = \case { Internal -> Data.LIn; External -> Data.LEx }
 
-parse_from_core :: AB DestinationType -> AB Text -> AB (Data.Link (A ()) Text)
+parse_from_core :: A0 DestinationType -> AB Text -> A0 (Data.Link (A ()) Text)
 parse_from_core = map create_link >>> sequenceA
 
-render_to_core :: AB (Data.Link (A ()) Text) -> (AB DestinationType, AB Text)
+render_to_core :: A0 (Data.Link (A ()) Text) -> (A0 DestinationType, AB Text)
 render_to_core i = let
 	l :: Data.Link (A ()) Text
 	l = HasSingle.elem i
@@ -122,10 +133,10 @@ render_to_core i = let
 		Data.LIn a -> (Internal <$ i, a)
 		Data.LEx a -> (External <$ i, a)
 
-layer_core_h :: Optic.Iso' CoreSmart (AB (Data.Link (A ()) Text))
+layer_core_h :: Optic.Iso' CoreSmart (A0 (Data.Link (A ()) Text))
 layer_core_h = Optic.Iso render_to_core (uncurry parse_from_core)
 
-layer_core :: Pos.HasPosition l => Optic.PartialIso' ParseError (l, [Tree (A Text)]) (l, AB (Data.Link (A ()) Text))
+layer_core :: Pos.HasPosition l => Optic.PartialIso' ParseError (l, [Tree (A Text)]) (l, A0 (Data.Link (A ()) Text))
 layer_core = Category2.empty
 	>**> Optic.piso_convert_error_with_low 
 		(\ i e -> Pos.position_error (fst i) e) 
@@ -145,14 +156,14 @@ layer_with_trunk = Optic.Iso render_trunk parse_trunk
 
 layer_general :: 
 	l ~ A MetaNodeName => 
-	Optic.PartialIso' ParseError (l, [Tree (Either l (A Ts.Content'))]) (AB (AB (Data.Link (A ()) Text)))
+	Optic.PartialIso' ParseError (l, [Tree (Either l (A Ts.Content'))]) (AB (A0 (Data.Link (A ()) Text)))
 layer_general = Category2.empty
 	>**>^ (Optic.lift_piso >>> Optic.lift_piso >>> Optic.lift_piso) layer_either_whole 
 	>**>^ layer_core 
 	>**>^ layer_with_trunk
 
 
-type WholeH l r = (A (), (A (), (Data.Link (A ()) Text)))
+type WholeH l r = (A (), ((), (Data.Link (A ()) Text)))
 type WholeH' = WholeH (A MetaNodeName) (A Text)
 
 

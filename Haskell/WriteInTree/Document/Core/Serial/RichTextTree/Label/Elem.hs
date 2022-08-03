@@ -10,6 +10,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 	inElem_idu, inElem_labels,
 	ofElem_classes,
 	elem_has_class,
+	default_Elem_context,
 	Elem (..), ElemT,
 	elem_pd, elem_dp,
 )
@@ -83,6 +84,9 @@ elem_has_class class_text = ofElem_labels >>> Intermediate.labels_has_class clas
 
 
 instance Pos.HasPosition (Elem id e) where get_position = ofElem_position
+
+default_Elem_context :: e -> Elem id e
+default_Elem_context e = Elem def def def e
 
 -- | convert an element from data to picture format.
 elem_dp :: Elem id e -> ElemP e
