@@ -131,7 +131,7 @@ render_link =
 			Just l -> get_address l >>> wrap_with_link_to
 
 render_inline :: OData.Inline OData.AO UI.NodeIdU -> OData.Site UI.NodeIdU -> Xml.ContentL
-render_inline il = flip (render_link (map (snd) (UI.ilLink il))) (render_inline_visual (UI.ilVisual il))
+render_inline il = flip (render_link (UI.ilLink il)) (render_inline_visual (UI.ilVisual il))
 
 unite_neighboring_texts :: [UI.Inline a idts Text] -> [UI.Inline a idts Text]
 unite_neighboring_texts =

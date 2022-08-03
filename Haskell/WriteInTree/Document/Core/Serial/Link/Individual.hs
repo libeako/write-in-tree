@@ -8,7 +8,6 @@ module WriteInTree.Document.Core.Serial.Link.Individual
 where
 
 
-import Data.Functor (($>))
 import Data.Tree (Tree (..))
 import Fana.Haskell.DescribingClass
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
@@ -137,26 +136,26 @@ layer_core = Category2.empty
 	>**> Optic.lift_piso (layer_smart >**>^ layer_core_h)
 
 
-parse_trunk :: (A MetaNodeName, x) -> AB x
-parse_trunk (mnn, x) = (mnn $> (), x)
+parse_trunk :: (A MetaNodeName, x) -> x
+parse_trunk = snd
 
-render_trunk :: AB x -> (A MetaNodeName, x)
-render_trunk (a, x) = (a $> MnLink, x)
+render_trunk :: x -> (A MetaNodeName, x)
+render_trunk = Pair.after (Label.default_Elem_context MnLink)
 
-layer_with_trunk :: Optic.Iso' (A MetaNodeName, x) (AB x)
+layer_with_trunk :: Optic.Iso' (A MetaNodeName, x) x
 layer_with_trunk = Optic.Iso render_trunk parse_trunk
 
 
 layer_general :: 
 	l ~ A MetaNodeName => 
-	Optic.PartialIso' ParseError (l, [Tree (Either l (A Ts.Content'))]) (AB (Data.Link (A ()) Text))
+	Optic.PartialIso' ParseError (l, [Tree (Either l (A Ts.Content'))]) (Data.Link (A ()) Text)
 layer_general = Category2.empty
 	>**>^ (Optic.lift_piso >>> Optic.lift_piso >>> Optic.lift_piso) layer_either_whole 
 	>**>^ layer_core 
 	>**>^ layer_with_trunk
 
 
-type WholeH l r = (A (), (Data.Link (A ()) Text))
+type WholeH l r = Data.Link (A ()) Text
 type WholeH' = WholeH (A MetaNodeName) (A Text)
 
 
