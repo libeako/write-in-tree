@@ -62,7 +62,7 @@ layer_in_node = Ms.layer_1 meta_name_to_text
 show_error_at :: (Path.ElemHP e) -> Accu.Accumulated Text -> Accu.Accumulated Text
 show_error_at position description = Fana.show (Pos.Positioned (Pos.get_position position) description)
 
-parse_id :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.IdT
+parse_id :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Text
 parse_id (Tree.Node trunk children) = 
 	case children of
 		[child] -> 
@@ -71,13 +71,8 @@ parse_id (Tree.Node trunk children) =
 				in case Tt.elemValue (Path.inElemHPCore child_node) of
 					Right (Right text) -> 
 						let
-							intermediate :: Intermediate.IdT
-							intermediate = Intermediate.Id
-								{
-									-- ~ Intermediate.source_of_id_trunk = trunk $> ()
-									-- ~ Intermediate.source_of_id_value = child_node $> ()
-									Intermediate.valueId = text
-								}
+							intermediate :: Text
+							intermediate = text
 							in Right intermediate
 					_ -> 
 						let 
@@ -85,13 +80,13 @@ parse_id (Tree.Node trunk children) =
 							in Left (show_error_at child_node description)
 		_ -> Left (show_error_at trunk "number of children of an identifier node must be 1")
 
-render_id :: Intermediate.IdT -> Tree ElemStructuredR
+render_id :: Text -> Tree ElemStructuredR
 render_id x = 
 	let
 		trunk :: ElemStructuredR
 		trunk = Tt.Elem Nothing (Left MnId)
 		child :: ElemStructuredR
-		child = Tt.Elem Nothing (Right (Right (Intermediate.valueId x)))
+		child = Tt.Elem Nothing (Right (Right x))
 		in Tree.Node trunk [Tree.Node child []]
 
 parse_class :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.Class
@@ -193,10 +188,10 @@ layer ::
 layer = (Optic.piso_convert_error Fana.show layer_in_node) >**> layer_any
 
 
-sort_intermediate_nodes :: [Intermediate.Any] -> ([Intermediate.IdT], [Intermediate.Classes])
+sort_intermediate_nodes :: [Intermediate.Any] -> ([Text], [Intermediate.Classes])
 sort_intermediate_nodes = 
 	let
-		to_either :: Intermediate.Any -> Either Intermediate.IdT Intermediate.Classes
+		to_either :: Intermediate.Any -> Either Text Intermediate.Classes
 		to_either = 
 			\case 
 				Intermediate.IntermId x -> Left x
@@ -211,7 +206,7 @@ parse_maybe_from_list =
 		_ -> Left "multiple labeling nodes with the same type is not valid"
 
 parse_labels_from_sorted :: 
-	([Intermediate.IdT], [Intermediate.Classes]) -> 
+	([Text], [Intermediate.Classes]) ->
 	Either (Accu.Accumulated Text) Intermediate.LabelsT
 parse_labels_from_sorted (identifiers, classes') = 
 	liftA2 Intermediate.Labels (parse_maybe_from_list identifiers) (parse_maybe_from_list classes')

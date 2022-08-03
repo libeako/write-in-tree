@@ -1,6 +1,5 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate
 (
-	Id (..), IdT, 
 	Class (..), ClassesMap, Classes (..),
 	ofClasses_classes,
 	Any (..),
@@ -21,7 +20,6 @@ import qualified Data.List as List
 import qualified Data.Maybe as Base
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Data.Function as Fn
-import qualified Fana.Data.HasSingle as Fana
 import qualified Fana.Data.Key.LensToMaybeElement as LensAt
 import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
@@ -37,18 +35,6 @@ type Text = [Char]
 type ElemP = Path.ElemHP
 type Source = ElemP ()
 
-data Id e = Id
-	{
-		valueId :: e
-	}
-	deriving (Eq, Functor, Foldable, Traversable)
-instance Fana.HasSingle Id where elem = valueId
-
-type IdT = Id Text
-
-id_content :: Optic.Lens e1 e2 (Id e1) (Id e2)
-id_content = Optic.lens_from_get_set valueId (\ p w -> w { valueId = p })
-
 type ClassesMap = StringyMap.Map Char Source
 
 data Class = Class { classSource :: ElemP (), classValue :: Text }
@@ -63,7 +49,7 @@ ofClasses_classes = Optic.lens_from_get_set classes (\ e c -> c { classes = e })
 
 instance Default Classes where def = Classes def def
 
-data Any = IntermId (Id Text) | IntermClass Classes
+data Any = IntermId Text | IntermClass Classes
 
 
 index_classes :: [Class] -> Either (Accu.Accumulated Text) ClassesMap
@@ -95,7 +81,7 @@ contains class_text = classes >>> LensAt.get_at class_text >>> Base.isJust
 
 -- | user given labels of a node.
 data Labels id = Labels
-	{ id_of_Labels :: Maybe (Id id)
+	{ id_of_Labels :: Maybe id
 	, classes_of_Labels :: Maybe Classes
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
@@ -109,7 +95,7 @@ inLabels_id = Optic.from_Traversable
 
 inLabel_id_source_mb :: 
 	Optic.Lens
-		(Maybe (Id id_1)) (Maybe (Id id_2))
+		(Maybe id_1) (Maybe id_2)
 		(Labels id_1) (Labels id_2)
 inLabel_id_source_mb = Optic.lens_from_get_set id_of_Labels (\ p w -> w { id_of_Labels = p })
 

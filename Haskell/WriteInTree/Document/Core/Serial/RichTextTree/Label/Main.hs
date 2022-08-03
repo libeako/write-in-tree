@@ -1,6 +1,5 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Main
 (
-	Intermediate.Id (..),
 	Intermediate.add_new_classes_to_Labels,
 	Intermediate.inLabel_id_source_mb,
 	Intermediate.id_of_Labels,

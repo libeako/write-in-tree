@@ -67,13 +67,13 @@ inNode_idu = Label.inElem_idu >**>^ inNode_source
 
 inNode_idu_source_mb :: 
 	Optic.Lens
-		(Maybe (Label.Id id_u_1)) (Maybe (Label.Id id_u_2))
+		(Maybe id_u_1) (Maybe id_u_2)
 		(Node al a id_u_1 ia e) (Node al a id_u_2 ia e)
 inNode_idu_source_mb = Label.inLabel_id_source_mb >**>^ Label.inElem_labels >**>^ inNode_source 
 
 
 uid_of_node :: Node al a id_u li e -> Maybe id_u
-uid_of_node = nodeWitSource >>> Label.ofElem_labels >>> Label.id_of_Labels >>> map Label.valueId
+uid_of_node = nodeWitSource >>> Label.ofElem_labels >>> Label.id_of_Labels
 
 both_id_of_node :: Node al a id_u ia e -> (Text, Maybe id_u)
 both_id_of_node node = (nodeIdAuto node, uid_of_node node)

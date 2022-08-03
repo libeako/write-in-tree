@@ -1,6 +1,5 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 (
-	Intermediate.Id (..),
 	Intermediate.add_new_classes_to_Labels,
 	Intermediate.inLabel_id_source_mb,
 	Intermediate.id_of_Labels,
@@ -58,7 +57,7 @@ ofElem_pos :: Optic.Lens' Pos.Position (Elem id e)
 ofElem_pos = Optic.lens_from_get_set ofElem_position (\ e c -> c { ofElem_position = e })
 
 ofElem_id_u_content :: Elem id e -> Maybe id
-ofElem_id_u_content = ofElem_labels >>> Intermediate.id_of_Labels >>> map Intermediate.valueId
+ofElem_id_u_content = ofElem_labels >>> Intermediate.id_of_Labels
 
 fromElem_id_au_content :: Elem id e -> (Maybe Text, Maybe id)
 fromElem_id_au_content = liftA2 (,) ofElem_auto_id ofElem_id_u_content
