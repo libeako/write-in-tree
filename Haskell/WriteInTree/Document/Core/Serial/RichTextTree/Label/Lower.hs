@@ -103,16 +103,14 @@ render_class (name, source) = Tree.Node (Tt.Elem Nothing (Right (Right name))) [
 
 parse_classes :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.Classes
 parse_classes (Tree.Node trunk children) = 
-	map (Intermediate.Classes (Just (trunk $> ()))) (traverse parse_class children >>= Intermediate.index_classes)
+	map Intermediate.Classes (traverse parse_class children >>= Intermediate.index_classes)
 
 render_classes' :: Intermediate.Classes -> Tree ElemStructuredR
 render_classes' cs = let
 	new_trunk :: ElemStructuredR
 	new_trunk = let
 		content = Left MnClass
-		in case Intermediate.source_of_classes_trunk cs of
-			Nothing -> def @(Path.ElemHR ()) $> content
-			Just s -> Path.inElemHPCore s $> content
+		in def @(Path.ElemHR ()) $> content
 	in Tree.Node new_trunk (map render_class (TravKey.key_value_pairs (Intermediate.classes cs)))
 
 render_classes :: Intermediate.Classes -> Maybe (Tree ElemStructuredR)

@@ -36,16 +36,13 @@ type Source = ElemP ()
 
 type ClassesMap = StringyMap.Map Char ()
 
-data Classes = Classes
-	{ source_of_classes_trunk :: Maybe Source
-	, classes :: ClassesMap
-	}
+data Classes = Classes { classes :: ClassesMap }
 	deriving (Eq)
 
 ofClasses_classes :: Optic.Lens' ClassesMap Classes
 ofClasses_classes = Optic.lens_from_get_set classes (\ e c -> c { classes = e })
 
-instance Default Classes where def = Classes def def
+instance Default Classes where def = Classes def
 
 data Any = IntermId Text | IntermClass Classes
 
@@ -57,15 +54,13 @@ index_classes = let
 	in map (Pair.before ()) >>> MapI.from_list_of_uniques >>> Bifunctor.first (fst >>> error_message)
 
 add_new :: [Text] -> Classes -> Classes
-add_new incoming_classes (Classes trunk_source old_classes) = let
+add_new incoming_classes (Classes old_classes) = let
 	updated_classes :: ClassesMap
 	updated_classes = let
-		updated_old_classes :: ClassesMap
-		updated_old_classes = old_classes
 		add_class :: Text -> Fn.Endo ClassesMap
 		add_class c = LensAt.ensure_existence_at c ()
-		in Fold.foldr' add_class updated_old_classes incoming_classes
-	in (Classes trunk_source updated_classes)
+		in Fold.foldr' add_class old_classes incoming_classes
+	in (Classes updated_classes)
 
 contains :: Text -> Classes -> Bool
 contains class_text = classes >>> LensAt.get_at class_text >>> Base.isJust
