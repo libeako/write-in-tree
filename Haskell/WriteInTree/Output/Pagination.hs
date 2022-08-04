@@ -151,7 +151,7 @@ page_node_as_link trunk_node =
 			>>> Optic.fill UI.inNode_idu_source_mb Nothing
 			>>> Optic.fill UI.links_in_Node 
 				(
-					Just (UI.LIn ((), Left (UI.nodeIdAuto trunk_node)))
+					Just (UI.LIn (Left (UI.nodeIdAuto trunk_node)))
 					-- this feels an ugly solution, but i hope will do it for now
 				)
 			>>> Optic.fill UI.ofNode_additional def

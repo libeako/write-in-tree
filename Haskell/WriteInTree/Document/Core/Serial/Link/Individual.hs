@@ -118,12 +118,15 @@ layer_smart = Category2.empty
 	>**>^ Optic.iso_pair_swap
 
 parse_from_core :: DestinationType -> AB Text -> Data.Link (A ()) Text
-parse_from_core = \case { Internal -> Data.LIn; External -> Data.LEx }
+parse_from_core d =
+	snd >>> case d of { Internal -> Data.LIn; External -> Data.LEx }
 
 render_to_core :: Data.Link (A ()) Text -> (DestinationType, AB Text)
-render_to_core = \case
+render_to_core =
+	\case
 		Data.LIn a -> (Internal, a)
 		Data.LEx a -> (External, a)
+	>>> map (Pair.after (Label.default_Elem_context ()))
 
 layer_core_h :: Optic.Iso' CoreSmart (Data.Link (A ()) Text)
 layer_core_h = Optic.Iso render_to_core (uncurry parse_from_core)

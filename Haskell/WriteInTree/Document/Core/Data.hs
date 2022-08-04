@@ -29,8 +29,8 @@ type NodeIdU = Identified Int NodeIdUCore
 
 -- | Can be internal or external.
 data Link a ia =
-	  LIn (a, ia) -- ^ | Internal.
-	| LEx (a, String) -- ^ | External.
+	  LIn ia -- ^ | Internal.
+	| LEx String -- ^ | External.
 	deriving (Eq)
 
 -- | .
@@ -98,15 +98,12 @@ uids_int_doc_with_nodes = docTree >>> Fold.toList >>> map attach_its_uid_to_node
 
 ofLink_internals :: 
 	Optic.Iso 
-		(Either (a1, ia1) (a1, String)) (Either (a2, ia2) (a2, String))
+		(Either ia1 String) (Either ia2 String)
 		(Link a1 ia1) (Link a2 ia2)
 ofLink_internals = let
 	down = \case { LIn x -> Left x; LEx x -> Right x }
 	up = Base.either LIn LEx
 	in Optic.Iso down up
-
-ofLink_additional :: Optic.Lens a1 a2 (Link a1 ia) (Link a2 ia)
-ofLink_additional = Category2.empty >**>^ Optic.sum (Optic.lens_1, Optic.lens_1) >**>^ ofLink_internals
 
 ofInline_internals ::
 	Optic.Iso
@@ -124,6 +121,16 @@ link_in_Inline ::
 		(Inline a ia1 e) (Inline a ia2 e)
 link_in_Inline = Optic.lens_from_get_set ilLink (\ e c -> c { ilLink = e })
 
+ofLink_additional :: forall a1 a2 ia . Optic.Traversal a1 a2 (Link a1 ia) (Link a2 ia)
+ofLink_additional =
+	let
+		trav :: forall a . (a1 -> a a2) -> (Link a1 ia -> Link a2 ia)
+		trav f =
+			\case
+				LIn x -> LIn x
+				LEx x -> LEx x
+		in Optic.Traversal (trav >>> map pure)
+
 ofInline_additional :: forall ia e a1 a2 . Optic.Traversal a1 a2 (Inline a1 ia e) (Inline a2 ia e)
 ofInline_additional = let
 	from_link :: Optic.Traversal a1 a2 (Maybe (Link a1 ia)) (Maybe (Link a2 ia))
@@ -134,12 +141,12 @@ ofInline_additional = let
 	from_internals = from_link >**>^ Optic.lens_2
 	in Category2.empty >**>^ from_internals >**>^ ofInline_internals
 
-internal_address_in_Link :: Optic.Prism (a, ia1) (a, ia2) (Link a ia1) (Link a ia2)
+internal_address_in_Link :: Optic.Prism ia1 ia2 (Link a ia1) (Link a ia2)
 internal_address_in_Link = 
 	Optic.from_up_and_match LIn (\case { LIn ia -> Right ia; LEx t -> Left (LEx t) })
 
 internal_address_in_Link' :: forall a ia1 ia2 . Optic.AffineTraversal ia1 ia2 (Link a ia1) (Link a ia2)
-internal_address_in_Link' = Category2.empty >**>^ Optic.lens_2 >**>^ internal_address_in_Link @a
+internal_address_in_Link' = Category2.empty >**>^ internal_address_in_Link
 
 internal_address_in_Inline :: 
 	forall a ia1 ia2 e . Optic.AffineTraversal ia1 ia2 (Inline a ia1 e) (Inline a ia2 e)

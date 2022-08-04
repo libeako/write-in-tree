@@ -282,7 +282,7 @@ link_to_address :: OData.UserAddressMap UI.NodeIdU -> OData.Link OData.AO UI.Nod
 link_to_address address_map = 
 	\ case
 		UI.LIn node_id -> 
-			case snd node_id of
+			case node_id of
 				Left ida -> page_file_name_from_id ida
 				Right idu ->
 					let
@@ -298,7 +298,7 @@ link_to_address address_map =
 								Nothing -> id
 								Just ipt -> (<> "#" <> UI.nodeIdAuto ipt)
 						in add_in_page_address (page_file_name (OData.iltPage ilt))
-		UI.LEx a -> snd a
+		UI.LEx a -> a
 
 node_address_for_navigation_bar :: OData.Site UI.NodeIdU -> OData.Node a UI.NodeIdU -> Maybe String
 node_address_for_navigation_bar site node =

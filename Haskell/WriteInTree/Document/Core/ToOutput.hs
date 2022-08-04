@@ -11,7 +11,7 @@ type Text = Base.String
 
 
 translateLink :: UI.Link () UI.NodeIdU -> O.Link O.AI UI.NodeIdU
-translateLink (UI.LIn ia) = UI.LIn (map Right ia)
+translateLink (UI.LIn ia) = UI.LIn (Right ia)
 translateLink (UI.LEx t) = UI.LEx t
 
 translateInline :: UI.Inline () UI.NodeIdU Text -> O.Inline O.AI UI.NodeIdU
