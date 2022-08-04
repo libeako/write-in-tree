@@ -65,7 +65,7 @@ parse_core tree = let
 	when_normal :: Inline Text -> [CoreH a] -> CoreH a
 	when_normal inline = let
 		new_trunk :: CoreElemH a
-		new_trunk = (a, Right (a, inline))
+		new_trunk = (a, Right inline)
 		in Tree.Node new_trunk
 	when_foreigh_meta :: a () -> Text -> [Tree (CoreElemH a)] -> CoreH a
 	when_foreigh_meta a' text = Tree.Node (a', Left text)
@@ -82,7 +82,7 @@ render_core tree = let
 		-- outside may have changed this additional info, the instance attached to the paragraph;
 		-- hence i take that one here to live on and drop the one attached to the inline;
 		-- but in theory the one of the inline may have got changed too, thus this is dodgy
-		Tree.Node (a', Right (snd inline)) (map render_core children)
+		Tree.Node (a', Right inline) (map render_core children)
 	in Base.either 
 		(Left >>> Pair.after a >>> flip Tree.Node (map render_core children))
 		(render_any_paragraph a)

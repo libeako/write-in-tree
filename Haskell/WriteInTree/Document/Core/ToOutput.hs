@@ -21,9 +21,6 @@ translateInline i = UI.Inline
 		UI.ilLink = map translateLink (UI.ilLink i)
 	}
 
-translateParagraph :: UI.Paragraph () UI.NodeIdU Text -> O.Paragraph O.AI UI.NodeIdU
-translateParagraph = map translateInline
-
 translateStructure :: UI.StructureAsTree () UI.NodeIdU UI.NodeIdU Text -> O.Structure O.AI UI.NodeIdU
 translateStructure (Tree.Node trunk children) = 
 	let	
@@ -31,7 +28,7 @@ translateStructure (Tree.Node trunk children) =
 		trunk_node :: O.Node O.AI UI.NodeIdU
 		trunk_node = 
 			UI.Node (UI.nodeIdAuto trunk) (UI.nodeWitSource trunk) 
-				(map translateParagraph (UI.nodeContent trunk)) 
+				(map translateInline (UI.nodeContent trunk)) 
 				separate_page
 		sub_results = map translateStructure children
 		in Tree.Node trunk_node sub_results

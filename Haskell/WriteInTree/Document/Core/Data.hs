@@ -40,7 +40,7 @@ data Inline ia e =
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 
-type Paragraph a ia e = (a, Inline ia e)
+type Paragraph a ia e = Inline ia e
 
 data Node a (id_u :: Type) ia e =
 	Node
@@ -157,12 +157,12 @@ internal_address_in_Inline =
 		>**>^ link_in_Inline
 
 ofParagraph_additional :: Optic.Traversal a1 a2 (Paragraph a1 ia e) (Paragraph a2 ia e)
-ofParagraph_additional = Optic.product (Category2.empty, ofInline_additional)
+ofParagraph_additional = ofInline_additional
 
 inlines_in_Node :: 
 	forall a id_u ia1 ia2 e .
 	Optic.Traversal (Inline ia1 e) (Inline ia2 e) (Node a id_u ia1 e) (Node a id_u ia2 e)
-inlines_in_Node = Category2.empty >**>^ Optic.lens_2 >**>^ inNode_content_elem
+inlines_in_Node = Category2.empty >**>^ inNode_content_elem
 
 links_in_Node :: 
 	forall a id_u ia1 ia2 e .
@@ -174,7 +174,6 @@ links_in_Node = Category2.empty >**>^ link_in_Inline @ia1 @ia2 >**>^ inlines_in_
 texts_in_Node :: forall u e id_u ia . Optic.Traversal' e (Node u id_u ia e)
 texts_in_Node = Category2.empty
 	>**>^ visual_in_Inline
-	>**>^ Optic.lens_2
 	>**>^ inNode_content_elem
 
 wit_source_in_Node :: 
@@ -223,7 +222,7 @@ internal_address_in_node ::
 	Optic.Traversal ia1 ia2 (Node u id_u ia1 e) (Node u id_u ia2 e)
 internal_address_in_node = 
 	Category2.empty
-	>**>^ internal_address_in_Inline >**>^ Optic.lens_2
+	>**>^ internal_address_in_Inline
 	>**>^ inNode_content_elem
 
 node_in_tree ::

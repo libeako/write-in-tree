@@ -157,11 +157,11 @@ render_paragraph is_page_break sentencing p site =
 		content :: [Xml.ContentL]
 		content = 
 			if not sentencing 
-				then [(snd >>> flip render_inline site) p]
+				then [(flip render_inline site) p]
 				else
 					let
 						all_sections :: [OData.Inline UI.NodeIdU]
-						all_sections = (snd >>> Sentence.sentences) p
+						all_sections = Sentence.sentences p
 						render_possibly_sentence' = 
 							flip render_inline site >>> List.singleton >>> Html.classify_into [text_class_sentence] >>> Xml.element_as_content
 					in map render_possibly_sentence' all_sections
