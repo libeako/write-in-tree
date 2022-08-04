@@ -122,10 +122,10 @@ layer_first_link_of_node = let
 	in Optic.PartialIso render parse
 
 
-attach_link_to_visual :: (A Ts.Content', Maybe (Data.Link (A ()) Text)) -> A (Inline Ts.Content')
+attach_link_to_visual :: (A Ts.Content', Maybe (Data.Link Text)) -> A (Inline Ts.Content')
 attach_link_to_visual (visual, link) = map (flip Data.Inline link) visual
 
-detach_link_to_visual :: A (Inline Ts.Content') -> (A Ts.Content', Maybe (Data.Link (A ()) Text))
+detach_link_to_visual :: A (Inline Ts.Content') -> (A Ts.Content', Maybe (Data.Link Text))
 detach_link_to_visual i =
 	let
 		inline :: Inline Ts.Content'
@@ -133,7 +133,7 @@ detach_link_to_visual i =
 		in (Data.ilVisual inline  <$ i, Data.ilLink inline)
 
 layer_tach_link_to_visual :: 
-	Optic.Iso' (A Ts.Content', Maybe (Data.Link (A ()) Text)) (A (Inline Ts.Content'))
+	Optic.Iso' (A Ts.Content', Maybe (Data.Link Text)) (A (Inline Ts.Content'))
 layer_tach_link_to_visual = Optic.Iso detach_link_to_visual attach_link_to_visual
 
 

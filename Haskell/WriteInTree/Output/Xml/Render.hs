@@ -118,12 +118,12 @@ wrap_by_header_content =
 render_inline_visual :: Text -> Xml.ContentL
 render_inline_visual t = Xml.text t
 
-render_link :: Maybe (OData.Link OData.AO UI.NodeIdU) -> OData.Site UI.NodeIdU -> Fn.Endo Xml.ContentL
+render_link :: Maybe (OData.Link UI.NodeIdU) -> OData.Site UI.NodeIdU -> Fn.Endo Xml.ContentL
 render_link =
 	let
 		wrap_with_link_to :: String -> Fn.Endo Xml.ContentL
 		wrap_with_link_to target = pure >>> Html.with_link_to target >>> Xml.element_as_content
-		get_address :: OData.Link OData.AO UI.NodeIdU -> OData.Site UI.NodeIdU -> String
+		get_address :: OData.Link UI.NodeIdU -> OData.Site UI.NodeIdU -> String
 		get_address link = OData.siteUserAddressMap >>> flip link_to_address link
 	in
 		\case
@@ -278,7 +278,7 @@ page_file_name page = page_file_name_from_id (OData.id_of_page page)
 page_file_path :: Text -> FilePath
 page_file_path page_id = Fp.joinPath ["c", page_file_name_from_id page_id]
 
-link_to_address :: OData.UserAddressMap UI.NodeIdU -> OData.Link OData.AO UI.NodeIdU -> String
+link_to_address :: OData.UserAddressMap UI.NodeIdU -> OData.Link UI.NodeIdU -> String
 link_to_address address_map = 
 	\ case
 		UI.LIn node_id -> 

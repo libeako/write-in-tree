@@ -10,7 +10,7 @@ import qualified WriteInTree.Output.Pagination as O
 type Text = Base.String
 
 
-translateLink :: UI.Link () UI.NodeIdU -> O.Link O.AI UI.NodeIdU
+translateLink :: UI.Link UI.NodeIdU -> O.Link UI.NodeIdU
 translateLink (UI.LIn ia) = UI.LIn (Right ia)
 translateLink (UI.LEx t) = UI.LEx t
 
