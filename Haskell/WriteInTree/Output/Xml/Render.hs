@@ -130,10 +130,10 @@ render_link =
 			Nothing -> const id
 			Just l -> get_address l >>> wrap_with_link_to
 
-render_inline :: OData.Inline OData.AO UI.NodeIdU -> OData.Site UI.NodeIdU -> Xml.ContentL
+render_inline :: OData.Inline UI.NodeIdU -> OData.Site UI.NodeIdU -> Xml.ContentL
 render_inline il = flip (render_link (UI.ilLink il)) (render_inline_visual (UI.ilVisual il))
 
-unite_neighboring_texts :: [UI.Inline a idts Text] -> [UI.Inline a idts Text]
+unite_neighboring_texts :: [UI.Inline idts Text] -> [UI.Inline idts Text]
 unite_neighboring_texts =
 	\case
 		[] -> []
@@ -142,7 +142,7 @@ unite_neighboring_texts =
 			UI.Inline (t1 <> t2) Nothing : unite_neighboring_texts rest
 		(to_not_change : rest) -> to_not_change : unite_neighboring_texts rest
 
-render_possibly_sentence :: OData.Site UI.NodeIdU -> OData.Inline OData.AO UI.NodeIdU -> Xml.ContentL
+render_possibly_sentence :: OData.Site UI.NodeIdU -> OData.Inline UI.NodeIdU -> Xml.ContentL
 render_possibly_sentence site inline =
 	case inline of
 		UI.Inline t Nothing ->
@@ -160,7 +160,7 @@ render_paragraph is_page_break sentencing p site =
 				then [(snd >>> flip render_inline site) p]
 				else
 					let
-						all_sections :: [OData.Inline OData.AO UI.NodeIdU]
+						all_sections :: [OData.Inline UI.NodeIdU]
 						all_sections = (snd >>> Sentence.sentences) p
 						render_possibly_sentence' = 
 							flip render_inline site >>> List.singleton >>> Html.classify_into [text_class_sentence] >>> Xml.element_as_content

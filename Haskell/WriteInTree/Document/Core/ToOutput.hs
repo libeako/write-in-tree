@@ -14,7 +14,7 @@ translateLink :: UI.Link UI.NodeIdU -> O.Link UI.NodeIdU
 translateLink (UI.LIn ia) = UI.LIn (Right ia)
 translateLink (UI.LEx t) = UI.LEx t
 
-translateInline :: UI.Inline () UI.NodeIdU Text -> O.Inline O.AI UI.NodeIdU
+translateInline :: UI.Inline UI.NodeIdU Text -> O.Inline UI.NodeIdU
 translateInline i = UI.Inline 
 	{ 
 		UI.ilVisual = UI.ilVisual i, 

@@ -25,9 +25,9 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Text = Base.String
 
-type Inline a e = Data.Inline (a ()) Text e
-type InputElem a e = a (Inline a e)
-type InputElemPair a e = (a (), Inline a e)
+type Inline e = Data.Inline Text e
+type InputElem a e = a (Inline e)
+type InputElemPair a e = (a (), Inline e)
 type OutputElem a e = (a (), Data.Paragraph (a ()) Text e)
 type A = Label.Elem Text
 type Paragraph a = Data.Paragraph (a ()) Text Text
@@ -38,18 +38,18 @@ layer_move_additional_info ::
 	Optic.Iso (Tree (a1 e1)) (Tree (a2 e2)) (Tree (a1 (), e1)) (Tree (a2 (), e2))
 layer_move_additional_info = Optic.iso_up HasSingle.iso_separate
 
-layer_either :: Optic.Iso' (Inline a Ts.Content') (Either Text (Inline a Text))
+layer_either :: Optic.Iso' (Inline Ts.Content') (Either Text (Inline Text))
 layer_either = let
 	down = Base.either (Left >>> flip Data.Inline Nothing) (map Right)
 	in Optic.Iso down sequenceA
 
-type CoreElemL a = (a (), Either Text (Inline a Text))
+type CoreElemL a = (a (), Either Text (Inline Text))
 type CoreElemH a = (a (), Either Text (Paragraph a))
 
-layer_meta_node' :: Optic.Iso' (Either Text (Inline a Text)) (Either Text (Inline a Text))
+layer_meta_node' :: Optic.Iso' (Either Text (Inline Text)) (Either Text (Inline Text))
 layer_meta_node' = Category2.empty
 
-layer_meta_node :: Optic.Iso' (a (), Either Text (Inline a Text)) (CoreElemL a)
+layer_meta_node :: Optic.Iso' (a (), Either Text (Inline Text)) (CoreElemL a)
 layer_meta_node = Optic.iso_up layer_meta_node'
 
 
@@ -62,7 +62,7 @@ parse_core tree = let
 	trunk = Tree.rootLabel tree
 	(a, trunk_either_inline {- :: Either Text (Inline a Text) -}) = trunk
 	processed_children = map parse_core (Tree.subForest tree)
-	when_normal :: Inline a Text -> [CoreH a] -> CoreH a
+	when_normal :: Inline Text -> [CoreH a] -> CoreH a
 	when_normal inline = let
 		new_trunk :: CoreElemH a
 		new_trunk = (a, Right (a, inline))
@@ -93,7 +93,7 @@ layer_core = Optic.Iso render_core parse_core
 
 layer_general :: 
 	forall a . (forall x . Pos.HasPosition (a x), Fana.HasSingle a) => 
-	Optic.Iso' (Tree (a (Inline a Ts.Content'))) (CoreH a)
+	Optic.Iso' (Tree (a (Inline Ts.Content'))) (CoreH a)
 layer_general = 
 	convert_from_describing_class_4
 		(
@@ -107,5 +107,5 @@ layer_general =
 type ElemH = CoreElemH A
 type H = CoreH A
 
-layer :: Optic.Iso' (Tree (A (Inline A Ts.Content'))) H
+layer :: Optic.Iso' (Tree (A (Inline Ts.Content'))) H
 layer = layer_general
