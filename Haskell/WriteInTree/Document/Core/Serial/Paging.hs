@@ -31,7 +31,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Text = Base.String
 
-type Paragraph a = Data.Paragraph (a ()) Text Text
+type Paragraph a = Data.Paragraph Text Text
 type InputElem a = (a (), Either Text (Paragraph a))
 type A = Label.Elem Text
 type InputTree a = Tree (InputElem a)

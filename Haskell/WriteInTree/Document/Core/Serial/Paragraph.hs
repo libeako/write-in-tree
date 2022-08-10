@@ -28,9 +28,9 @@ type Text = Base.String
 type Inline e = Data.Inline Text e
 type InputElem a e = a (Inline e)
 type InputElemPair a e = (a (), Inline e)
-type OutputElem a e = (a (), Data.Paragraph (a ()) Text e)
+type OutputElem a e = (a (), Data.Paragraph Text e)
 type A = Label.Elem Text
-type Paragraph a = Data.Paragraph (a ()) Text Text
+type Paragraph = Data.Paragraph Text Text
 
 
 layer_move_additional_info :: 
@@ -44,7 +44,7 @@ layer_either = let
 	in Optic.Iso down sequenceA
 
 type CoreElemL a = (a (), Either Text (Inline Text))
-type CoreElemH a = (a (), Either Text (Paragraph a))
+type CoreElemH a = (a (), Either Text Paragraph)
 
 layer_meta_node' :: Optic.Iso' (Either Text (Inline Text)) (Either Text (Inline Text))
 layer_meta_node' = Category2.empty
@@ -75,7 +75,7 @@ render_core :: forall a . CoreH a -> CoreL a
 render_core tree = let
 	Tree.Node trunk children = tree
 	(a, ei_paragraph) = trunk -- :: (a (), Either Text (Paragraph a))
-	render_any_paragraph :: a () -> Paragraph a -> CoreL a
+	render_any_paragraph :: a () -> Paragraph -> CoreL a
 	render_any_paragraph a' inline = 
 		-- in this case the additional info of the paragraph was created during parsing
 		-- to be the same as the additional info of the inline,

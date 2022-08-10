@@ -43,7 +43,7 @@ instance Default AO where def = AO False
 
 type Link (id_u :: Type) = UI.Link (LinkInternalTarget id_u)
 type Inline (id_u :: Type) = UI.Inline (LinkInternalTarget id_u) Text
-type Paragraph a (id_u :: Type) = UI.Paragraph a (LinkInternalTarget id_u) Text
+type Paragraph (id_u :: Type) = UI.Paragraph (LinkInternalTarget id_u) Text
 type Node a (id_u :: Type) = UI.Node a id_u (LinkInternalTarget id_u) Text
 
 type Structure a (id_u :: Type) = Tree.Tree (Node a id_u)

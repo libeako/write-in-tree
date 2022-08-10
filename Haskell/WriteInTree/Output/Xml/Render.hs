@@ -151,7 +151,7 @@ render_possibly_sentence site inline =
 
 render_paragraph :: 
 	Bool -> Bool -> 
-	OData.Paragraph OData.AO UI.NodeIdU -> OData.Site UI.NodeIdU -> Xml.ElementL
+	OData.Paragraph UI.NodeIdU -> OData.Site UI.NodeIdU -> Xml.ElementL
 render_paragraph is_page_break sentencing p site = 
 	let
 		content :: [Xml.ContentL]

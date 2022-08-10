@@ -40,14 +40,14 @@ data Inline ia e =
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 
-type Paragraph a ia e = Inline ia e
+type Paragraph ia e = Inline ia e
 
 data Node a (id_u :: Type) ia e =
 	Node
 	{
 		nodeIdAuto :: Text,
 		nodeWitSource :: Label.Elem id_u (),
-		nodeContent :: (a, Paragraph a ia e),
+		nodeContent :: (a, Paragraph ia e),
 		nodeIsSeparatePage :: Bool
 	}
 	deriving (Eq)
@@ -156,7 +156,7 @@ internal_address_in_Inline =
 		>**>^ Optic.prism_Maybe 
 		>**>^ link_in_Inline
 
-ofParagraph_additional :: Optic.Traversal a1 a2 (Paragraph a1 ia e) (Paragraph a2 ia e)
+ofParagraph_additional :: Optic.Traversal a1 a2 (Paragraph ia e) (Paragraph ia e)
 ofParagraph_additional = ofInline_additional
 
 inlines_in_Node :: 
@@ -191,14 +191,14 @@ source_in_Node = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSour
 inNode_content :: 
 	forall a1 a2 e1 e2 ia1 ia2 id_u .
 	Optic.Lens 
-		(a1, (Paragraph a1 ia1 e1)) (a2, (Paragraph a2 ia2 e2))
+		(a1, (Paragraph ia1 e1)) (a2, (Paragraph ia2 e2))
 		(Node a1 id_u ia1 e1) (Node a2 id_u ia2 e2)
 inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })
 
 inNode_content_elem :: 
 	forall u e ia1 ia2 idts .
 	Optic.Lens 
-		(Paragraph u ia1 e) (Paragraph u ia2 e) 
+		(Paragraph ia1 e) (Paragraph ia2 e)
 		(Node u idts ia1 e) (Node u idts ia2 e)
 inNode_content_elem = Category2.empty >**>^ Optic.lens_2 >**>^ inNode_content @u @u
 
