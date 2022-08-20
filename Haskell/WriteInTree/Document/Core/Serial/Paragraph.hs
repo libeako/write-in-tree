@@ -28,9 +28,9 @@ type Text = Base.String
 type Inline e = Data.Inline Text e
 type InputElem a e = a (Inline e)
 type InputElemPair a e = (a (), Inline e)
-type OutputElem a e = (a (), Data.Paragraph Text e)
+type OutputElem a = (a (), Data.Paragraph Text)
 type A = Label.Elem Text
-type Paragraph = Data.Paragraph Text Text
+type Paragraph = Data.Paragraph Text
 
 
 layer_move_additional_info :: 

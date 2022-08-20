@@ -31,8 +31,8 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Text = Base.String
 
-type Paragraph a = Data.Paragraph Text Text
-type InputElem a = (a (), Either Text (Paragraph a))
+type Paragraph = Data.Paragraph Text
+type InputElem a = (a (), Either Text Paragraph)
 type A = Label.Elem Text
 type InputTree a = Tree (InputElem a)
 
@@ -55,8 +55,8 @@ layer_MetaName' = let
 	in Optic.PartialIso render_MetaNodeName parse
 
 layer_MetaName :: (forall x . Pos.HasPosition (a x)) => Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text))
-	(a (), Either Text (Paragraph a))
-	(a (), Either MetaNodeName (Paragraph a))
+	(a (), Either Text Paragraph)
+	(a (), Either MetaNodeName Paragraph)
 layer_MetaName = Optic.piso_convert_error_with_low (fst >>> Pos.position_error)
 	(Optic.lift_piso (Ms.lift_layer_to_Left layer_MetaName'))
 
@@ -69,8 +69,8 @@ store_separate_page_status separate_page = if separate_page
 	then Optic.fn_up Label.inElem_labels (Label.add_new_classes_to_Labels [text_page_class])
 	else id
 
-type CoreLTree a = Tree (a (), Either MetaNodeName (Paragraph a))
-type CoreHTree a = Tree (a (), (Paragraph a, Bool))
+type CoreLTree a = Tree (a (), Either MetaNodeName Paragraph)
+type CoreHTree a = Tree (a (), (Paragraph, Bool))
 
 core_render :: CoreHTree a -> CoreLTree a
 core_render = (map >>> map) (fst >>> Right)
@@ -83,7 +83,7 @@ core_parse' :: forall a id . a ~ Label.Elem id =>
 core_parse' separate_page_as_inherited (Tree.Node (a, ei_paragraph) children) = let
 	make_children :: Bool ->[CoreHTree a]
 	make_children sp = Fold.concat (map (core_parse' sp) children)
-	on_regular :: Paragraph a -> [CoreHTree a]
+	on_regular :: Paragraph -> [CoreHTree a]
 	on_regular paragraph =
 		[
 			let
@@ -118,7 +118,7 @@ type NodeH a = Data.Node (a ()) Text Text
 
 parse_into_node ::
 	forall a . a ~ Label.Elem Text =>
-	(a (), (Paragraph a, Bool)) -> Either (Pos.Positioned (Accu.Accumulated Text)) (NodeH a)
+	(a (), (Paragraph, Bool)) -> Either (Pos.Positioned (Accu.Accumulated Text)) (NodeH a)
 parse_into_node (a, (paragraph, is_separate_page)) = let
 	make :: Text -> Data.Node (a ()) Text Text
 	make id_a = Data.Node id_a a (a, paragraph) is_separate_page
@@ -126,12 +126,12 @@ parse_into_node (a, (paragraph, is_separate_page)) = let
 	error_message = Pos.Positioned (Pos.get_position a) "node does not have an automatic identifier"
 	in Base.maybe (Left error_message) Right (map make (Label.ofElem_auto_id a))
 
-render_from_node :: NodeH a -> (a (), (Paragraph a, Bool))
+render_from_node :: NodeH a -> (a (), (Paragraph, Bool))
 render_from_node i = (fst (Data.nodeContent i), (snd (Data.nodeContent i), Data.nodeIsSeparatePage i))
 
 layer_h ::
 	forall a . a ~ Label.Elem Text =>
-	Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text)) (a (), (Paragraph a, Bool)) (NodeH a)
+	Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text)) (a (), (Paragraph, Bool)) (NodeH a)
 layer_h = Optic.PartialIso render_from_node parse_into_node
 
 
