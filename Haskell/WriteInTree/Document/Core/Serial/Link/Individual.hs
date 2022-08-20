@@ -131,7 +131,8 @@ layer_core_h :: Optic.Iso' CoreSmart (Data.Link Text)
 layer_core_h = Optic.Iso render_to_core (uncurry parse_from_core)
 
 layer_core :: Pos.HasPosition l => Optic.PartialIso' ParseError (l, [Tree (A Text)]) (l, Data.Link Text)
-layer_core = Category2.empty
+layer_core =
+	Category2.empty
 	>**> Optic.piso_convert_error_with_low 
 		(\ i e -> Pos.position_error (fst i) e) 
 		(Optic.lift_piso layer_core_l_whole)
@@ -145,14 +146,9 @@ layer_with_trunk :: Optic.Iso' (A MetaNodeName, x) x
 layer_with_trunk = Optic.Iso render_trunk snd
 
 
-layer_general :: 
-	l ~ A MetaNodeName => 
-	Optic.PartialIso' ParseError (l, [Tree (Either l (A Ts.Content'))]) (Data.Link Text)
-layer_general = Category2.empty
+layer :: Optic.PartialIso' ParseError WholeL' (Data.Link Text)
+layer =
+	Category2.empty
 	>**>^ (Optic.lift_piso >>> Optic.lift_piso >>> Optic.lift_piso) layer_either_whole 
 	>**>^ layer_core 
 	>**>^ layer_with_trunk
-
-
-layer :: Optic.PartialIso' ParseError WholeL' (Data.Link Text)
-layer = layer_general
