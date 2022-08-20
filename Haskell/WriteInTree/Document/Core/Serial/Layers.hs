@@ -15,7 +15,6 @@ import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified Technical.TextTree.MindMap as Tt
 import qualified WriteInTree.Document.Core.Data as Data
-import qualified WriteInTree.Document.Core.Serial.InlineContent as InlineContent
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Paging as Page
 import qualified WriteInTree.Document.Core.Serial.Paragraph as Paragraph
@@ -45,7 +44,6 @@ layer sep_props =
 	>**>^ Optic.piso_convert_error convert_string_error Tt.layer 
 	>**>^ Path.layer
 	>**>^ Optic.piso_convert_error (Pos.PositionedMb Nothing) (Label.layer (SepProps.prop_inline_classes sep_props))
-	>**>^ Optic.piso_convert_error Pos.maybefy_positioned InlineContent.layer
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
 	>**>^ Paragraph.layer
 	>**>^ Page.layer
