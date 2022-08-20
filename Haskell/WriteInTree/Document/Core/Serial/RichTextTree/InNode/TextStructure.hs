@@ -26,9 +26,6 @@ meta_char = '#'
 type Content exceptional regular = Either exceptional regular
 type Content' = Content Text Text
 
--- this language is probably bad, 
--- probably : it should not accept as text that starts with meta char and could not be parse as other
-
 render :: Content Text Text -> Text
 render = 
 	let
