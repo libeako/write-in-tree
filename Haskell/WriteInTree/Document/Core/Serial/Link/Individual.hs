@@ -2,7 +2,6 @@ module WriteInTree.Document.Core.Serial.Link.Individual
 (
 	MetaNodeName (..),
 	Concrete,
-	WholeH,
 	layer,
 )
 where
@@ -155,9 +154,5 @@ layer_general = Category2.empty
 	>**>^ layer_with_trunk
 
 
-type WholeH l r = Data.Link Text
-type WholeH' = WholeH (A MetaNodeName) (A Text)
-
-
-layer :: Optic.PartialIso' ParseError WholeL' WholeH'
+layer :: Optic.PartialIso' ParseError WholeL' (Data.Link Text)
 layer = layer_general
