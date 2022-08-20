@@ -78,11 +78,11 @@ attach_its_uid_to_node :: Node a id_u ia e -> Maybe (id_u, Node a id_u ia e)
 attach_its_uid_to_node n = map (Pair.before n) (uid_of_node n)
 
 
-type StructureAsTree a (id_u :: Type) ia e = Tree.Tree (Node a id_u ia e)
+type StructureAsTree a (id_u :: Type) ia = Tree.Tree (Node a id_u ia Text)
 
 data Document a (id_u :: Type) ia = Document
 	{
-	docTree :: StructureAsTree a id_u ia Text
+	docTree :: StructureAsTree a id_u ia
 	}
 	deriving (Eq)
 
@@ -227,27 +227,27 @@ internal_address_in_node =
 
 node_in_tree ::
 	Optic.Traversal
-		(Node u id_u_1 ia1 e) (Node u id_u_2 ia2 e)
-		(StructureAsTree u id_u_1 ia1 e) (StructureAsTree u id_u_2 ia2 e)
+		(Node u id_u_1 ia1 Text) (Node u id_u_2 ia2 Text)
+		(StructureAsTree u id_u_1 ia1) (StructureAsTree u id_u_2 ia2)
 node_in_tree = Optic.from_Traversable
 
-inlines_in_Structure :: Optic.Traversal' (Inline ia e) (StructureAsTree u id_u ia e)
+inlines_in_Structure :: Optic.Traversal' (Inline ia Text) (StructureAsTree u id_u ia)
 inlines_in_Structure = inlines_in_Node >**>^ node_in_tree
 
 idu_in_tree ::
 	Optic.Traversal
 		(id_u_1) (id_u_2)
-		(StructureAsTree u id_u_1 ia e) (StructureAsTree u id_u_2 ia e)
+		(StructureAsTree u id_u_1 ia) (StructureAsTree u id_u_2 ia)
 idu_in_tree = idu_in_Node >**>^ node_in_tree
 
 internal_address_in_tree :: 
-	forall u ia1 ia2 id_u e .
-	Optic.Traversal ia1 ia2 (StructureAsTree u id_u ia1 e) (StructureAsTree u id_u ia2 e)
+	forall u ia1 ia2 id_u .
+	Optic.Traversal ia1 ia2 (StructureAsTree u id_u ia1) (StructureAsTree u id_u ia2)
 internal_address_in_tree = internal_address_in_node >**>^ node_in_tree
 
 tree_in_Document :: 
 	Optic.Lens 
-		(StructureAsTree u1 id_u1 ia1 Text) (StructureAsTree u2 id_u2 ia2 Text)
+		(StructureAsTree u1 id_u1 ia1) (StructureAsTree u2 id_u2 ia2)
 		(Document u1 id_u1 ia1) (Document u2 id_u2 ia2)
 tree_in_Document = Optic.lens_from_get_set docTree (\ p w -> w { docTree = p })
 
