@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.Link.InTree
 (
-	ElemH, WholeH',
+	ElemH,
 	layer,
 )
 where
@@ -10,7 +10,7 @@ import Data.Tree (Tree (..))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.Link.Individual (MetaNodeName (..), Concrete)
+import WriteInTree.Document.Core.Serial.Link.Individual (MetaNodeName (..))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Either as Either
@@ -137,11 +137,7 @@ layer_tach_link_to_visual ::
 layer_tach_link_to_visual = Optic.Iso detach_link_to_visual attach_link_to_visual
 
 
-type WholeH l r = Tree (A (Inline Ts.Content'))
-type WholeH' = Concrete WholeH
-
-
-layer :: Optic.PartialIso' ParseError WholeL WholeH'
+layer :: Optic.PartialIso' ParseError WholeL (Tree (A (Inline Ts.Content')))
 layer = Category2.empty
 	>**>^ (Optic.iso_up layer_inside_node) 
 	>**>^ layer_link_separation
