@@ -33,5 +33,5 @@ translateStructure (Tree.Node trunk children) =
 		sub_results = map translateStructure children
 		in Tree.Node trunk_node sub_results
 
-translate :: UI.Document () UI.NodeIdU UI.NodeIdU Text -> O.Site UI.NodeIdU
+translate :: UI.Document () UI.NodeIdU UI.NodeIdU -> O.Site UI.NodeIdU
 translate = UI.docTree >>> translateStructure >>> O.compile_site

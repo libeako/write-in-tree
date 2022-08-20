@@ -9,9 +9,9 @@ where
 
 import Fana.Prelude
 import Prelude (String, IO, FilePath)
-import WriteInTree.Document.Data (Data(..))
-import WriteInTree.Document.Folder (FolderStructure(..))
-import WriteInTree.Document.SepProps.Data (DocSepProps(..))
+import WriteInTree.Document.Data (Data (..))
+import WriteInTree.Document.Folder (FolderStructure (..))
+import WriteInTree.Document.SepProps.Data (DocSepProps (..))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
@@ -29,7 +29,7 @@ import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
 
 type Text = Base.String
 
-type WithConcreteDataParams t = t CoreData.NodeIdU CoreData.NodeIdU Text
+type WithConcreteDataParams t = t CoreData.NodeIdU CoreData.NodeIdU
 
 type A = Label.Elem Text
 

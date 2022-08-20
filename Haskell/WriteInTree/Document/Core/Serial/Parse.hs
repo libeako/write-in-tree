@@ -25,7 +25,7 @@ delete_additional_info_from_node = id
 parse_from_string ::
 	SepProps.DocSepProps ->
 	String {- input file content -} -> 
-	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Data.Document () Data.NodeIdU Data.NodeIdU Text)
+	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Data.Document () Data.NodeIdU Data.NodeIdU)
 parse_from_string sep_props = 
 	(Optic.piso_interpret (CoreSerial.layer sep_props))
 	>>> map (Optic.fn_up Data.tree_in_Document (map delete_additional_info_from_node))

@@ -33,7 +33,7 @@ convert_string_error = Fana.show >>> Pos.PositionedMb Nothing
 
 type DataWithConcreteParams t a = t (a ()) Data.NodeIdU Data.NodeIdU Text
 type StructureAsTree a = DataWithConcreteParams Data.StructureAsTree a
-type Document a = DataWithConcreteParams Data.Document a
+type Document a = Data.Document (a ()) Data.NodeIdU Data.NodeIdU
 
 layer_document :: Optic.Iso' (StructureAsTree a) (Document a)
 layer_document = Optic.Iso Data.docTree Data.Document
