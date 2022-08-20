@@ -139,14 +139,11 @@ layer_core = Category2.empty
 	>**> Optic.lift_piso (layer_smart >**>^ layer_core_h)
 
 
-parse_trunk :: (A MetaNodeName, x) -> x
-parse_trunk = snd
-
 render_trunk :: x -> (A MetaNodeName, x)
 render_trunk = Pair.after (Label.default_Elem_context MnLink)
 
 layer_with_trunk :: Optic.Iso' (A MetaNodeName, x) x
-layer_with_trunk = Optic.Iso render_trunk parse_trunk
+layer_with_trunk = Optic.Iso render_trunk snd
 
 
 layer_general :: 
