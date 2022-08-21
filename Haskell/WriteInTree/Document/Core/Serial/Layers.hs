@@ -46,8 +46,8 @@ layer sep_props =
 	>**>^ Path.layer
 	>**>^ Optic.piso_convert_error (Pos.PositionedMb Nothing) (Label.layer (SepProps.prop_inline_classes sep_props))
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
+	>**>^ (Optic.iso_up >>> Optic.iso_up >>> Optic.iso_up) Ms.forget_about_meta
 	>**>^ Paragraph.layer
-	>**>^ (Optic.iso_up >>> Optic.iso_up) Ms.forget_about_meta
 	>**>^ Page.layer
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned UserIds.layer
 	>**>^ layer_document
