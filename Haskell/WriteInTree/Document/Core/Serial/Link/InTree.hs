@@ -64,6 +64,11 @@ layer_meta_name_tree =
 	(Optic.iso_up >>> Optic.iso_up)
 		(Ms.layer_in_node_text render_MetaNodeName)
 
+layer_MetaName :: Optic.Iso' (ContainerL Text) (ContainerL (Either MetaNodeName Text))
+layer_MetaName =
+	(Optic.iso_up >>> Optic.iso_up)
+		(Ms.serialize_node_content_without_worry Just id render_MetaNodeName)
+
 layer_inside_elem :: Optic.Iso' Ts.Content' (Either MetaNodeName Ts.Content')
 layer_inside_elem = Ms.layer_in_node_text render_MetaNodeName
 
@@ -122,25 +127,28 @@ layer_first_link_of_node = let
 	in Optic.PartialIso render parse
 
 
-attach_link_to_visual :: (A Ts.Content', Maybe (Data.Link Text)) -> A (Inline Ts.Content')
+attach_link_to_visual :: (A Text, Maybe (Data.Link Text)) -> A (Inline Text)
 attach_link_to_visual (visual, link) = map (flip Data.Inline link) visual
 
-detach_link_to_visual :: A (Inline Ts.Content') -> (A Ts.Content', Maybe (Data.Link Text))
+detach_link_to_visual :: A (Inline Text) -> (A Text, Maybe (Data.Link Text))
 detach_link_to_visual i =
 	let
-		inline :: Inline Ts.Content'
+		inline :: Inline Text
 		inline = HasSingle.elem i
 		in (Data.ilVisual inline  <$ i, Data.ilLink inline)
 
 layer_tach_link_to_visual :: 
-	Optic.Iso' (A Ts.Content', Maybe (Data.Link Text)) (A (Inline Ts.Content'))
+	Optic.Iso' (A Text, Maybe (Data.Link Text)) (A (Inline Text))
 layer_tach_link_to_visual = Optic.Iso detach_link_to_visual attach_link_to_visual
 
 
-layer :: Optic.PartialIso' ParseError WholeL (Tree (A (Inline Ts.Content')))
+layer_forget :: Optic.Iso' (A Ts.Content', b) (A Text, b)
+layer_forget = Optic.iso_pair_swap >**> (Optic.iso_up >>> Optic.iso_up) Ms.forget_about_meta >**> Optic.iso_pair_swap
+
+layer :: Optic.PartialIso' ParseError WholeL (Tree (A (Inline Text)))
 layer = Category2.empty
 	>**>^ (Optic.iso_up layer_inside_node) 
 	>**>^ layer_link_separation
 	>**>^ Optic.lift_piso layer_first_link_of_node
 	>**>^ (Optic.lift_piso >>> Optic.lift_piso >>> Optic.lift_piso) Individual.layer
-	>**>^ (Optic.iso_up layer_tach_link_to_visual)
+	>**>^ (Optic.iso_up (layer_forget >**> layer_tach_link_to_visual))
