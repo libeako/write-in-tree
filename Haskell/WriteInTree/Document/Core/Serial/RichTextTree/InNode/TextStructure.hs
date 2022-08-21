@@ -2,7 +2,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure
 (
 	Content, Content',
 	TextStructureError (..),
-	render, parse, layer,
+	render_exceptional, render, parse, layer,
 )
 where
 
@@ -26,10 +26,12 @@ meta_char = '#'
 type Content exceptional regular = Either exceptional regular
 type Content' = Content Text Text
 
+render_exceptional :: Text -> Text
+render_exceptional t = (meta_char : ' ' : t)
+
 render :: Content Text Text -> Text
 render = 
 	let
-		render_exceptional t = (meta_char : ' ' : t)
 		render_regular t = case t of
 			mc : _ | mc == meta_char -> meta_char : t
 			_ -> t

@@ -8,6 +8,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure
 )
 where
 
+import Control.Monad ((>=>))
 import Fana.Haskell.DescribingClass
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
@@ -62,34 +63,27 @@ layer_in_node_text meta_name_to_text =
 	the node content is treated as ordinary text
 -}
 serialize_node_content_without_worry ::
-	forall mn .
+	forall mn p .
 	(Base.Enum mn, Base.Bounded mn) =>
-	(mn -> Text) -> Optic.Iso' Text (Either mn Text)
-serialize_node_content_without_worry meta_name_to_text = 
+	(p -> Maybe Text) -> (Text -> p) ->
+	(mn -> Text) -> Optic.Iso' p (Either mn p)
+serialize_node_content_without_worry unwrap wrap meta_name_to_text = 
 	let
-		render :: Either mn Text -> Text
-		render = Bifunctor.first meta_name_to_text >>> Ts.render
-		parse :: Text -> Either mn Text
-		parse t =
-			either
-				(const (Right t)) -- if total text structure is invalid then we just treat it as ordinary text
-				-- but if the structure of the total text is valid then:
-				(
-				either
-					-- if it is meta then:
-					(Mn.parse meta_name_to_text >>> Bifunctor.second (const t))
-					-- if it is ordinary text then:
-					Right
-				)
-				(Ts.parse t)
-		in
-			Optic.Iso render parse
+		render :: Either mn p -> p
+		render = either (meta_name_to_text  >>> Ts.render_exceptional >>> wrap) id
+		parse :: p -> Either mn p
+		parse p =
+			let
+				extract_meta_name :: p -> Maybe mn
+				extract_meta_name = unwrap >=> (Mn.parse meta_name_to_text >>> either Just (const Nothing))
+				in maybe (Right p) Left (extract_meta_name p)
+		in Optic.Iso render parse
 
 
 {-|
 	forgets, in parsing, about the possibility of being meta
 -}
-forget_about_meta :: Optic.Iso' (Either mn Text) Text
+forget_about_meta :: Optic.Iso' (Either mn p) p
 forget_about_meta = Optic.Iso Right (either (Base.error "can not forget existing meta") id)
 
 
