@@ -2,8 +2,9 @@ module WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure
 (
 	lift_iso_to_Left, lift_layer_to_Left,
 	put_back_not_used,
-	layer_in_node_text,
-	serialize_node_content_without_worry, forget_about_meta,
+	serialize_node_content_without_worry,
+	layer_in_node_text, layer_in_node_text',
+	forget_about_meta,
 	layer_1, layer_not_1,
 )
 where
@@ -44,18 +45,6 @@ put_back_not_used =
 		(Base.either (Left <<< Left) (Base.either (Left <<< Right) Right)) 
 		(Base.either (Base.either Left (Right <<< Left)) (Right <<< Right))
 
-layer_in_node_text ::
-	forall mn .
-	(Base.Enum mn, Base.Bounded mn) =>
-	(mn -> Text) ->
-	Optic.Iso' Ts.Content' (Either mn Ts.Content')
-layer_in_node_text meta_name_to_text = 
-	let
-		meta_name_or_not :: Optic.Iso' Text (Either mn Text)
-		meta_name_or_not = Mn.iso meta_name_to_text
-		in lift_iso_to_Left meta_name_or_not >**> put_back_not_used
-
-
 {-|
 	.
 	
@@ -70,14 +59,38 @@ serialize_node_content_without_worry ::
 serialize_node_content_without_worry unwrap wrap meta_name_to_text = 
 	let
 		render :: Either mn p -> p
-		render = either (meta_name_to_text  >>> Ts.render_exceptional >>> wrap) id
+		render = either (meta_name_to_text >>> Ts.render_exceptional >>> wrap) id
 		parse :: p -> Either mn p
 		parse p =
 			let
+				left :: Either l r -> Maybe l
+				left = either Just (const Nothing)
+				extract_meta_text_from_text :: Text -> Maybe Text
+				extract_meta_text_from_text = Ts.parse >>> either (const Nothing) left
+				extract_meta_from_meta_text :: Text -> Maybe mn
+				extract_meta_from_meta_text = Mn.parse meta_name_to_text >>> left
 				extract_meta_name :: p -> Maybe mn
-				extract_meta_name = unwrap >=> (Mn.parse meta_name_to_text >>> either Just (const Nothing))
+				extract_meta_name = unwrap >=> extract_meta_text_from_text >=> extract_meta_from_meta_text
 				in maybe (Right p) Left (extract_meta_name p)
 		in Optic.Iso render parse
+
+layer_in_node_text ::
+	forall mn .
+	(Base.Enum mn, Base.Bounded mn) =>
+	(mn -> Text) ->
+	Optic.Iso' Ts.Content' (Either mn Ts.Content')
+layer_in_node_text meta_name_to_text = 
+	let
+		meta_name_or_not :: Optic.Iso' Text (Either mn Text)
+		meta_name_or_not = Mn.iso meta_name_to_text
+		in lift_iso_to_Left meta_name_or_not >**> put_back_not_used
+
+layer_in_node_text' ::
+	forall mn .
+	(Base.Enum mn, Base.Bounded mn) =>
+	(mn -> Text) ->
+	Optic.Iso' Text (Either mn Text)
+layer_in_node_text' = serialize_node_content_without_worry Just id
 
 
 {-|
@@ -106,6 +119,19 @@ layer_1 ::
 layer_1 meta_name_to_text = 
 	Optic.lift_piso ((Optic.lift_piso >>> Pos.position_error_in_piso)
 		(Ts.layer >**> convert_from_describing_class_4 (layer_in_node_text meta_name_to_text)))
+
+-- | a first layer in in-node text processing
+layer_1' ::
+	forall c pr pp mn .
+	(Base.Enum mn, Base.Bounded mn) =>
+	Functor pr => Traversable pp => Traversable c =>
+	(mn -> Text) ->
+	Optic.Iso
+		(c (pr Text))
+		(c (pp Text))
+		(c (pr (Either mn Text)))
+		(c (pp (Either mn Text)))
+layer_1' meta_name_to_text = (Optic.lift_iso >>> Optic.lift_iso) (layer_in_node_text' meta_name_to_text)
 
 -- | a not first layer in in-node text processing.
 -- too simple => should be deleted

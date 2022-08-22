@@ -36,7 +36,7 @@ common common
     , containers >=0.5 && <0.6
     , data-default-class >=0.1 && <0.2
     , directory <=1.4
-    , fana ==0.0.0.172
+    , fana ==0.0.0.173
     , filepath <=1.4
     , mtl >=2.2 && <2.3
     , optparse-applicative >=0.14 && <0.17
