@@ -2,13 +2,14 @@ module WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure
 (
 	Content, Content',
 	TextStructureError (..),
-	render_exceptional, render, parse, layer,
+	render_exceptional, render, parse,
+	layer, layer_without_worry,
 )
 where
 
 import Data.Monoid (Monoid (..))
 import Data.Either as Base
-import Prelude ((==), (<>), Char)
+import Prelude (id, const, (==), (<>), Char)
 
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -58,5 +59,12 @@ parse = \case
 	-- a simple text node :
 	text -> Right (Right text)
 
+
 layer :: Optic.PartialIso' TextStructureError Text (Content Text Text)
 layer = Optic.PartialIso render parse
+
+parse_without_worry :: Text -> Content Text Text
+parse_without_worry t = either (const (Right t)) id (parse t)
+
+layer_without_worry :: Optic.Iso' Text (Content Text Text)
+layer_without_worry = Optic.Iso render parse_without_worry

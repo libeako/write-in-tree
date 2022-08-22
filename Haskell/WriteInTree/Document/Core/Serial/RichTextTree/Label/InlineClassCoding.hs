@@ -30,16 +30,19 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit a
 type Char = Base.Char
 type Text = [Char]
 
-layer_text_split :: Configuration -> Optic.Iso' ElemT (Elem Text (Either Text TextSplit.H))
-layer_text_split config = Optic.iso_up (Optic.iso_up (TextSplit.layer config))
+type ElemTT = Elem Text Text
 
-over_either :: Optic.Iso' (Either l TextSplit.H) ([ClassName], Either l Text)
-over_either = let
-	render :: ([ClassName], Either l Text) -> Either l TextSplit.H
-	render (cs, ei) = Base.either Left (Pair.after cs >>> Right) ei
-	parse :: Either l TextSplit.H -> ([ClassName], Either l Text)
-	parse = Base.either (Left >>> Pair.after []) (map Right)
-	in Optic.Iso render parse
+layer_text_split :: Configuration -> Optic.Iso' ElemTT (Elem Text TextSplit.H)
+layer_text_split config = Optic.iso_up (TextSplit.layer config)
+
+-- ~ over_Elem :: Optic.Iso' (Elem l TextSplit.H) ([ClassName], Elem l Text)
+-- ~ over_Elem = Base.sequence
+	-- ~ let
+		-- ~ render :: ([ClassName], Either l Text) -> Either l TextSplit.H
+		-- ~ render (cs, ei) = Base.either Left (Pair.after cs >>> Right) ei
+		-- ~ parse :: Either l TextSplit.H -> ([ClassName], Either l Text)
+		-- ~ parse = Base.either (Left >>> Pair.after []) (map Right)
+		-- ~ in Optic.Iso render parse
 
 over_has_single :: forall e c . Fana.HasSingle c => Optic.Iso' (c ([ClassName], e)) ([ClassName], c e)
 over_has_single = let
@@ -81,14 +84,25 @@ move_classes_out_from_elem = id
 	>>> Mtl.runState
 	>>> map (Bifunctor.first Base.catMaybes)
 
+move_classes_out_from_elem' :: Configuration -> Elem Text Text -> Elem Text TextSplit.H
+move_classes_out_from_elem' config =
+	move_classes_out_from_elem config >>>
+	(\ (classes, elem) -> map (Pair.after classes) elem)
+
 over_Elem :: Configuration -> Optic.Iso' ([ClassName], Elem Text e) (Elem Text e)
 over_Elem config = let
 	parse :: ([ClassName], Elem Text e) -> Elem Text e
 	parse (cs, elem) = Optic.fn_up inElem_labels (Intermediate.add_new_classes_to_Labels cs) elem
 	in Optic.Iso (move_classes_out_from_elem config) parse
 
-layer :: Configuration -> Optic.Iso' ElemT ElemT
-layer config = Category2.empty
-	>**> Optic.iso_up (Optic.iso_up (TextSplit.layer config) >**> over_either)
-	>**> over_has_single
-	>**> over_Elem config
+over_Elem' :: Configuration -> Optic.Iso' (Elem Text TextSplit.H) (Elem Text Text)
+over_Elem' config =
+	let
+		parse :: Elem Text TextSplit.H -> Elem Text Text
+		parse elem =
+			case ofElem_core elem of
+				(cs, text) -> Optic.fn_up inElem_labels (Intermediate.add_new_classes_to_Labels cs) (map snd elem)
+		in Optic.Iso (move_classes_out_from_elem' config) parse
+
+layer :: Configuration -> Optic.Iso' ElemTT ElemTT
+layer config = Optic.lift_iso (TextSplit.layer config) >**> over_Elem' config

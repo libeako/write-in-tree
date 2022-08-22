@@ -44,7 +44,6 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.InlineClassCoding as Inline
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate as Intermediate
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Lower as Lower
@@ -59,14 +58,14 @@ type ElemLRT = Path.ElemHRT
 type ElemP = Path.ElemHP
 type Source = ElemP ()
 type ElemPT = ElemP Text
-
+type ElemTT = Elem Text Text
 
 parse_from_intermediate_branch :: 
-	(ElemP Ts.Content', [IntermediateTreeP]) -> 
-	Either (Accu.Accumulated Text) (Tree ElemT)
+	(ElemP Text, [IntermediateTreeP]) -> 
+	Either (Accu.Accumulated Text) (Tree ElemTT)
 parse_from_intermediate_branch (elem, children) =
 	let
-		child_to_Either :: IntermediateTreeP -> Either Intermediate.Any (ElemP Ts.Content', [IntermediateTreeP])
+		child_to_Either :: IntermediateTreeP -> Either Intermediate.Any (ElemP Text, [IntermediateTreeP])
 		child_to_Either tree =
 			case FanaTree.children tree of
 				DTree.Leaf l -> Left l
@@ -80,10 +79,10 @@ parse_from_intermediate_branch (elem, children) =
 				new_children <- traverse parse_from_intermediate_branch regular_children
 				pure (Tree.Node (elem_pd labels elem) new_children)
 
-any_repetition_in_id_u :: Tree ElemT -> [ElemT]
+any_repetition_in_id_u :: Tree ElemTT -> [ElemTT]
 any_repetition_in_id_u = 
 	let
-		select :: [[ElemT]] -> [ElemT]
+		select :: [[ElemTT]] -> [ElemTT]
 		select = 
 			\ case
 				[] -> []
@@ -99,7 +98,7 @@ any_repetition_in_id_u =
 			>>> List.filter (List.take 2 >>> List.length >>> (Base.> 1)) >>> select 
 	
 
-check_uniquness_of_id_u :: Tree ElemT -> Either (Accu.Accumulated Text) (Tree ElemT)
+check_uniquness_of_id_u :: Tree ElemTT -> Either (Accu.Accumulated Text) (Tree ElemTT)
 check_uniquness_of_id_u tree = 
 	case any_repetition_in_id_u tree of
 		[] -> Right tree
@@ -107,7 +106,7 @@ check_uniquness_of_id_u tree =
 			let
 				per_line :: Accu.Accumulated Text -> Accu.Accumulated Text
 				per_line content = "--- " <> content <> "\n"
-				node_writer :: ElemT -> Accu.Accumulated Text
+				node_writer :: ElemTT -> Accu.Accumulated Text
 				node_writer = ofElem_position >>> Pos.show_position >>> per_line
 				message :: Accu.Accumulated Text
 				message = 
@@ -115,10 +114,10 @@ check_uniquness_of_id_u tree =
 						(map node_writer list)
 				in Left message
 
-parse_from_intermediate :: IntermediateBranchTreeP -> Either (Accu.Accumulated Text) (Tree ElemT)
+parse_from_intermediate :: IntermediateBranchTreeP -> Either (Accu.Accumulated Text) (Tree ElemTT)
 parse_from_intermediate (b, c) = parse_from_intermediate_branch (b, c) >>= check_uniquness_of_id_u
 
-render_into_intermediate :: Tree ElemT -> IntermediateBranchTreeR
+render_into_intermediate :: Tree ElemTT -> IntermediateBranchTreeR
 render_into_intermediate (Tree.Node elem children) = 
 	let
 		regular_new_children, labeling_new_children, new_children :: [IntermediateTreeR]
@@ -132,14 +131,14 @@ render_into_intermediate (Tree.Node elem children) =
 layer_up_from_intermediate ::
 	Optic.PartialIso (Accu.Accumulated Text)
 		IntermediateBranchTreeR IntermediateBranchTreeP
-		(Tree ElemT) (Tree ElemT)
+		(Tree ElemTT) (Tree ElemTT)
 layer_up_from_intermediate = Optic.PartialIso render_into_intermediate parse_from_intermediate
 
 
-type Data = Tree ElemT
+type Data = Tree ElemTT
 
 layer :: Configuration -> Optic.PartialIso (Accu.Accumulated Text) (Tree ElemLRT) (Tree ElemPT) Data Data
 layer config = Cat2.empty
-	>**> Lower.layer 
-	>**> layer_up_from_intermediate 
+	>**> Lower.layer
+	>**> layer_up_from_intermediate
 	>**> convert_from_describing_class_4 (Optic.iso_up (Inline.layer config))

@@ -10,7 +10,7 @@ import Control.Monad ((>=>))
 import Data.Default.Class
 import Data.Functor (($>))
 import Data.Tree (Tree)
-import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
+import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (Bounded, Enum)
 
@@ -22,13 +22,13 @@ import qualified Data.Tree as Tree
 import qualified Fana.Data.Key.Traversable as TravKey
 import qualified Fana.Data.Tree.Uniform as FanaTree
 import qualified Fana.Data.Tree.Discriminating as DTree
+import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified Technical.TextTree.Data as Tt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure as Ms
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate as Intermediate
@@ -50,14 +50,14 @@ meta_name_to_text =
 		MnId -> "id"
 		MnClass -> "class"
 
-type ElemStructuredR = Path.ElemHR (Either MetaName Ts.Content')
-type ElemStructuredP = Path.ElemHP (Either MetaName Ts.Content')
+type ElemStructuredR = Path.ElemHR (Either MetaName Text)
+type ElemStructuredP = Path.ElemHP (Either MetaName Text)
 
 layer_in_node :: 
-	Optic.PartialIso (Pos.Positioned Ts.TextStructureError)
+	Optic.Iso
 		(Tree ElemLRT) (Tree Path.ElemHPT)
 		(Tree ElemStructuredR) (Tree ElemStructuredP)
-layer_in_node = Ms.layer_1 meta_name_to_text
+layer_in_node = (Optic.lift_iso >>> Optic.lift_iso) (Ms.layer_in_node_text' meta_name_to_text)
 
 show_error_at :: (Path.ElemHP e) -> Accu.Accumulated Text -> Accu.Accumulated Text
 show_error_at position description = Fana.show (Pos.Positioned (Pos.get_position position) description)
@@ -69,11 +69,7 @@ parse_id (Tree.Node trunk children) =
 			let
 				child_node = Tree.rootLabel child
 				in case Tt.elemValue (Path.inElemHPCore child_node) of
-					Right (Right text) -> 
-						let
-							intermediate :: Text
-							intermediate = text
-							in Right intermediate
+					Right text -> Right text
 					_ -> 
 						let 
 							description = "the node holding the identifier value must be regular text, not a meta node"
@@ -86,20 +82,20 @@ render_id x =
 		trunk :: ElemStructuredR
 		trunk = Tt.Elem Nothing (Left MnId)
 		child :: ElemStructuredR
-		child = Tt.Elem Nothing (Right (Right x))
+		child = Tt.Elem Nothing (Right x)
 		in Tree.Node trunk [Tree.Node child []]
 
 parse_class :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Text
 parse_class (Tree.Node trunk _) = 
 	case Tt.elemValue (Path.inElemHPCore trunk) of
-		Right (Right text) -> Right text
+		Right text -> Right text
 		_ -> 
 			let
 				description = "the node holding a class name must be regular text, not a meta node"
 				in Left (show_error_at trunk description)
 
 render_class :: (Text, ()) -> Tree ElemStructuredR
-render_class (name, source) = Tree.Node (Tt.Elem Nothing (Right (Right name))) []
+render_class (name, source) = Tree.Node (Tt.Elem Nothing (Right name)) []
 
 parse_classes :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.ClassesMap
 parse_classes (Tree.Node trunk children) = 
@@ -119,17 +115,17 @@ render_classes cs =
 		preliminary = render_classes' cs
 		in if List.null (Tree.subForest preliminary) then Nothing else Just preliminary
 
-type IntermediateTreeR = DTree.Tree [] Intermediate.Any (ElemLR Ts.Content') ()
-type IntermediateTreeP = DTree.Tree [] Intermediate.Any (ElemLP Ts.Content') ()
-type IntermediateBranchTreeR = (ElemLR Ts.Content', [IntermediateTreeR])
-type IntermediateBranchTreeP = (ElemLP Ts.Content', [IntermediateTreeP])
+type IntermediateTreeR = DTree.Tree [] Intermediate.Any (ElemLR Text) ()
+type IntermediateTreeP = DTree.Tree [] Intermediate.Any (ElemLP Text) ()
+type IntermediateBranchTreeR = (ElemLR Text, [IntermediateTreeR])
+type IntermediateBranchTreeP = (ElemLP Text, [IntermediateTreeP])
 
 parse_any :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) IntermediateTreeP
 parse_any (tree@(Tree.Node trunk children)) = 
 	let
 		node_specific :: 
 			Either (Accu.Accumulated Text) 
-				(DTree.Discrimination [] Intermediate.Any (ElemLP Ts.Content') IntermediateTreeP)
+				(DTree.Discrimination [] Intermediate.Any (ElemLP Text) IntermediateTreeP)
 		node_specific = 
 			case Tt.elemValue (Path.inElemHPCore trunk) of
 				Left mn -> 
@@ -183,7 +179,7 @@ layer ::
 	Optic.PartialIso (Accu.Accumulated Text)
 	(Tree ElemLRT) (Tree ElemLPT)
 	IntermediateBranchTreeR IntermediateBranchTreeP
-layer = (Optic.piso_convert_error Fana.show layer_in_node) >**> layer_any
+layer = Category2.empty >**>^ layer_in_node >**>^ layer_any
 
 
 sort_intermediate_nodes :: [Intermediate.Any] -> ([Text], [Intermediate.ClassesMap])
