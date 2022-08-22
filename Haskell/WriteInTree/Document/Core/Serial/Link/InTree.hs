@@ -7,6 +7,7 @@ where
 
 import Data.Functor ((<$))
 import Data.Tree (Tree (..))
+import Fana.Data.HasSingle (HasSingle)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
@@ -38,39 +39,19 @@ type Inline = Data.Inline Text
 type InputTreeOfLink l r = (l, [Tree (Either l r)])
 type InputTreeOfLink' = InputTreeOfLink (A MetaNodeName) (A Ts.Content')
 type LinksSeparated l r = Tree (r, [(l, [Tree (Either l r)])])
-type LinkSeparated l r = Tree (r, Maybe (l, [Tree (Either l r)]))
 type ElemL = A Ts.Content'
 type ContainerL e = Tree (A e)
 type ElemEither = Either (A MetaNodeName) (A Ts.Content')
 type ElemH = ElemL
-type WholeL = ContainerL Ts.Content'
+type WholeL = ContainerL Text
 
 
 render_MetaNodeName :: MetaNodeName -> Text
 render_MetaNodeName = \case { MnLink -> "links-to" }
 
 
-layer_first :: Optic.PartialIso' () [e] (Maybe e)
-layer_first = let
-	parse :: [e] -> Either () (Maybe e)
-	parse = \case
-		[] -> Right Nothing
-		[e] -> Right (Just e)
-		e1 : e2 : _ -> Left ()
-	in Optic.PartialIso Base.toList parse
-
-layer_meta_name_tree :: Optic.Iso' (ContainerL Ts.Content') (ContainerL (Either MetaNodeName Ts.Content'))
-layer_meta_name_tree = 
-	(Optic.iso_up >>> Optic.iso_up)
-		(Ms.layer_in_node_text render_MetaNodeName)
-
-layer_MetaName :: Optic.Iso' (ContainerL Text) (ContainerL (Either MetaNodeName Text))
-layer_MetaName =
-	(Optic.iso_up >>> Optic.iso_up)
-		(Ms.serialize_node_content_without_worry Just id render_MetaNodeName)
-
-layer_inside_elem :: Optic.Iso' Ts.Content' (Either MetaNodeName Ts.Content')
-layer_inside_elem = Ms.layer_in_node_text render_MetaNodeName
+layer_inside_elem :: Optic.Iso' Text (Either MetaNodeName Text)
+layer_inside_elem = Ms.layer_in_node_text' render_MetaNodeName
 
 layer_Either :: forall a l r . Fana.HasSingle a => Optic.Iso' (a (Either l r)) (Either (a l) (a r))
 layer_Either = let
@@ -81,11 +62,20 @@ layer_Either = let
 
 layer_inside_node :: 
 	Fana.HasSingle a => 
-	Optic.Iso' (a Ts.Content') (Either (a MetaNodeName) (a Ts.Content'))
+	Optic.Iso' (a Text) (Either (a MetaNodeName) (a Text))
 layer_inside_node = Optic.iso_up layer_inside_elem >**> layer_Either
 
 
 type ParseError = Pos.Positioned (Accu.Accumulated Text)
+
+layer_first :: Optic.PartialIso' () [e] (Maybe e)
+layer_first = let
+	parse :: [e] -> Either () (Maybe e)
+	parse = \case
+		[] -> Right Nothing
+		[e] -> Right (Just e)
+		e1 : e2 : _ -> Left ()
+	in Optic.PartialIso Base.toList parse
 
 
 separate_links :: Tree (Either l r) -> Either (l, [Tree (Either l r)]) (LinksSeparated l r)
@@ -115,7 +105,6 @@ layer_link_separation ::
 	l ~ A e => Optic.PartialIso' ParseError (Tree (Either l r)) (LinksSeparated l r)
 layer_link_separation = Optic.PartialIso merge_links separate_links_in_whole_tree
 
-
 layer_first_link_of_node :: forall r e something . r ~ A something => Optic.PartialIso' ParseError (r, [e]) (r, Maybe e)
 layer_first_link_of_node = let
 	render = map (Optic.down layer_first)
@@ -126,6 +115,28 @@ layer_first_link_of_node = let
 		in Bifunctor.bimap (const error) (Pair.after r) (Optic.piso_interpret layer_first list)
 	in Optic.PartialIso render parse
 
+big_render :: Tree (a Text, Maybe (a MetaNodeName, [Tree (a Text)])) -> Tree (a Text)
+big_render = map fst
+
+big_parse :: forall a . HasSingle a => Tree (a Text) -> Tree (a Text, Maybe (a MetaNodeName, [Tree (a Text)]))
+big_parse =
+	let
+		extract_meta_name :: a Text -> Maybe MetaNodeName
+		extract_meta_name =
+			HasSingle.elem >>>
+			Optic.in_iso_up (Ms.layer_in_node_text' render_MetaNodeName) >>>
+			either (Just) (const Nothing)
+		diagonal x = (x, x)
+		decide :: a Text -> Maybe (a MetaNodeName)
+		decide elem = map (<$ elem) (extract_meta_name elem)
+		in
+			\ (Node r c) ->
+				case (decide r) of
+					Just mn -> Node (r, Just (mn, c)) (map (map (Pair.before Nothing)) c)
+					Nothing -> Node (r, Nothing) (map big_parse c)
+
+layer_big :: forall a . HasSingle a => Optic.Iso' (Tree (a Text)) (Tree (a Text, Maybe (a MetaNodeName, [Tree (a Text)])))
+layer_big = Optic.Iso big_render big_parse
 
 attach_link_to_visual :: (A Text, Maybe (Data.Link Text)) -> A (Inline Text)
 attach_link_to_visual (visual, link) = map (flip Data.Inline link) visual
@@ -135,20 +146,58 @@ detach_link_to_visual i =
 	let
 		inline :: Inline Text
 		inline = HasSingle.elem i
-		in (Data.ilVisual inline  <$ i, Data.ilLink inline)
+		in (Data.ilVisual inline <$ i, Data.ilLink inline)
 
 layer_tach_link_to_visual :: 
 	Optic.Iso' (A Text, Maybe (Data.Link Text)) (A (Inline Text))
 layer_tach_link_to_visual = Optic.Iso detach_link_to_visual attach_link_to_visual
 
+type L''' = (Label.Elem Text MetaNodeName, [Tree (A Text)]) -- (a MetaNodeName, [Tree (a Text)])
+type H''' = Data.Link Text
 
-layer_forget :: Optic.Iso' (A Ts.Content', b) (A Text, b)
-layer_forget = Optic.iso_pair_swap >**> (Optic.iso_up >>> Optic.iso_up) Ms.forget_about_meta >**> Optic.iso_pair_swap
+individual'''core :: Optic.PartialIso' ParseError L''' (Label.Elem Text MetaNodeName, [Tree (Label.Elem Text Text)])
+individual'''core = Category2.empty
+
+
+callable_individual_layer ::
+	Optic.PartialIso' ParseError
+		(Label.Elem Text  MetaNodeName, [Tree (Label.Elem Text Text)]) (Data.Link Text)
+callable_individual_layer = Individual.layer
+
+individual''' :: Optic.PartialIso' ParseError L''' H'''
+individual''' = Category2.empty
+	>**>^ individual'''core >**>^ callable_individual_layer
+
+type L'' = Maybe L''' -- Maybe (a MetaNodeName, [Tree (a Text)])
+type H'' = Maybe H'''
+
+individual'' :: Optic.PartialIso' ParseError L'' H''
+individual'' = Category2.empty
+	>**>^ Optic.lift_piso individual'''
+
+type L' = (A Text, L'') -- (a Text, Maybe (a MetaNodeName, [Tree (a Text)]))
+type H' = (A Text, H'')
+
+individual' :: Optic.PartialIso' ParseError L' H'
+individual' = Category2.empty
+	>**>^ Optic.lift_piso individual''
+
+type L = Tree L' -- Tree (a Text, Maybe (a MetaNodeName, [Tree (a Text)]))
+type H = Tree H'
+
+individual :: Optic.PartialIso' ParseError L H
+individual = Category2.empty
+	>**>^ Optic.lift_piso individual'
+
+layer_1 :: Optic.PartialIso' ParseError WholeL L
+layer_1 = Category2.empty >**>^ layer_big
+
+layer_2 :: Optic.PartialIso' ParseError H (Tree (A (Inline Text)))
+layer_2 = Category2.empty
+	>**>^ (Optic.iso_up layer_tach_link_to_visual)
 
 layer :: Optic.PartialIso' ParseError WholeL (Tree (A (Inline Text)))
 layer = Category2.empty
-	>**>^ (Optic.iso_up layer_inside_node) 
-	>**>^ layer_link_separation
-	>**>^ Optic.lift_piso layer_first_link_of_node
-	>**>^ (Optic.lift_piso >>> Optic.lift_piso >>> Optic.lift_piso) Individual.layer
-	>**>^ (Optic.iso_up (layer_forget >**> layer_tach_link_to_visual))
+	>**>^ layer_1
+	>**>^ individual
+	>**>^ layer_2

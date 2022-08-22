@@ -2,6 +2,7 @@ module WriteInTree.Document.Core.Serial.Link.Individual
 (
 	MetaNodeName (..),
 	Concrete,
+	ParseError,
 	layer,
 )
 where
@@ -13,7 +14,6 @@ import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 
-import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Tree as Tree
 import qualified Fana.Data.HasSingle as HasSingle
 import qualified Fana.Data.HeteroPair as Pair
@@ -23,7 +23,6 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Enum as Serial
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
@@ -34,33 +33,10 @@ type AB = (,) (A ())
 
 data MetaNodeName = MnLink deriving (Base.Enum, Base.Bounded)
 
-type Concrete t = t (A MetaNodeName) (A Ts.Content')
-type WholeL l r = (l, [Tree (Either l r)])
-type WholeL' = Concrete WholeL
+type Concrete t = t (A MetaNodeName) (A Text)
+type WholeL l r = (l, [Tree r])
+type WholeL' = (A MetaNodeName, [Tree (A Text)])
 type ParseError = Pos.Positioned (Accu.Accumulated Text)
-
-
-layer_text_structure :: Optic.PartialIso' (Accu.Accumulated Text) Ts.Content' Text
-layer_text_structure = let
-	error_description = "descendants of a link header node must be of type regular"
-	in Optic.PartialIso Right (Bifunctor.first (const (Accu.single error_description)))
-layer_text_structure_in_A :: Optic.PartialIso' ParseError (A Ts.Content') (A Text)
-layer_text_structure_in_A =
-	Optic.piso_convert_error_with_low Pos.position_error 
-		((Optic.lift_piso) layer_text_structure)
-
-layer_either :: forall l r e . l ~ A e => Optic.PartialIso' ParseError (Either l r) r
-layer_either = let
-	error :: l -> ParseError
-	error = id 
-		>>> Pos.get_position 
-		>>> flip Pos.Positioned "node under link head node must not be link head"
-	in Optic.PartialIso Right (Bifunctor.first error)
-
-layer_either_whole :: 
-	l ~ A e => 
-	Optic.PartialIso' ParseError (Either l (A Ts.Content')) (A Text)
-layer_either_whole = layer_either >**> layer_text_structure_in_A
 
 
 data DestinationType = Internal | External deriving (Base.Enum, Base.Bounded)
@@ -146,9 +122,8 @@ layer_with_trunk :: Optic.Iso' (A MetaNodeName, x) x
 layer_with_trunk = Optic.Iso render_trunk snd
 
 
-layer :: Optic.PartialIso' ParseError WholeL' (Data.Link Text)
+layer :: Optic.PartialIso' ParseError (A MetaNodeName, [Tree (A Text)]) (Data.Link Text)
 layer =
 	Category2.empty
-	>**>^ (Optic.lift_piso >>> Optic.lift_piso >>> Optic.lift_piso) layer_either_whole 
-	>**>^ layer_core 
+	>**>^ layer_core
 	>**>^ layer_with_trunk
