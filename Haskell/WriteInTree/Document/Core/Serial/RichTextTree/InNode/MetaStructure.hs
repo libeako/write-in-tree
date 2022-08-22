@@ -139,5 +139,5 @@ layer_not_1 ::
 	forall c p mn . (Base.Enum mn, Base.Bounded mn) => (Traversable c, Traversable p) =>
 	(mn -> Text) -> Optic.Iso' (c (p Ts.Content')) (c (p (Either mn Ts.Content')))
 layer_not_1 meta_name_to_text =
-	Optic.iso_up (Optic.iso_up (layer_in_node_text meta_name_to_text))
+	Optic.lift_iso (Optic.lift_iso (layer_in_node_text meta_name_to_text))
 

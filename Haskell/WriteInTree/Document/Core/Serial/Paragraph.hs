@@ -29,7 +29,7 @@ type Paragraph = Data.Paragraph Text
 layer_move_additional_info :: 
 	(Fana.HasSingle a1, Fana.HasSingle a2) => 
 	Optic.Iso (Tree (a1 e1)) (Tree (a2 e2)) (Tree (a1 (), e1)) (Tree (a2 (), e2))
-layer_move_additional_info = Optic.iso_up HasSingle.iso_separate
+layer_move_additional_info = Optic.lift_iso HasSingle.iso_separate
 
 type CoreElemL a = (a (), Inline)
 type CoreElemH a = (a (), Paragraph)

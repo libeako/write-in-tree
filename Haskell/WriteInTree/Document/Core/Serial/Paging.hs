@@ -43,7 +43,7 @@ render_MetaNodeName = \case { MnLinksTo -> text_linked_contents }
 
 layer_MetaName :: Optic.Iso' (a (), Paragraph) (a (), Either MetaNodeName Paragraph)
 layer_MetaName =
-	Optic.iso_up
+	Optic.lift_iso
 		(
 		Ms.serialize_node_content_without_worry
 			(Data.ilVisual >>> Just)
@@ -163,6 +163,6 @@ layer ::
 	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) (InputTree a) (Tree (NodeH a))
 layer = 
 	Category2.empty
-	>**>^ Optic.iso_up layer_MetaName
+	>**>^ Optic.lift_iso layer_MetaName
 	>**>^ Optic.piso_convert_error Pos.without_position core_layer
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned (Optic.lift_piso layer_h)

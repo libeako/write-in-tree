@@ -76,7 +76,7 @@ layer_core_l = Optic.PartialIso render_from_core parse_into_core
 
 layer_core_l_whole :: Optic.PartialIso' (Accu.Accumulated Text) [Tree (A Text)] Core
 layer_core_l_whole = 
-	convert_from_describing_class_4 ((Optic.iso_up >>> Optic.iso_up) HasSingle.iso_separate)
+	convert_from_describing_class_4 ((Optic.lift_iso >>> Optic.lift_iso) HasSingle.iso_separate)
 	>**> layer_core_l
 	
 type CoreSmart = (DestinationType, AB Text)

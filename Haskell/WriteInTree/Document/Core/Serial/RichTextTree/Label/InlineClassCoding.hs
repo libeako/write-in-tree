@@ -33,7 +33,7 @@ type Text = [Char]
 type ElemTT = Elem Text Text
 
 layer_text_split :: Configuration -> Optic.Iso' ElemTT (Elem Text TextSplit.H)
-layer_text_split config = Optic.iso_up (TextSplit.layer config)
+layer_text_split config = Optic.lift_iso (TextSplit.layer config)
 
 -- ~ over_Elem :: Optic.Iso' (Elem l TextSplit.H) ([ClassName], Elem l Text)
 -- ~ over_Elem = Base.sequence

@@ -141,4 +141,4 @@ layer :: Configuration -> Optic.PartialIso (Accu.Accumulated Text) (Tree ElemLRT
 layer config = Cat2.empty
 	>**> Lower.layer
 	>**> layer_up_from_intermediate
-	>**> convert_from_describing_class_4 (Optic.iso_up (Inline.layer config))
+	>**> convert_from_describing_class_4 (Optic.lift_iso (Inline.layer config))

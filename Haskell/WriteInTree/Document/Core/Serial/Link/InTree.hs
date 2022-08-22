@@ -75,4 +75,4 @@ layer =
 	Category2.empty
 	>**>^ layer_tree
 	>**>^ (Optic.lift_piso >>> Optic.lift_piso >>> Optic.lift_piso) Individual.layer
-	>**>^ Optic.iso_up layer_tach_link_to_visual
+	>**>^ Optic.lift_iso layer_tach_link_to_visual
