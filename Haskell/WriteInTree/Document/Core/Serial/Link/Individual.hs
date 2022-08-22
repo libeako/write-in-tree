@@ -1,7 +1,6 @@
 module WriteInTree.Document.Core.Serial.Link.Individual
 (
 	MetaNodeName (..),
-	Concrete,
 	ParseError,
 	layer,
 )
@@ -33,11 +32,7 @@ type AB = (,) (A ())
 
 data MetaNodeName = MnLink deriving (Base.Enum, Base.Bounded)
 
-type Concrete t = t (A MetaNodeName) (A Text)
-type WholeL l r = (l, [Tree r])
-type WholeL' = (A MetaNodeName, [Tree (A Text)])
 type ParseError = Pos.Positioned (Accu.Accumulated Text)
-
 
 data DestinationType = Internal | External deriving (Base.Enum, Base.Bounded)
 
