@@ -21,7 +21,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Text = Base.String
 
-type Inline e = Data.Inline Text e
+type Inline = Data.Inline Text
 type A = Label.Elem Text
 type Paragraph = Data.Paragraph Text
 
@@ -31,7 +31,7 @@ layer_move_additional_info ::
 	Optic.Iso (Tree (a1 e1)) (Tree (a2 e2)) (Tree (a1 (), e1)) (Tree (a2 (), e2))
 layer_move_additional_info = Optic.iso_up HasSingle.iso_separate
 
-type CoreElemL a = (a (), Inline Text)
+type CoreElemL a = (a (), Inline)
 type CoreElemH a = (a (), Paragraph)
 
 type CoreL a = Tree (CoreElemL a)
@@ -43,7 +43,7 @@ parse_core tree = let
 	trunk = Tree.rootLabel tree
 	(a, trunk_inline {- :: Inline a Text -}) = trunk
 	processed_children = map parse_core (Tree.subForest tree)
-	when_normal :: Inline Text -> [CoreH a] -> CoreH a
+	when_normal :: Inline -> [CoreH a] -> CoreH a
 	when_normal inline = let
 		new_trunk :: CoreElemH a
 		new_trunk = (a, inline)
@@ -69,11 +69,11 @@ layer_core = Optic.Iso render_core parse_core
 
 layer_general :: 
 	forall a . (forall x . Pos.HasPosition (a x), Fana.HasSingle a) => 
-	Optic.Iso' (Tree (a (Inline Text))) (CoreH a)
+	Optic.Iso' (Tree (a Inline)) (CoreH a)
 layer_general = 
 	convert_from_describing_class_4 layer_move_additional_info
 	>**>
 	layer_core
 
-layer :: Optic.Iso' (Tree (A (Inline Text))) (CoreH A)
+layer :: Optic.Iso' (Tree (A Inline)) (CoreH A)
 layer = layer_general

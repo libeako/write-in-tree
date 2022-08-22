@@ -55,22 +55,22 @@ layer_tree :: forall a . HasSingle a => Optic.Iso' (Tree (a Text)) (Tree (a Text
 layer_tree = Optic.Iso (map fst) parse_tree
 
 
-attach_link_to_visual :: (A Text, Maybe (Data.Link Text)) -> A (Inline Text)
+attach_link_to_visual :: (A Text, Maybe (Data.Link Text)) -> A (Inline)
 attach_link_to_visual (visual, link) = map (flip Data.Inline link) visual
 
-detach_link_to_visual :: A (Inline Text) -> (A Text, Maybe (Data.Link Text))
+detach_link_to_visual :: A Inline -> (A Text, Maybe (Data.Link Text))
 detach_link_to_visual i =
 	let
-		inline :: Inline Text
+		inline :: Inline
 		inline = HasSingle.elem i
 		in (Data.ilVisual inline <$ i, Data.ilLink inline)
 
 layer_tach_link_to_visual :: 
-	Optic.Iso' (A Text, Maybe (Data.Link Text)) (A (Inline Text))
+	Optic.Iso' (A Text, Maybe (Data.Link Text)) (A Inline)
 layer_tach_link_to_visual = Optic.Iso detach_link_to_visual attach_link_to_visual
 
 
-layer :: Optic.PartialIso' ParseError (Tree (A Text)) (Tree (A (Inline Text)))
+layer :: Optic.PartialIso' ParseError (Tree (A Text)) (Tree (A Inline))
 layer =
 	Category2.empty
 	>**>^ layer_tree

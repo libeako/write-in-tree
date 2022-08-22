@@ -133,7 +133,7 @@ render_link =
 render_inline :: OData.Inline UI.NodeIdU -> OData.Site UI.NodeIdU -> Xml.ContentL
 render_inline il = flip (render_link (UI.ilLink il)) (render_inline_visual (UI.ilVisual il))
 
-unite_neighboring_texts :: [UI.Inline idts Text] -> [UI.Inline idts Text]
+unite_neighboring_texts :: [UI.Inline idts] -> [UI.Inline idts]
 unite_neighboring_texts =
 	\case
 		[] -> []

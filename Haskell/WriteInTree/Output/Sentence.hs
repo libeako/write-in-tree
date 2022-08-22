@@ -17,10 +17,10 @@ import qualified WriteInTree.Document.Core.Data as D
 type Text = Base.String
 
 
-split_part :: Maybe (D.Inline ia Text) -> Maybe (D.Inline ia Text, Maybe (D.Inline ia Text))
+split_part :: Maybe (D.Inline ia) -> Maybe (D.Inline ia, Maybe (D.Inline ia))
 split_part =
 	let
-		step :: D.Inline ia Text -> (D.Inline ia Text, Maybe (D.Inline ia Text))
+		step :: D.Inline ia -> (D.Inline ia, Maybe (D.Inline ia))
 		step inline =
 			let
 				text = D.ilVisual inline
@@ -36,11 +36,11 @@ split_part =
 				in (current, future)
 		in map step
 
-possibly_empty_sentences :: D.Inline ia Text -> [D.Inline ia Text]
+possibly_empty_sentences :: D.Inline ia -> [D.Inline ia]
 possibly_empty_sentences = Just >>> List.unfoldr split_part
 
-is_sentence_part_empty :: D.Inline ia Text -> Bool
+is_sentence_part_empty :: D.Inline ia -> Bool
 is_sentence_part_empty = const False
 
-sentences :: D.Inline ia Text -> [D.Inline ia Text]
+sentences :: D.Inline ia -> [D.Inline ia]
 sentences = possibly_empty_sentences >>> List.filter (is_sentence_part_empty >>> not)
