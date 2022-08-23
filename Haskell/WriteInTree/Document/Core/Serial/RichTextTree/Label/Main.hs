@@ -25,7 +25,8 @@ import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configurat
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Lower 
 	(
 		IntermediateTreeP, IntermediateTreeR, IntermediateBranchTreeP, IntermediateBranchTreeR,
-		render_labels_into_siblings, parse_labels_from_siblings
+		render_labels_into_siblings,
+		parse_labels_from_siblings
 	)
 
 import qualified Data.Bifunctor as Bifunctor
