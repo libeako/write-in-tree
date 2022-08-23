@@ -3,7 +3,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure
 	Content, Content',
 	TextStructureError (..),
 	render_exceptional, render, parse,
-	layer, layer_without_worry,
+	layer, layer_try,
 )
 where
 
@@ -63,8 +63,8 @@ parse = \case
 layer :: Optic.PartialIso' TextStructureError Text (Content Text Text)
 layer = Optic.PartialIso render parse
 
-parse_without_worry :: Text -> Content Text Text
-parse_without_worry t = either (const (Right t)) id (parse t)
+parse_try :: Text -> Content Text Text
+parse_try t = either (const (Right t)) id (parse t)
 
-layer_without_worry :: Optic.Iso' Text (Content Text Text)
-layer_without_worry = Optic.Iso render parse_without_worry
+layer_try :: Optic.Iso' Text (Content Text Text)
+layer_try = Optic.Iso render parse_try

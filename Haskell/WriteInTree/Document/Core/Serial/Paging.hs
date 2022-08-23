@@ -45,7 +45,7 @@ layer_MetaName :: Optic.Iso' (a (), Paragraph) (a (), Either MetaNodeName Paragr
 layer_MetaName =
 	Optic.lift_iso
 		(
-		Ms.serialize_node_content_without_worry
+		Ms.layer_in_node_content
 			(Data.ilVisual >>> Just)
 			(flip Data.Inline Nothing)
 			render_MetaNodeName
@@ -56,9 +56,10 @@ text_page_class :: Text
 text_page_class = Class.class_prefix <> "page"
 
 store_separate_page_status :: Bool -> Fn.Endo (Label.Elem id e)
-store_separate_page_status separate_page = if separate_page
-	then Optic.fn_up Label.inElem_labels (Label.add_new_classes_to_Labels [text_page_class])
-	else id
+store_separate_page_status separate_page =
+	if separate_page
+		then Optic.fn_up Label.inElem_labels (Label.add_new_classes_to_Labels [text_page_class])
+		else id
 
 type CoreLTree a = Tree (a (), Either MetaNodeName Paragraph)
 type CoreHTree a = Tree (a (), (Paragraph, Bool))
@@ -69,7 +70,9 @@ core_render = (map >>> map) (fst >>> Right)
 has_page_class :: Label.Elem id e -> Bool
 has_page_class = Label.elem_has_class text_page_class
 
-core_parse' :: forall a id . a ~ Label.Elem id =>
+core_parse' ::
+	forall a id .
+	a ~ Label.Elem id =>
 	Bool -> CoreLTree a -> [CoreHTree a]
 core_parse' separate_page_as_inherited (Tree.Node (a, ei_paragraph) children) = let
 	make_children :: Bool ->[CoreHTree a]

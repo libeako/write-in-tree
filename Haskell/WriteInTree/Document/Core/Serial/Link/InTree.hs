@@ -40,7 +40,7 @@ parse_tree =
 		extract_meta_name :: a Text -> Maybe MetaNodeName
 		extract_meta_name =
 			HasSingle.elem >>>
-			Optic.ofIso_up (Ms.layer_in_node_text' render_MetaNodeName) >>>
+			Optic.ofIso_up (Ms.layer_in_node_text render_MetaNodeName) >>>
 			either (Just) (const Nothing)
 		diagonal x = (x, x)
 		decide :: a Text -> Maybe (a MetaNodeName)
