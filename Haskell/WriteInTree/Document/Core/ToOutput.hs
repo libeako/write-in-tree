@@ -21,7 +21,7 @@ translateInline i = UI.Inline
 		UI.ilLink = map translateLink (UI.ilLink i)
 	}
 
-translateStructure :: UI.StructureAsTree () UI.NodeIdU UI.NodeIdU -> O.Structure UI.NodeIdU
+translateStructure :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> O.Structure UI.NodeIdU
 translateStructure (Tree.Node trunk children) = 
 	let	
 		separate_page = UI.nodeIsSeparatePage trunk

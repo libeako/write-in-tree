@@ -37,9 +37,9 @@ type InputTree = Tree InputElem
 
 type ReferenceL = Text
 type ReferenceH = UsI.NodeIdU
-type StructureAsTree a r = UsI.StructureAsTree a r r
-type L a e = StructureAsTree a ReferenceL
-type H a e = StructureAsTree a ReferenceH
+type StructureAsTree r = UsI.StructureAsTree r r
+type L a e = StructureAsTree ReferenceL
+type H a e = StructureAsTree ReferenceH
 type L' a = L (a ()) Text
 type H' a = H (a ()) Text
 
@@ -65,18 +65,16 @@ node_richener :: UsI.Node Text Text -> UsI.Node UsI.NodeIdUCore Text
 node_richener n = Optic.fn_up UsI.idu_in_Node (make_changed_NodeIdUCore n) n
 
 node_idu_richener' ::
-	forall a . 
-	UsI.StructureAsTree a Text Text ->
-	UsI.StructureAsTree a UsI.NodeIdUCore Text
+	UsI.StructureAsTree Text Text ->
+	UsI.StructureAsTree UsI.NodeIdUCore Text
 node_idu_richener' = Optic.fn_up UsI.node_in_tree node_richener
 
 node_idu_richener ::
-	forall a . 
-	UsI.StructureAsTree a Text Text ->
-	UsI.StructureAsTree a UsI.NodeIdU Text
+	UsI.StructureAsTree Text Text ->
+	UsI.StructureAsTree UsI.NodeIdU Text
 node_idu_richener = node_idu_richener' >>> Optic.traverse UsI.idu_in_tree count >>> flip Mtl.evalState 0
 
-gather_map :: UsI.StructureAsTree a UsI.NodeIdU Text -> MapS.Map Char [UsI.NodeIdU]
+gather_map :: UsI.StructureAsTree UsI.NodeIdU Text -> MapS.Map Char [UsI.NodeIdU]
 gather_map = id
 	>>> Fold.toList
 	>>> map UsI.uid_of_node >>> Base.catMaybes
@@ -101,7 +99,7 @@ type Map = MapS.Map Char UsI.NodeIdU
 singlify_map :: MapS.Map Char [UsI.NodeIdU] -> Either (Accu.Accumulated Text) Map
 singlify_map = Trav.singlify_element_lists >>> Bifunctor.first same_id_error_message
 
-create_map :: UsI.StructureAsTree a UsI.NodeIdU Text -> Either (Accu.Accumulated Text) Map
+create_map :: UsI.StructureAsTree UsI.NodeIdU Text -> Either (Accu.Accumulated Text) Map
 create_map = gather_map >>> singlify_map
 
 invlid_id_error_message :: Text -> Accu.Accumulated Text
@@ -125,14 +123,14 @@ change_reference_from_node m node = let
 
 change_references_in_tree ::
 	Map ->
-	UsI.StructureAsTree a UsI.NodeIdU Text ->
-	Either (Pos.Positioned (Accu.Accumulated Text)) (UsI.StructureAsTree a UsI.NodeIdU UsI.NodeIdU)
+	UsI.StructureAsTree UsI.NodeIdU Text ->
+	Either (Pos.Positioned (Accu.Accumulated Text)) (UsI.StructureAsTree UsI.NodeIdU UsI.NodeIdU)
 change_references_in_tree m = Optic.traverse UsI.node_in_tree (change_reference_from_node m)
 
 
 change_references ::
-	UsI.StructureAsTree a UsI.NodeIdU Text -> 
-	Either (Pos.Positioned (Accu.Accumulated Text)) (UsI.StructureAsTree a UsI.NodeIdU UsI.NodeIdU)
+	UsI.StructureAsTree UsI.NodeIdU Text -> 
+	Either (Pos.Positioned (Accu.Accumulated Text)) (UsI.StructureAsTree UsI.NodeIdU UsI.NodeIdU)
 change_references input = let
 	convert_error :: Accu.Accumulated Text -> Pos.Positioned (Accu.Accumulated Text)
 	convert_error = Pos.Positioned (Pos.get_position (UsI.nodeWitSource (Tree.rootLabel input)))
@@ -141,21 +139,21 @@ change_references input = let
 		>>= flip change_references_in_tree input
 
 up ::
-	UsI.StructureAsTree a Text Text -> 
-	Either (Pos.Positioned (Accu.Accumulated Text)) (UsI.StructureAsTree a UsI.NodeIdU UsI.NodeIdU)
+	UsI.StructureAsTree Text Text -> 
+	Either (Pos.Positioned (Accu.Accumulated Text)) (UsI.StructureAsTree UsI.NodeIdU UsI.NodeIdU)
 up = node_idu_richener >>> change_references
 
 reference_down :: UsI.NodeIdU -> Text
 reference_down = Identified.cargo >>> UsI.nidun_u
 
 down ::
-	UsI.StructureAsTree a UsI.NodeIdU UsI.NodeIdU ->
-	UsI.StructureAsTree a Text Text
+	UsI.StructureAsTree UsI.NodeIdU UsI.NodeIdU ->
+	UsI.StructureAsTree Text Text
 down = id 
 	>>> Optic.fn_up UsI.idu_in_tree reference_down
 	>>> Optic.fn_up UsI.internal_address_in_tree reference_down
 
 layer :: Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text)) 
-	(UsI.StructureAsTree a Text Text) 
-	(UsI.StructureAsTree a UsI.NodeIdU UsI.NodeIdU)
+	(UsI.StructureAsTree Text Text) 
+	(UsI.StructureAsTree UsI.NodeIdU UsI.NodeIdU)
 layer = Optic.PartialIso down up

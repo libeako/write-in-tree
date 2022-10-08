@@ -31,10 +31,10 @@ type Text = Base.String
 convert_string_error :: Fana.Showable Text s => s -> Pos.PositionedMb (Accu.Accumulated Text)
 convert_string_error = Fana.show >>> Pos.PositionedMb Nothing
 
-type StructureAsTree a = Data.StructureAsTree (a ()) Data.NodeIdU Data.NodeIdU
+type StructureAsTree = Data.StructureAsTree Data.NodeIdU Data.NodeIdU
 type Document a = Data.Document (a ()) Data.NodeIdU Data.NodeIdU
 
-layer_document :: Optic.Iso' (StructureAsTree a) (Document a)
+layer_document :: Optic.Iso' StructureAsTree (Document a)
 layer_document = Optic.Iso Data.docTree Data.Document
 
 layer ::
