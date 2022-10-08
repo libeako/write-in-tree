@@ -80,15 +80,16 @@ attach_its_uid_to_node n = map (Pair.before n) (uid_of_node n)
 
 type StructureAsTree (id_u :: Type) ia = Tree.Tree (Node id_u ia)
 
-data Document a (id_u :: Type) ia = Document
+data Document (id_u :: Type) ia =
+	Document
 	{
-	docTree :: StructureAsTree id_u ia
+		docTree :: StructureAsTree id_u ia
 	}
 	deriving (Eq)
 
 
 -- | collects all the user identifiers in the document with their nodes.
-uids_int_doc_with_nodes :: Document a id_u ia -> [(id_u, Node id_u ia)]
+uids_int_doc_with_nodes :: Document id_u ia -> [(id_u, Node id_u ia)]
 uids_int_doc_with_nodes = docTree >>> Fold.toList >>> map attach_its_uid_to_node >>> catMaybes
 
 
@@ -244,6 +245,6 @@ internal_address_in_tree = internal_address_in_node >**>^ node_in_tree
 tree_in_Document :: 
 	Optic.Lens 
 		(StructureAsTree id_u1 ia1) (StructureAsTree id_u2 ia2)
-		(Document u1 id_u1 ia1) (Document u2 id_u2 ia2)
+		(Document id_u1 ia1) (Document id_u2 ia2)
 tree_in_Document = Optic.lens_from_get_set docTree (\ p w -> w { docTree = p })
 

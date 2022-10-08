@@ -32,14 +32,14 @@ convert_string_error :: Fana.Showable Text s => s -> Pos.PositionedMb (Accu.Accu
 convert_string_error = Fana.show >>> Pos.PositionedMb Nothing
 
 type StructureAsTree = Data.StructureAsTree Data.NodeIdU Data.NodeIdU
-type Document a = Data.Document (a ()) Data.NodeIdU Data.NodeIdU
+type Document = Data.Document Data.NodeIdU Data.NodeIdU
 
-layer_document :: Optic.Iso' StructureAsTree (Document a)
+layer_document :: Optic.Iso' StructureAsTree Document
 layer_document = Optic.Iso Data.docTree Data.Document
 
 layer ::
 	SepProps.DocSepProps -> 
-	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Document (Label.Elem Text))
+	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text Document
 layer sep_props = 
 	Category2.empty
 	>**>^ Optic.piso_convert_error convert_string_error Tt.layer 
@@ -51,5 +51,5 @@ layer sep_props =
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned UserIds.layer
 	>**>^ layer_document
 
-layer_test :: Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Document (Label.Elem Text))
+layer_test :: Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text Document
 layer_test = layer def
