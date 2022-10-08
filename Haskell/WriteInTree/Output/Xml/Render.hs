@@ -188,16 +188,16 @@ render_section sentencing is_page_root site node_tree =
 						in Fold.any (flip Fold.elem exceptional_classes) current_classes
 				revised_sentencing = sentencing && not has_class_code
 				header :: Maybe Xml.ElementL
-				header = 
-					if is_page_root then Nothing else 
+				header =
+					if is_page_root then Nothing else
 						Just (render_paragraph is_page_break revised_sentencing (snd (UI.nodeContent trunk_node)) site)
 				is_page_break :: Bool
-				is_page_break = OData.ao_is_page_break_reference (fst (UI.nodeContent trunk_node))
+				is_page_break = OData.is_inline_a_page_break (snd (UI.nodeContent trunk_node))
 				in
-					wrap_by_header_content header >>> 
+					wrap_by_header_content header >>>
 					wrap_by_section >>> wrap_by_id_and_classes [] trunk_node
 		in from_sub_content sub_content
-			
+
 render_navigation_bar_per_element :: 
 	OData.Site UI.NodeIdU -> 
 	Bool -> 

@@ -7,13 +7,14 @@ module WriteInTree.Output.Pagination
 	Paragraph,
 	Node,
 	Structure,
-	AI, AO (..),
+	AI, AO,
 	UserAddressMap,
 	Page (..),
 	Site (..),
 
 	title_of_section, title_of_page,
 	id_of_page,
+	is_inline_a_page_break,
 	
 	compile_site,
 )
@@ -97,6 +98,15 @@ make_Site pages ua_map =
 				make_key_value_pair = id_of_page &&& id
 				in Map.fromList (map make_key_value_pair (Fold.toList pages))
 	in Site pages ua_map page_map
+
+is_link_a_page_break :: Link id_u -> Bool
+is_link_a_page_break =
+	\case
+		UI.LIn lit -> either (const True) (const False) lit
+		UI.LEx _ -> False
+
+is_inline_a_page_break :: Inline id_u -> Bool
+is_inline_a_page_break = UI.ilLink >>> maybe False is_link_a_page_break
 
 title_of_section :: Node a idts -> String
 title_of_section = Optic.to_list UI.texts_in_Node >>> Fold.concat
