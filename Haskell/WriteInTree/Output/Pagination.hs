@@ -1,5 +1,23 @@
 -- | write-in-tree output data format.
-module WriteInTree.Output.Pagination where
+module WriteInTree.Output.Pagination
+(
+	InternalLinkTarget (..),
+	Inline,
+	Link,
+	Paragraph,
+	Node,
+	Structure,
+	AI, AO (..),
+	UserAddressMap,
+	Page (..),
+	Site (..),
+
+	title_of_section, title_of_page,
+	id_of_page,
+	
+	compile_site,
+)
+where
 
 import Control.Arrow ((&&&))
 import Data.Default.Class (Default (..))
