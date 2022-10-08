@@ -99,10 +99,11 @@ ofLink_internals ::
 	Optic.Iso 
 		(Either ia1 String) (Either ia2 String)
 		(Link ia1) (Link ia2)
-ofLink_internals = let
-	down = \case { LIn x -> Left x; LEx x -> Right x }
-	up = Base.either LIn LEx
-	in Optic.Iso down up
+ofLink_internals =
+	let
+		down = \case { LIn x -> Left x; LEx x -> Right x }
+		up = Base.either LIn LEx
+		in Optic.Iso down up
 
 ofInline_internals ::
 	Optic.Iso
@@ -120,62 +121,29 @@ link_in_Inline ::
 		(Inline ia1) (Inline ia2)
 link_in_Inline = Optic.lens_from_get_set ilLink (\ e c -> c { ilLink = e })
 
-ofLink_additional :: forall a1 a2 ia . Optic.Traversal a1 a2 (Link ia) (Link ia)
-ofLink_additional =
-	let
-		trav :: forall a . (a1 -> a a2) -> (Link ia -> Link ia)
-		trav f =
-			\case
-				LIn x -> LIn x
-				LEx x -> LEx x
-		in Optic.Traversal (trav >>> map pure)
-
-ofInline_additional :: forall ia a1 a2 . Optic.Traversal a1 a2 (Inline ia) (Inline ia)
-ofInline_additional = let
-	from_link :: Optic.Traversal a1 a2 (Maybe (Link ia)) (Maybe (Link ia))
-	from_link = Category2.empty >**>^ ofLink_additional >**>^ Optic.prism_Maybe
-	from_internals :: Optic.Traversal a1 a2 (e, Maybe (Link ia)) (e, Maybe (Link ia))
-	from_internals = from_link >**>^ Optic.lens_2
-	in Category2.empty >**>^ from_internals >**>^ ofInline_internals
-
 internal_address_in_Link :: Optic.Prism ia1 ia2 (Link ia1) (Link ia2)
-internal_address_in_Link = 
+internal_address_in_Link =
 	Optic.from_up_and_match LIn (\case { LIn ia -> Right ia; LEx t -> Left (LEx t) })
 
-internal_address_in_Link' :: forall ia1 ia2 . Optic.AffineTraversal ia1 ia2 (Link ia1) (Link ia2)
-internal_address_in_Link' = Category2.empty >**>^ internal_address_in_Link
-
-internal_address_in_Inline :: 
+internal_address_in_Inline ::
 	forall ia1 ia2 . Optic.AffineTraversal ia1 ia2 (Inline ia1) (Inline ia2)
-internal_address_in_Inline = 
-	let 
-		empty :: Optic.Empty Optic.AffineTraversal ia1 ia2
-		empty = Category2.empty
-	in 
-		Category2.empty
-		>**>^ internal_address_in_Link'
-		>**>^ Optic.prism_Maybe 
-		>**>^ link_in_Inline
+internal_address_in_Inline =
+	Category2.empty
+	>**>^ internal_address_in_Link
+	>**>^ Optic.prism_Maybe
+	>**>^ link_in_Inline
 
-ofParagraph_additional :: Optic.Traversal a1 a2 (Paragraph ia) (Paragraph ia)
-ofParagraph_additional = ofInline_additional
-
-inlines_in_Node :: 
-	forall id_u ia1 ia2 .
-	Optic.Traversal (Inline ia1) (Inline ia2) (Node id_u ia1) (Node id_u ia2)
-inlines_in_Node = Category2.empty >**>^ inNode_content_elem
-
-links_in_Node :: 
+links_in_Node ::
 	forall id_u ia1 ia2 .
 	Optic.Traversal
 		(Maybe (Link ia1)) (Maybe (Link ia2))
 		(Node id_u ia1) (Node id_u ia2)
-links_in_Node = Category2.empty >**>^ link_in_Inline @ia1 @ia2 >**>^ inlines_in_Node
+links_in_Node = Category2.empty >**>^ link_in_Inline @ia1 @ia2 >**>^ inNode_content
 
 texts_in_Node :: forall id_u ia . Optic.Traversal' Text (Node id_u ia)
 texts_in_Node = Category2.empty
 	>**>^ visual_in_Inline
-	>**>^ inNode_content_elem
+	>**>^ inNode_content
 
 wit_source_in_Node ::
 	Optic.Lens
@@ -183,8 +151,8 @@ wit_source_in_Node ::
 		(Node idts1 ia) (Node idts2 ia)
 wit_source_in_Node = Optic.lens_from_get_set nodeWitSource (\ e c -> c { nodeWitSource = e })
 
-source_in_Node :: 
-	Optic.Lens 
+source_in_Node ::
+	Optic.Lens
 		(Label.Elem idts_1 ()) (Label.Elem idts_2 ()) 
 		(Node idts_1 li) (Node idts_2 li)
 source_in_Node = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSource = p })
@@ -196,23 +164,11 @@ inNode_content ::
 		(Node id_u ia1) (Node id_u ia2)
 inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })
 
-inNode_content_elem :: 
-	forall ia1 ia2 idts .
-	Optic.Lens (Paragraph ia1) (Paragraph ia2) (Node idts ia1) (Node idts ia2)
-inNode_content_elem = Category2.empty >**>^ inNode_content
-
 separate_page_in_Node :: Optic.Lens' Bool (Node idts li)
 separate_page_in_Node = Optic.lens_from_get_set nodeIsSeparatePage (\ p w -> w { nodeIsSeparatePage = p })
 
 idu_in_Node :: Optic.Traversal (id_u_1) (id_u_2) (Node id_u_1 ia) (Node id_u_2 ia)
 idu_in_Node = Category2.empty >**>^ Label.inElem_idu >**>^ inNode_source
-
-make_trivial_traversal :: (x -> y) -> Optic.Traversal () () x y
-make_trivial_traversal type_changer =
-	Optic.Traversal (\ f x -> map (const (type_changer x)) (f ()))
-
-ofNode_additional :: Optic.Traversal () () (Node id_u ia) (Node id_u ia)
-ofNode_additional = make_trivial_traversal id
 
 internal_address_in_node ::
 	forall ia1 ia2 id_u .
@@ -220,7 +176,7 @@ internal_address_in_node ::
 internal_address_in_node =
 	Category2.empty
 	>**>^ internal_address_in_Inline
-	>**>^ inNode_content_elem
+	>**>^ inNode_content
 
 node_in_tree ::
 	Optic.Traversal
@@ -229,7 +185,7 @@ node_in_tree ::
 node_in_tree = Optic.from_Traversable
 
 inlines_in_Structure :: Optic.Traversal' (Inline ia) (StructureAsTree id_u ia)
-inlines_in_Structure = inlines_in_Node >**>^ node_in_tree
+inlines_in_Structure = Category2.empty >**>^ inNode_content >**>^ node_in_tree
 
 idu_in_tree ::
 	Optic.Traversal
@@ -237,13 +193,13 @@ idu_in_tree ::
 		(StructureAsTree id_u_1 ia) (StructureAsTree id_u_2 ia)
 idu_in_tree = idu_in_Node >**>^ node_in_tree
 
-internal_address_in_tree :: 
+internal_address_in_tree ::
 	forall ia1 ia2 id_u .
 	Optic.Traversal ia1 ia2 (StructureAsTree id_u ia1) (StructureAsTree id_u ia2)
 internal_address_in_tree = internal_address_in_node >**>^ node_in_tree
 
-tree_in_Document :: 
-	Optic.Lens 
+tree_in_Document ::
+	Optic.Lens
 		(StructureAsTree id_u1 ia1) (StructureAsTree id_u2 ia2)
 		(Document id_u1 ia1) (Document id_u2 ia2)
 tree_in_Document = Optic.lens_from_get_set docTree (\ p w -> w { docTree = p })

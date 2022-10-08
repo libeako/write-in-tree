@@ -167,8 +167,6 @@ divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 	let
 		trunk_node :: Node id_u
 		trunk_node = Tree.rootLabel whole_structure
-		trunk_node_new :: Node id_u
-		trunk_node_new = Optic.fill UI.ofNode_additional def trunk_node
 		in
 			if may_treat_as_page_trunk && UI.nodeIsSeparatePage trunk_node
 				then 
@@ -187,7 +185,7 @@ divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 							(Structure id_u, Lt.Tree [] (Tree.Tree (Page id_u)))
 						merge_sub_results srs = 
 							let (sub_structures, sub_page_trees) = List.unzip srs
-								in (Tree.Node trunk_node_new sub_structures, Lt.joint sub_page_trees)
+								in (Tree.Node trunk_node sub_structures, Lt.joint sub_page_trees)
 						in merge_sub_results sub_results
 
 divide_to_pages_from_page :: [Node id_u] -> Structure id_u -> Tree.Tree (Page id_u)

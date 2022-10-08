@@ -245,10 +245,7 @@ render_page_body_content sentencing site page =
 		content = 
 			[Html.classify_into [text_class_page_main_part]
 				[Xml.element_as_content (render_section sentencing True site node_tree)]]
-		navigation_bar = 
-			render_navigation_bar page_is_trunk site 
-				(Optic.fill UI.ofNode_additional () trunk_node)
-				path_to_trunk
+		navigation_bar = render_navigation_bar page_is_trunk site trunk_node path_to_trunk
 		nav_separator =
 			let
 				classes_names :: [Text]

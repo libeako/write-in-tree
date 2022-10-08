@@ -17,15 +17,8 @@ import qualified WriteInTree.Document.SepProps.Data as SepProps
 
 type Text = String
 
-
-delete_additional_info_from_node :: Data.Node id_u ia -> Data.Node id_u ia
-delete_additional_info_from_node = id
-	>>> Optic.fill Data.ofNode_additional ()
-
 parse_from_string ::
 	SepProps.DocSepProps ->
 	String {- input file content -} -> 
 	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Data.Document Data.NodeIdU Data.NodeIdU)
-parse_from_string sep_props = 
-	(Optic.piso_interpret (CoreSerial.layer sep_props))
-	>>> map (Optic.fn_up Data.tree_in_Document (map delete_additional_info_from_node))
+parse_from_string sep_props = Optic.piso_interpret (CoreSerial.layer sep_props)
