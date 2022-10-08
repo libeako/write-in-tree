@@ -32,9 +32,8 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Text = [Char]
 type A = Label.Elem Text
-type InputElem a = UsI.Node (a ()) Text Text
-type InputElem' = InputElem A
-type InputTree = Tree InputElem'
+type InputElem = UsI.Node Text Text
+type InputTree = Tree InputElem
 
 type ReferenceL = Text
 type ReferenceH = UsI.NodeIdU
@@ -57,12 +56,12 @@ count core = do
 	current_count <- Mtl.get
 	pure (Identified current_count core)
 
-make_changed_NodeIdUCore ::  UsI.Node a id_u Text -> Text -> UsI.NodeIdUCore
+make_changed_NodeIdUCore ::  UsI.Node id_u Text -> Text -> UsI.NodeIdUCore
 make_changed_NodeIdUCore n idu =
 	UsI.NodeIdUCore (UsI.nodeIdAuto n) idu 
 		(Pos.get_position (UsI.nodeWitSource n))
 
-node_richener :: UsI.Node a Text Text -> UsI.Node a UsI.NodeIdUCore Text
+node_richener :: UsI.Node Text Text -> UsI.Node UsI.NodeIdUCore Text
 node_richener n = Optic.fn_up UsI.idu_in_Node (make_changed_NodeIdUCore n) n
 
 node_idu_richener' ::
@@ -114,12 +113,11 @@ change_identifier m identifier =
 	Base.maybe (Left (invlid_id_error_message identifier)) Right (LensAt.get_at identifier m)
 
 change_reference_from_node :: 
-	forall a .
 	Map -> 
-	UsI.Node a UsI.NodeIdU Text -> 
-	Either (Pos.Positioned (Accu.Accumulated Text)) (UsI.Node a UsI.NodeIdU UsI.NodeIdU)
+	UsI.Node UsI.NodeIdU Text -> 
+	Either (Pos.Positioned (Accu.Accumulated Text)) (UsI.Node UsI.NodeIdU UsI.NodeIdU)
 change_reference_from_node m node = let
-	computation_result :: Either (Accu.Accumulated Text) (UsI.Node a UsI.NodeIdU UsI.NodeIdU)
+	computation_result :: Either (Accu.Accumulated Text) (UsI.Node UsI.NodeIdU UsI.NodeIdU)
 	computation_result = Optic.traverse UsI.internal_address_in_node (change_identifier m) node
 	convert_error :: Accu.Accumulated Text -> Pos.Positioned (Accu.Accumulated Text)
 	convert_error = Pos.Positioned (Pos.get_position (UsI.nodeWitSource node))

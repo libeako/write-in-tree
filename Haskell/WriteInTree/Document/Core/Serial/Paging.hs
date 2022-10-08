@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.Paging
 (
-	CoreHTree, CoreHTree', HTree, HTree',
+	CoreHTree, CoreHTree', HTree,
 	layer,
 )
 where
@@ -108,13 +108,13 @@ core_layer = Optic.PartialIso core_render core_parse
 
 type CoreHTree' = CoreHTree (Label.Elem Text)
 
-type NodeH a = Data.Node (a ()) Text Text
+type NodeH = Data.Node Text Text
 
 parse_into_node ::
 	forall a . a ~ Label.Elem Text =>
-	(a (), (Paragraph, Bool)) -> Either (Pos.Positioned (Accu.Accumulated Text)) (NodeH a)
+	(a (), (Paragraph, Bool)) -> Either (Pos.Positioned (Accu.Accumulated Text)) NodeH
 parse_into_node (a, (paragraph, is_separate_page)) = let
-	make :: Text -> Data.Node (a ()) Text Text
+	make :: Text -> Data.Node Text Text
 	make id_a = Data.Node id_a a paragraph is_separate_page
 	error_message :: Pos.Positioned (Accu.Accumulated Text)
 	error_message = Pos.Positioned (Pos.get_position a) "node does not have an automatic identifier"
@@ -122,7 +122,7 @@ parse_into_node (a, (paragraph, is_separate_page)) = let
 
 render_from_node ::
 	forall a . a ~ Label.Elem Text =>
-	NodeH a -> (a (), (Paragraph, Bool))
+	NodeH -> (a (), (Paragraph, Bool))
 render_from_node i =
 	(
 		Data.nodeWitSource i,
@@ -131,12 +131,11 @@ render_from_node i =
 
 layer_h ::
 	forall a . a ~ Label.Elem Text =>
-	Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text)) (a (), (Paragraph, Bool)) (NodeH a)
+	Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text)) (a (), (Paragraph, Bool)) NodeH
 layer_h = Optic.PartialIso render_from_node parse_into_node
 
 
-type HTree a = (Tree (NodeH a))
-type HTree' = HTree A
+type HTree = (Tree NodeH)
 
 translate_page_name_char :: Base.Char -> Base.Char
 translate_page_name_char c = if Base.isAlphaNum c then c else '-'
@@ -144,19 +143,19 @@ translate_page_name_char c = if Base.isAlphaNum c then c else '-'
 translate_page_name :: Text -> Text
 translate_page_name = map translate_page_name_char
 
-pages :: Tree (NodeH a) -> [NodeH a]
+pages :: Tree NodeH -> [NodeH]
 pages = toList >>> Base.filter Data.nodeIsSeparatePage
 
-address_of_page :: NodeH A -> Text
+address_of_page :: NodeH -> Text
 address_of_page = Optic.to_list Data.texts_in_Node >>> Fold.fold >>> translate_page_name
 
-add_address_to_page :: NodeH A -> (Text, NodeH A)
+add_address_to_page :: NodeH -> (Text, NodeH)
 add_address_to_page n = (address_of_page n, n)
 
-key_page_map :: Tree (NodeH A) -> Either (Base.String, [NodeH A]) (MapS.Map Base.Char (NodeH A))
+key_page_map :: Tree NodeH -> Either (Base.String, [NodeH]) (MapS.Map Base.Char NodeH)
 key_page_map = pages >>> map add_address_to_page >>> Map.from_list_of_uniques
 
-page_name_repetition_in_document :: Tree (NodeH A) -> Maybe (Pos.PositionedMb (Accu.Accumulated Text))
+page_name_repetition_in_document :: Tree NodeH -> Maybe (Pos.PositionedMb (Accu.Accumulated Text))
 page_name_repetition_in_document tree =
 	case key_page_map tree of
 		Left repetition ->
@@ -169,7 +168,7 @@ page_name_repetition_in_document tree =
 
 layer ::
 	(a ~ Label.Elem Text) =>
-	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) (InputTree a) (Tree (NodeH a))
+	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) (InputTree a) (Tree NodeH)
 layer = 
 	Category2.empty
 	>**>^ Optic.lift_iso layer_MetaName

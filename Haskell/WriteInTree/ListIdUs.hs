@@ -39,7 +39,7 @@ identified_node_text =
 	BiFu.bimap (Identified.cargo >>> Data.nidun_u) Pos.get_position
 	>>> identified_node_text_frame
 
-identified_nodes_of_doc :: Data.Document () id_u ia -> [(id_u, Data.Node () id_u ia)]
+identified_nodes_of_doc :: Data.Document () id_u ia -> [(id_u, Data.Node id_u ia)]
 identified_nodes_of_doc = 
 	Data.docTree >>> Optic.to_list Data.node_in_tree >>> map Data.attach_its_uid_to_node >>> Base.catMaybes
 
