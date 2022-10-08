@@ -47,7 +47,7 @@ data Node a (id_u :: Type) ia =
 	{
 		nodeIdAuto :: Text,
 		nodeWitSource :: Label.Elem id_u (),
-		nodeContent :: ((), Paragraph ia),
+		nodeContent :: Paragraph ia,
 		nodeIsSeparatePage :: Bool
 	}
 	deriving (Eq)
@@ -191,14 +191,14 @@ source_in_Node = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSour
 inNode_content ::
 	forall a1 a2 ia1 ia2 id_u .
 	Optic.Lens
-		((), (Paragraph ia1)) ((), (Paragraph ia2))
+		(Paragraph ia1) (Paragraph ia2)
 		(Node a1 id_u ia1) (Node a2 id_u ia2)
 inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })
 
 inNode_content_elem :: 
 	forall u ia1 ia2 idts .
 	Optic.Lens (Paragraph ia1) (Paragraph ia2) (Node u idts ia1) (Node u idts ia2)
-inNode_content_elem = Category2.empty >**>^ Optic.lens_2 >**>^ inNode_content @u @u
+inNode_content_elem = Category2.empty >**>^ inNode_content @u @u
 
 separate_page_in_Node :: Optic.Lens' Bool (Node u idts li)
 separate_page_in_Node = Optic.lens_from_get_set nodeIsSeparatePage (\ p w -> w { nodeIsSeparatePage = p })
@@ -206,11 +206,15 @@ separate_page_in_Node = Optic.lens_from_get_set nodeIsSeparatePage (\ p w -> w {
 idu_in_Node :: Optic.Traversal (id_u_1) (id_u_2) (Node u id_u_1 ia) (Node u id_u_2 ia)
 idu_in_Node = Category2.empty >**>^ Label.inElem_idu >**>^ inNode_source
 
+make_trivial_traversal :: (x -> y) -> Optic.Traversal () () x y
+make_trivial_traversal type_changer =
+	Optic.Traversal (\ f x -> map (const (type_changer x)) (f ()))
+
+node_type_changer :: Node a1 id_u ia -> Node a2 id_u ia
+node_type_changer (Node _1 _2 _3 _4) = (Node _1 _2 _3 _4)
+
 ofNode_additional :: Optic.Traversal () () (Node a1 id_u ia) (Node a2 id_u ia)
-ofNode_additional = 
-	Category2.empty 
-	>**>^ Optic.product (Category2.empty, ofParagraph_additional) 
-	>**>^ inNode_content
+ofNode_additional = make_trivial_traversal node_type_changer
 
 internal_address_in_node :: 
 	forall u ia1 ia2 id_u .

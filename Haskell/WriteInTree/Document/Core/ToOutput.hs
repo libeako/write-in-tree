@@ -28,7 +28,7 @@ translateStructure (Tree.Node trunk children) =
 		trunk_node :: O.Node () UI.NodeIdU
 		trunk_node = 
 			UI.Node (UI.nodeIdAuto trunk) (UI.nodeWitSource trunk) 
-				(map translateInline (UI.nodeContent trunk)) 
+				(translateInline (UI.nodeContent trunk)) 
 				separate_page
 		sub_results = map translateStructure children
 		in Tree.Node trunk_node sub_results

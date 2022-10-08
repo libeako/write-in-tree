@@ -158,7 +158,6 @@ page_node_as_link trunk_node =
 					Just (UI.LIn (Left (UI.nodeIdAuto trunk_node)))
 					-- this feels an ugly solution, but i hope will do it for now
 				)
-			>>> Optic.fill UI.ofNode_additional def
 		in changer trunk_node
 
 divide_to_pages :: 
