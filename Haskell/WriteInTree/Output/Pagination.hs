@@ -23,7 +23,6 @@ where
 import Control.Arrow ((&&&))
 import Data.Default.Class (Default (..))
 import Data.Foldable
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
 
@@ -34,7 +33,6 @@ import qualified Data.Map as Map
 import qualified Data.Tree as Tree
 import qualified Fana.Data.HeteroPair as HePair
 import qualified Fana.Data.Tree.Leaf as Lt
-import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as UI
@@ -47,18 +45,9 @@ type PagePath = [String]
 type LinkInternalTarget (id_u :: Type) = Either Text id_u
 
 type AI = ()
-data AO = AO 
-	{ ao_is_page_break_reference :: Bool
-		-- ^ this node represents a page break link.
-	}
+data AO = AO {}
 
-ofAO_is_page_break :: Optic.Lens' Bool AO
-ofAO_is_page_break = 
-	Optic.lens_from_get_set 
-		ao_is_page_break_reference 
-		(\ e c -> c { ao_is_page_break_reference = e })
-
-instance Default AO where def = AO False
+instance Default AO where def = AO
 
 type Link (id_u :: Type) = UI.Link (LinkInternalTarget id_u)
 type Inline (id_u :: Type) = UI.Inline (LinkInternalTarget id_u)
@@ -167,12 +156,6 @@ gather_InternalLinkTargets_in_Pages pages =
 page_node_as_link :: Node AI id_u -> Node AO id_u
 page_node_as_link trunk_node = 
 	let 
-		lens_is_page_break :: Optic.Lens' Bool (Node AO id_u)
-		lens_is_page_break = 
-			Category2.empty 
-			>**>^ ofAO_is_page_break
-			>**>^ Optic.lens_1
-			>**>^ UI.inNode_content
 		changer :: Node AI id_u -> Node AO id_u
 		changer = 
 			id
@@ -183,7 +166,6 @@ page_node_as_link trunk_node =
 					-- this feels an ugly solution, but i hope will do it for now
 				)
 			>>> Optic.fill UI.ofNode_additional def
-			>>> Optic.fill lens_is_page_break True
 		in changer trunk_node
 
 divide_to_pages :: 
