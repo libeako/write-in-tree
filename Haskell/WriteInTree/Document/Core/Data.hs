@@ -47,7 +47,7 @@ data Node a (id_u :: Type) ia =
 	{
 		nodeIdAuto :: Text,
 		nodeWitSource :: Label.Elem id_u (),
-		nodeContent :: (a, Paragraph ia),
+		nodeContent :: ((), Paragraph ia),
 		nodeIsSeparatePage :: Bool
 	}
 	deriving (Eq)
@@ -191,7 +191,7 @@ source_in_Node = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSour
 inNode_content ::
 	forall a1 a2 ia1 ia2 id_u .
 	Optic.Lens
-		(a1, (Paragraph ia1)) (a2, (Paragraph ia2))
+		((), (Paragraph ia1)) ((), (Paragraph ia2))
 		(Node a1 id_u ia1) (Node a2 id_u ia2)
 inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })
 
@@ -206,7 +206,7 @@ separate_page_in_Node = Optic.lens_from_get_set nodeIsSeparatePage (\ p w -> w {
 idu_in_Node :: Optic.Traversal (id_u_1) (id_u_2) (Node u id_u_1 ia) (Node u id_u_2 ia)
 idu_in_Node = Category2.empty >**>^ Label.inElem_idu >**>^ inNode_source
 
-ofNode_additional :: Optic.Traversal a1 a2 (Node a1 id_u ia) (Node a2 id_u ia)
+ofNode_additional :: Optic.Traversal () () (Node a1 id_u ia) (Node a2 id_u ia)
 ofNode_additional = 
 	Category2.empty 
 	>**>^ Optic.product (Category2.empty, ofParagraph_additional) 

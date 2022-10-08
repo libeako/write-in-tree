@@ -115,13 +115,19 @@ parse_into_node ::
 	(a (), (Paragraph, Bool)) -> Either (Pos.Positioned (Accu.Accumulated Text)) (NodeH a)
 parse_into_node (a, (paragraph, is_separate_page)) = let
 	make :: Text -> Data.Node (a ()) Text Text
-	make id_a = Data.Node id_a a (a, paragraph) is_separate_page
+	make id_a = Data.Node id_a a ((), paragraph) is_separate_page
 	error_message :: Pos.Positioned (Accu.Accumulated Text)
 	error_message = Pos.Positioned (Pos.get_position a) "node does not have an automatic identifier"
 	in Base.maybe (Left error_message) Right (map make (Label.ofElem_auto_id a))
 
-render_from_node :: NodeH a -> (a (), (Paragraph, Bool))
-render_from_node i = (fst (Data.nodeContent i), (snd (Data.nodeContent i), Data.nodeIsSeparatePage i))
+render_from_node ::
+	forall a . a ~ Label.Elem Text =>
+	NodeH a -> (a (), (Paragraph, Bool))
+render_from_node i =
+	(
+		Data.nodeWitSource i,
+		(snd (Data.nodeContent i), Data.nodeIsSeparatePage i)
+	)
 
 layer_h ::
 	forall a . a ~ Label.Elem Text =>
