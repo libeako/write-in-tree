@@ -85,20 +85,20 @@ html_classes_of_whether_page_is_trunk :: Bool -> [Text]
 html_classes_of_whether_page_is_trunk page_is_trunk =
 	if page_is_trunk then [text_class_trunk_page] else []
 
-wrap_by_id :: OData.Node OData.AO UI.NodeIdU -> Fn.Endo Xml.ElementL
+wrap_by_id :: OData.Node () UI.NodeIdU -> Fn.Endo Xml.ElementL
 wrap_by_id n = 
 	case Label.ofElem_id_u_content (UI.nodeWitSource n) of
 		Just _ -> Optic.fill Xml.lens_id_of_Element (Just (UI.nodeIdAuto n))
 		Nothing -> id
 
-wrap_by_classes :: [Text] -> OData.Node OData.AO UI.NodeIdU -> Fn.Endo Xml.ElementL
+wrap_by_classes :: [Text] -> OData.Node () UI.NodeIdU -> Fn.Endo Xml.ElementL
 wrap_by_classes additional_classes n = let
 	classes_from_node :: [Text]
 	classes_from_node = Label.ofElem_class_values (UI.nodeWitSource n)
 	all_classes = classes_from_node <> additional_classes
 	in Optic.fn_up Xml.lens_classes_of_Element (all_classes <>)
 
-wrap_by_id_and_classes :: [Text] -> OData.Node OData.AO UI.NodeIdU -> Fn.Endo Xml.ElementL
+wrap_by_id_and_classes :: [Text] -> OData.Node () UI.NodeIdU -> Fn.Endo Xml.ElementL
 wrap_by_id_and_classes additional_classes source_node = 
 	wrap_by_classes additional_classes source_node >>> wrap_by_id source_node
 
@@ -170,7 +170,7 @@ render_paragraph is_page_break sentencing p site =
 	in (Xml.Head "p" [] (Xml.Labels Nothing classes), content)
 
 render_section :: 
-	Bool -> Bool -> OData.Site UI.NodeIdU -> OData.Structure OData.AO UI.NodeIdU -> Xml.ElementL
+	Bool -> Bool -> OData.Site UI.NodeIdU -> OData.Structure () UI.NodeIdU -> Xml.ElementL
 render_section sentencing is_page_root site node_tree =
 	let
 		sub_content :: [Xml.ElementL]
@@ -178,7 +178,7 @@ render_section sentencing is_page_root site node_tree =
 		from_sub_content :: [Xml.ElementL] -> Xml.ElementL
 		from_sub_content =
 			let
-				trunk_node :: OData.Node OData.AO UI.NodeIdU
+				trunk_node :: OData.Node () UI.NodeIdU
 				trunk_node = Tree.rootLabel node_tree
 				has_class_code :: Bool
 				has_class_code =
