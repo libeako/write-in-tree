@@ -75,7 +75,6 @@ common common
       WriteInTree.Document.Core.Serial.RichTextTree.Path
       WriteInTree.Document.Core.Serial.RichTextTree.Position
       WriteInTree.Document.Core.Serial.UserIdentifiers
-      WriteInTree.Document.Core.ToOutput
       WriteInTree.Document.Data
       WriteInTree.Document.Folder
       WriteInTree.Document.File

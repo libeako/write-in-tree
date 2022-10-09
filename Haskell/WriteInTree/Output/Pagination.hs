@@ -2,6 +2,7 @@
 module WriteInTree.Output.Pagination
 (
 	InternalLinkTarget (..),
+	LinkInternalTarget (..),
 	Inline,
 	Link,
 	Paragraph,
@@ -15,7 +16,7 @@ module WriteInTree.Output.Pagination
 	id_of_page,
 	is_inline_a_page_break,
 	
-	compile_site,
+	compile_site, compile_document,
 )
 where
 
@@ -205,3 +206,10 @@ compile_site input_structure =
 		user_address_map :: UserAddressMap id_u
 		user_address_map = gather_InternalLinkTargets_in_Pages pages
 		in make_Site pages user_address_map
+
+compile_document :: UI.Document UI.NodeIdU UI.NodeIdU -> Site UI.NodeIdU
+compile_document =
+	let
+		rightify :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Structure UI.NodeIdU
+		rightify = Optic.fn_up UI.internal_address_in_tree Right
+		in UI.docTree >>> rightify >>> compile_site

@@ -204,3 +204,7 @@ tree_in_Document ::
 		(Document id_u1 ia1) (Document id_u2 ia2)
 tree_in_Document = Optic.lens_from_get_set docTree (\ p w -> w { docTree = p })
 
+internal_address_in_document ::
+	forall ia1 ia2 id_u .
+	Optic.Traversal ia1 ia2 (Document id_u ia1) (Document id_u ia2)
+internal_address_in_document = internal_address_in_node >**>^ node_in_tree >**>^ tree_in_Document
