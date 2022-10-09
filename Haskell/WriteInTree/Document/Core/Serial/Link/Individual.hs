@@ -1,38 +1,36 @@
 module WriteInTree.Document.Core.Serial.Link.Individual
 (
+	meta_node_name,
 	MetaNodeName (..),
 	ParseError,
-	layer,
+	render', parse',
 )
 where
 
 
+import Data.Functor (($>))
 import Data.Tree (Tree (..))
-import Fana.Haskell.DescribingClass
-import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 
+import qualified Data.Bifunctor as BiFr
 import qualified Data.Tree as Tree
-import qualified Fana.Data.HasSingle as HasSingle
-import qualified Fana.Data.HeteroPair as Pair
-import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Enum as Serial
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ntt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
 type A = Label.Elem Text -- additional info wrapper
-type AB = (,) (A ())
 
 data MetaNodeName = MnLink deriving (Base.Enum, Base.Bounded)
 
-type ParseError = Pos.Positioned (Accu.Accumulated Text)
+type ParseError' = Accu.Accumulated Text
+type ParseError = Pos.Positioned ParseError'
 
 data DestinationType = Internal | External deriving (Base.Enum, Base.Bounded)
 
@@ -42,83 +40,57 @@ render_DestinationType = \case
 	External -> "external"
 
 layer_destination_type :: Optic.PartialIso' (Accu.Accumulated Text) Text DestinationType
-layer_destination_type = let
-	error_description = "link destination type not recognized"
-	in 
-		Optic.piso_convert_error_with_low (const (const error_description)) 
-			(Serial.enum render_DestinationType)
-
-lift_piso_to_weird :: forall e l h . Optic.PartialIso' e l h -> Optic.PartialIso' e (AB l) h
-lift_piso_to_weird piso =
+layer_destination_type =
 	let
-		render :: h -> AB l
-		render = Optic.piso_down piso >>> Pair.after (Label.default_Elem_context ())
-		parse :: AB l -> Either e h
-		parse = snd >>> Optic.piso_interpret piso
-		in Optic.PartialIso render parse
+		error_description = "link destination type not recognized"
+		in 
+			Optic.piso_convert_error_with_low (const (const error_description)) 
+				(Serial.enum render_DestinationType)
 
-layer_destination_type_whole :: Optic.PartialIso' ParseError (AB Text) DestinationType
-layer_destination_type_whole =
-	Optic.piso_convert_error_with_low (fst >>> Pos.position_error) (lift_piso_to_weird layer_destination_type)
+children_number_error_message :: Accu.Accumulated Text
+children_number_error_message =
+	Accu.single "a link node must have exactly 2 children [target type, target address]"
 
-type Core = (AB Text, AB Text)
+meta_node_name :: Text
+meta_node_name = "links-to"
 
-parse_into_core :: [Tree e] -> Either (Accu.Accumulated Text) (e, e)
-parse_into_core = \case
-	[Tree.Node node_1 _, Tree.Node node_2 _] -> Right (node_1, node_2)
-	_ -> Left (Accu.single "a link node must have exactly 2 children [target type, target address]")
-
-render_from_core :: (e, e) -> [Tree e]
-render_from_core (node_1, node_2) = [Tree.Node node_1 [], Tree.Node node_2 []]
-
-layer_core_l :: Optic.PartialIso' (Accu.Accumulated Text) [Tree e] (e, e)
-layer_core_l = Optic.PartialIso render_from_core parse_into_core
-
-layer_core_l_whole :: Optic.PartialIso' (Accu.Accumulated Text) [Tree (A Text)] Core
-layer_core_l_whole = 
-	convert_from_describing_class_4 ((Optic.lift_iso >>> Optic.lift_iso) HasSingle.iso_separate)
-	>**> layer_core_l
-	
-type CoreSmart = (DestinationType, AB Text)
-
-layer_smart :: Optic.PartialIso' ParseError Core CoreSmart
-layer_smart = Category2.empty 
-	>**>^ Optic.iso_pair_swap
-	>**>^ Optic.lift_piso layer_destination_type_whole
-	>**>^ Optic.iso_pair_swap
-
-parse_from_core :: DestinationType -> AB Text -> Data.Link Text
-parse_from_core d =
-	snd >>> case d of { Internal -> Data.LIn; External -> Data.LEx }
-
-render_to_core :: Data.Link Text -> (DestinationType, AB Text)
-render_to_core =
+parse_core' :: [Tree Text] -> Either ParseError' (Data.Link Text)
+parse_core' =
+	map Tree.rootLabel >>>
 	\case
-		Data.LIn a -> (Internal, a)
-		Data.LEx a -> (External, a)
-	>>> map (Pair.after (Label.default_Elem_context ()))
+		[destination_type, address] ->
+			let
+				build :: DestinationType -> Data.Link Text
+				build =
+					\case
+						Internal -> Data.LIn address
+						External -> Data.LEx address
+				in map build (Optic.piso_interpret layer_destination_type destination_type)
+		_ -> Left children_number_error_message
 
-layer_core_h :: Optic.Iso' CoreSmart (Data.Link Text)
-layer_core_h = Optic.Iso render_to_core (uncurry parse_from_core)
+parse :: Tree Text -> Maybe (Either ParseError' (Data.Link Text))
+parse (Node trunk children) =
+	case Ntt.parse trunk of
+		Right (Left mt) | mt == meta_node_name -> Just (parse_core' children)
+		_ -> Nothing
 
-layer_core :: Pos.HasPosition l => Optic.PartialIso' ParseError (l, [Tree (A Text)]) (l, Data.Link Text)
-layer_core =
-	Category2.empty
-	>**> Optic.piso_convert_error_with_low 
-		(\ i e -> Pos.position_error (fst i) e) 
-		(Optic.lift_piso layer_core_l_whole)
-	>**> Optic.lift_piso (layer_smart >**>^ layer_core_h)
+parse' :: Tree (A Text) -> Maybe (Either ParseError (Data.Link Text))
+parse' tree =
+	map (BiFr.first (Pos.position_error (Tree.rootLabel tree)))
+		(parse (map Label.ofElem_core tree))
 
+render :: Data.Link Text -> Tree Text
+render d =
+	let
+		(dt, addr) =
+			case d of
+				Data.LIn a -> (Internal, a)
+				Data.LEx a -> (External, a)
+		in Node (Ntt.render (Left meta_node_name))
+			(map (flip Node []) [render_DestinationType dt, addr])
 
-render_trunk :: x -> (A MetaNodeName, x)
-render_trunk = Pair.after (Label.default_Elem_context MnLink)
+wrap_into_default_context :: x -> A x
+wrap_into_default_context = (Label.default_Elem_context () $>)
 
-layer_with_trunk :: Optic.Iso' (A MetaNodeName, x) x
-layer_with_trunk = Optic.Iso render_trunk snd
-
-
-layer :: Optic.PartialIso' ParseError (A MetaNodeName, [Tree (A Text)]) (Data.Link Text)
-layer =
-	Category2.empty
-	>**>^ layer_core
-	>**>^ layer_with_trunk
+render' :: Data.Link Text -> Tree (A Text)
+render' = render >>> map wrap_into_default_context

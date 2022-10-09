@@ -4,22 +4,15 @@ module WriteInTree.Document.Core.Serial.Link.InTree
 )
 where
 
-import Data.Functor ((<$))
-import Data.Tree (Tree (..))
-import Fana.Data.HasSingle (HasSingle)
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
+import Data.Tree (Tree (..), Forest)
 import Fana.Prelude
 import WriteInTree.Document.Core.Serial.Link.Individual (MetaNodeName (..))
 
-import qualified Fana.Data.HasSingle as HasSingle
-import qualified Fana.Data.HeteroPair as Pair
-import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Link.Individual as Individual
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure as Ms
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
@@ -28,51 +21,44 @@ type Text = Base.String
 type A = Label.Elem Text -- additional info wrapper
 type Inline = Data.Inline Text
 
-
 render_MetaNodeName :: MetaNodeName -> Text
-render_MetaNodeName = \case { MnLink -> "links-to" }
+render_MetaNodeName = \case { MnLink -> Individual.meta_node_name }
 
 type ParseError = Pos.Positioned (Accu.Accumulated Text)
 
-parse_tree :: forall a . HasSingle a => Tree (a Text) -> Tree (a Text, Maybe (a MetaNodeName, [Tree (a Text)]))
-parse_tree =
+render :: Tree (A Inline) -> Tree (A Text)
+render (Node trunk children) =
 	let
-		extract_meta_name :: a Text -> Maybe MetaNodeName
-		extract_meta_name =
-			HasSingle.elem >>>
-			Optic.ofIso_up (Ms.layer_in_node_text render_MetaNodeName) >>>
-			either (Just) (const Nothing)
-		diagonal x = (x, x)
-		decide :: a Text -> Maybe (a MetaNodeName)
-		decide elem = map (<$ elem) (extract_meta_name elem)
+		trunk_rendered :: A Text
+		trunk_rendered = map Data.ilVisual trunk
+		children_rendered :: [Tree (A Text)]
+		children_rendered = map render children
 		in
-			\ (Node r c) ->
-				case (decide r) of
-					Just mn -> Node (r, Just (mn, c)) (map (map (Pair.before Nothing)) c)
-					Nothing -> Node (r, Nothing) (map parse_tree c)
+			case Data.ilLink (Label.ofElem_core trunk) of
+				Nothing -> Node trunk_rendered children_rendered
+				Just link -> Node trunk_rendered (Individual.render' link : children_rendered)
 
-layer_tree :: forall a . HasSingle a => Optic.Iso' (Tree (a Text)) (Tree (a Text, Maybe (a MetaNodeName, [Tree (a Text)])))
-layer_tree = Optic.Iso (map fst) parse_tree
+type ParseChildrenSituation =
+	(Maybe (Data.Link Text), Forest (A Text) {- <- the rest of the children -})
 
+parse_children :: Forest (A Text) -> Either ParseError ParseChildrenSituation
+parse_children children =
+	case children of
+		[] -> Right (Nothing, [])
+		first : rest ->
+			maybe
+				(Right (Nothing, children))
+				(map (\ l -> (Just l, rest)))
+				(Individual.parse' first)
 
-attach_link_to_visual :: (A Text, Maybe (Data.Link Text)) -> A (Inline)
-attach_link_to_visual (visual, link) = map (flip Data.Inline link) visual
-
-detach_link_to_visual :: A Inline -> (A Text, Maybe (Data.Link Text))
-detach_link_to_visual i =
+parse :: Tree (A Text) -> Either ParseError (Tree (A Inline))
+parse (Node trunk children) =
 	let
-		inline :: Inline
-		inline = HasSingle.elem i
-		in (Data.ilVisual inline <$ i, Data.ilLink inline)
-
-layer_tach_link_to_visual :: 
-	Optic.Iso' (A Text, Maybe (Data.Link Text)) (A Inline)
-layer_tach_link_to_visual = Optic.Iso detach_link_to_visual attach_link_to_visual
+		from_situation :: ParseChildrenSituation -> Either ParseError (Tree (A Inline))
+		from_situation (l, rest_of_children) =
+			map (Node (map (flip Data.Inline l) trunk)) (traverse parse rest_of_children)
+		in parse_children children >>= from_situation
 
 
 layer :: Optic.PartialIso' ParseError (Tree (A Text)) (Tree (A Inline))
-layer =
-	Category2.empty
-	>**>^ layer_tree
-	>**>^ (Optic.lift_piso >>> Optic.lift_piso >>> Optic.lift_piso) Individual.layer
-	>**>^ Optic.lift_iso layer_tach_link_to_visual
+layer = Optic.PartialIso render parse
