@@ -1,7 +1,7 @@
 -- | write-in-tree output data format.
 module WriteInTree.Output.Pagination
 (
-	InternalLinkTarget (..),
+	CrossLinkTarget (..),
 	LinkInternalTarget (..),
 	Inline,
 	Link,
@@ -57,13 +57,13 @@ data Page (id_u :: Type) = Page
 	pageIsTrunk :: Bool
 	}
 
-data InternalAddress = InternalAddress { iaPage :: Text, iaInPage :: Maybe Text }
-data InternalLinkTarget idts = InternalLinkTarget 
+{-| Link address to page but not to sub-page. -}
+data CrossLinkTarget idts = CrossLinkTarget
 	{ 
-	iltPage :: Page idts, 
-	iltInPage :: Maybe (Node idts)
+	cltPage :: Page idts, 
+	cltInPage :: Maybe (Node idts)
 	}
-type UserAddressMap id_u = Map.Map id_u (InternalLinkTarget id_u)
+type UserAddressMap id_u = Map.Map id_u (CrossLinkTarget id_u)
 
 data Site (id_u :: Type) = Site
 	{
@@ -125,13 +125,13 @@ gather_addresses_by_user_in_Structure :: Structure id_u -> [(id_u, Node id_u)]
 gather_addresses_by_user_in_Structure = 
 	Fold.foldMap (gather_addresses_by_user_in_Node >>> Fold.toList)
 
-gather_InternalLinkTargets_in_Page :: forall id_u . Page id_u -> [(id_u, InternalLinkTarget id_u)]
+gather_InternalLinkTargets_in_Page :: forall id_u . Page id_u -> [(id_u, CrossLinkTarget id_u)]
 gather_InternalLinkTargets_in_Page page = 
 	let
 		structure = pageContent page
-		make_one :: Node id_u -> InternalLinkTarget id_u
+		make_one :: Node id_u -> CrossLinkTarget id_u
 		make_one node = 
-			InternalLinkTarget page 
+			CrossLinkTarget page 
 				(
 					if UI.nodeIdAuto node == UI.nodeIdAuto (Tree.rootLabel structure) 
 						then Nothing else Just node
@@ -139,7 +139,7 @@ gather_InternalLinkTargets_in_Page page =
 		in (map >>> map) make_one (gather_addresses_by_user_in_Structure structure)
 
 gather_InternalLinkTargets_in_Pages :: 
-	Foldable pc => Base.Ord id_u => pc (Page id_u) -> Map.Map id_u (InternalLinkTarget id_u)
+	Foldable pc => Base.Ord id_u => pc (Page id_u) -> Map.Map id_u (CrossLinkTarget id_u)
 gather_InternalLinkTargets_in_Pages pages = 
 	Map.fromList (Fold.foldMap gather_InternalLinkTargets_in_Page pages)
 
