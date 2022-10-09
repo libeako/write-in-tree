@@ -280,7 +280,7 @@ link_to_address address_map =
 	\ case
 		UI.LIn node_id -> 
 			case node_id of
-				Left ida -> page_file_name_from_id ida
+				Left (OData.SubPageTarget _ ida) -> page_file_name_from_id ida
 				Right idu ->
 					let
 						error_message = 

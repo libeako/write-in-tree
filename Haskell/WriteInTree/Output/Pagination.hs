@@ -1,6 +1,7 @@
 -- | write-in-tree output data format.
 module WriteInTree.Output.Pagination
 (
+	SubPageTarget (..),
 	CrossLinkTarget (..),
 	LinkInternalTarget (..),
 	Inline,
@@ -41,7 +42,9 @@ type Text = Base.String
 
 type PagePath = [String]
 
-type LinkInternalTarget (id_u :: Type) = Either Text id_u
+data SubPageTarget id_u = SubPageTarget { sptPage :: Page id_u, sptId :: Text }
+
+type LinkInternalTarget (id_u :: Type) = Either (SubPageTarget id_u) id_u
 
 type Link (id_u :: Type) = UI.Link (LinkInternalTarget id_u)
 type Inline (id_u :: Type) = UI.Inline (LinkInternalTarget id_u)
@@ -147,8 +150,8 @@ gather_InternalLinkTargets_in_Pages pages =
 
 -- | creates an output clone of the node 
 -- which will be just a link to the page that the input node is a trunk of.
-page_node_as_link :: Node id_u -> Node id_u
-page_node_as_link trunk_node = 
+page_node_as_link :: forall id_u . Page id_u -> Node id_u -> Node id_u
+page_node_as_link page trunk_node = 
 	let 
 		changer :: Node id_u -> Node id_u
 		changer = 
@@ -156,7 +159,7 @@ page_node_as_link trunk_node =
 			>>> Optic.fill UI.inNode_idu_source_mb Nothing
 			>>> Optic.fill UI.links_in_Node 
 				(
-					Just (UI.LIn (Left (UI.nodeIdAuto trunk_node)))
+					Just (UI.LIn (Left (SubPageTarget page (UI.nodeIdAuto trunk_node))))
 					-- this feels an ugly solution, but i hope will do it for now
 				)
 		in changer trunk_node
@@ -172,8 +175,8 @@ divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 			if may_treat_as_page_trunk && UI.nodeIsSeparatePage trunk_node
 				then 
 					let
-						pages = divide_to_pages_from_page path_to_trunk whole_structure
-						in (Tree.Node (page_node_as_link trunk_node) [], Lt.leaf pages)
+						(trunk_page, pages) = divide_to_pages_from_page path_to_trunk whole_structure
+						in (Tree.Node (page_node_as_link trunk_page trunk_node) [], Lt.leaf pages)
 				else
 					let
 						children = Tree.subForest whole_structure
@@ -189,20 +192,20 @@ divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 								in (Tree.Node trunk_node sub_structures, Lt.joint sub_page_trees)
 						in merge_sub_results sub_results
 
-divide_to_pages_from_page :: [Node id_u] -> Structure id_u -> Tree.Tree (Page id_u)
+divide_to_pages_from_page :: [Node id_u] -> Structure id_u -> (Page id_u, Tree.Tree (Page id_u))
 divide_to_pages_from_page path_to_trunk whole_structure = 
 	let
 		raw_result = BiFr.second Fold.toList (divide_to_pages path_to_trunk False whole_structure)
 		new_structure = Base.fst raw_result
 		page = Page path_to_trunk new_structure (List.null path_to_trunk)
-		in Tree.Node page (Base.snd raw_result)
+		in (page, Tree.Node page (Base.snd raw_result))
 
 
 compile_site :: forall id_u . Base.Ord id_u => Structure id_u -> Site id_u
 compile_site input_structure = 
 	let
 		pages :: Tree.Tree (Page id_u)
-		pages = divide_to_pages_from_page [] input_structure
+		pages = snd (divide_to_pages_from_page [] input_structure)
 		user_address_map :: UserAddressMap id_u
 		user_address_map = gather_InternalLinkTargets_in_Pages pages
 		in make_Site pages user_address_map
