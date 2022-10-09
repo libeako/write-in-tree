@@ -23,6 +23,7 @@ where
 
 import Control.Arrow ((&&&))
 import Data.Foldable
+import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
 
@@ -33,6 +34,7 @@ import qualified Data.Map as Map
 import qualified Data.Tree as Tree
 import qualified Fana.Data.HeteroPair as HePair
 import qualified Fana.Data.Tree.Leaf as Lt
+import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as UI
@@ -76,9 +78,9 @@ data Site (id_u :: Type) = Site
 	}
 
 make_Site :: forall id_u . Tree.Tree (Page id_u) -> UserAddressMap id_u -> Site id_u
-make_Site pages ua_map = 
-	let 
-		page_map = 
+make_Site pages ua_map =
+	let
+		page_map =
 			let
 				make_key_value_pair :: Page id_u -> (Text, Page id_u)
 				make_key_value_pair = id_of_page &&& id
@@ -102,6 +104,23 @@ title_of_page = pageContent >>> Tree.rootLabel >>> title_of_section
 
 
 -- optics :
+
+of_Structure_SubPageTarget ::
+	Optic.Traversal
+		(SubPageTarget i) (SubPageTarget i)
+		(Structure i) (Structure i)
+of_Structure_SubPageTarget =
+	Category2.empty >**>^ Optic.prism_Left >**>^ UI.internal_address_in_tree
+
+get_direct_subpages_of_page :: Page i -> [Page i]
+get_direct_subpages_of_page =
+	pageContent >>>
+	Optic.to_list of_Structure_SubPageTarget >>>
+	map sptPage
+
+get_subpages_of_page :: Page i -> Tree.Tree (Page i)
+get_subpages_of_page trunk =
+	Tree.Node trunk (map get_subpages_of_page (get_direct_subpages_of_page trunk))
 
 content_in_Page :: Optic.Lens' (Structure idts) (Page idts)
 content_in_Page = Optic.lens_from_get_set pageContent (\ c p -> p { pageContent = c })
