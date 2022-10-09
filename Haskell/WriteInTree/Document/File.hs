@@ -20,7 +20,6 @@ import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as CoreData
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
-import qualified WriteInTree.Document.Core.Serial.Parse as Core
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified WriteInTree.Document.Folder as Folder
@@ -74,7 +73,7 @@ parse_core'' :: DocSepProps -> String -> Either Error DocCoreData''
 parse_core'' config = Optic.piso_interpret (CoreSerial.layer config) >>> Bifunctor.first ErrorInCore
 
 parse_core :: DocSepProps -> String -> Either Error DocCoreData
-parse_core config = Core.parse_from_string config >>> Bifunctor.first ErrorInCore
+parse_core config = Optic.piso_interpret (CoreSerial.layer config) >>> Bifunctor.first ErrorInCore
 
 parse_all'' :: FolderStructure String -> Either Error DocData''
 parse_all'' fs = do
