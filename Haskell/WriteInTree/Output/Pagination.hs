@@ -16,6 +16,8 @@ module WriteInTree.Output.Pagination
 	title_of_section, title_of_page,
 	id_of_page,
 	is_inline_a_page_break,
+
+	get_subpages_of_page,
 	
 	compile_site, compile_document,
 )
@@ -27,13 +29,11 @@ import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
 
-import qualified Data.Bifunctor as BiFr
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Tree as Tree
 import qualified Fana.Data.HeteroPair as HePair
-import qualified Fana.Data.Tree.Leaf as Lt
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
@@ -73,20 +73,19 @@ type UserAddressMap id_u = Map.Map id_u (CrossLinkTarget id_u)
 data Site (id_u :: Type) = Site
 	{
 	siteMainPage :: Page id_u,
-	sitePages :: Tree.Tree (Page id_u),
 	siteUserAddressMap :: UserAddressMap id_u,
 	sitePageMap :: Map.Map Text (Page id_u)
 	}
 
-make_Site :: forall id_u . Page id_u -> Tree.Tree (Page id_u) -> UserAddressMap id_u -> Site id_u
-make_Site main_page pages ua_map =
+make_Site :: forall id_u . Page id_u -> UserAddressMap id_u -> Site id_u
+make_Site main_page ua_map =
 	let
 		page_map =
 			let
 				make_key_value_pair :: Page id_u -> (Text, Page id_u)
 				make_key_value_pair = id_of_page &&& id
-				in Map.fromList (map make_key_value_pair (Fold.toList pages))
-	in Site main_page pages ua_map page_map
+				in Map.fromList (map make_key_value_pair (Fold.toList (get_subpages_of_page main_page)))
+	in Site main_page ua_map page_map
 
 is_link_a_page_break :: Link id_u -> Bool
 is_link_a_page_break =
@@ -185,8 +184,7 @@ page_node_as_link page trunk_node =
 		in changer trunk_node
 
 divide_to_pages :: 
-	forall id_u . [Node id_u] -> Bool -> Structure id_u -> 
-	(Structure id_u, Lt.Tree [] (Tree.Tree (Page id_u)))
+	forall id_u . [Node id_u] -> Bool -> Structure id_u -> Structure id_u
 divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 	let
 		trunk_node :: Node id_u
@@ -195,8 +193,8 @@ divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 			if may_treat_as_page_trunk && UI.nodeIsSeparatePage trunk_node
 				then 
 					let
-						(trunk_page, pages) = divide_to_pages_from_page path_to_trunk whole_structure
-						in (Tree.Node (page_node_as_link trunk_page trunk_node) [], Lt.leaf pages)
+						trunk_page = divide_to_pages_from_page path_to_trunk whole_structure
+						in (Tree.Node (page_node_as_link trunk_page trunk_node) [])
 				else
 					let
 						children = Tree.subForest whole_structure
@@ -204,31 +202,21 @@ divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 							map 
 								(divide_to_pages (trunk_node : path_to_trunk) True) 
 								children
-						merge_sub_results :: 
-							[(Structure id_u, Lt.Tree [] (Tree.Tree (Page id_u)))] -> 
-							(Structure id_u, Lt.Tree [] (Tree.Tree (Page id_u)))
-						merge_sub_results srs = 
-							let (sub_structures, sub_page_trees) = List.unzip srs
-								in (Tree.Node trunk_node sub_structures, Lt.joint sub_page_trees)
-						in merge_sub_results sub_results
+						in Tree.Node trunk_node sub_results
 
-divide_to_pages_from_page :: [Node id_u] -> Structure id_u -> (Page id_u, Tree.Tree (Page id_u))
+divide_to_pages_from_page :: [Node id_u] -> Structure id_u -> Page id_u
 divide_to_pages_from_page path_to_trunk whole_structure = 
 	let
-		raw_result = BiFr.second Fold.toList (divide_to_pages path_to_trunk False whole_structure)
-		new_structure = Base.fst raw_result
-		page = Page path_to_trunk new_structure (List.null path_to_trunk)
-		in (page, Tree.Node page (Base.snd raw_result))
-
+		new_structure = divide_to_pages path_to_trunk False whole_structure
+		in Page path_to_trunk new_structure (List.null path_to_trunk)
 
 compile_site :: forall id_u . Base.Ord id_u => Structure id_u -> Site id_u
 compile_site input_structure = 
 	let
-		pages :: Tree.Tree (Page id_u)
-		(main_page, pages) = divide_to_pages_from_page [] input_structure
+		main_page = divide_to_pages_from_page [] input_structure
 		user_address_map :: UserAddressMap id_u
-		user_address_map = gather_InternalLinkTargets_in_Pages pages
-		in make_Site main_page pages user_address_map
+		user_address_map = gather_InternalLinkTargets_in_Pages (get_subpages_of_page main_page)
+		in make_Site main_page user_address_map
 
 compile_document :: UI.Document UI.NodeIdU UI.NodeIdU -> Site UI.NodeIdU
 compile_document =
