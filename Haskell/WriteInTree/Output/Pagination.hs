@@ -72,20 +72,21 @@ type UserAddressMap id_u = Map.Map id_u (CrossLinkTarget id_u)
 
 data Site (id_u :: Type) = Site
 	{
+	siteMainPage :: Page id_u,
 	sitePages :: Tree.Tree (Page id_u),
 	siteUserAddressMap :: UserAddressMap id_u,
 	sitePageMap :: Map.Map Text (Page id_u)
 	}
 
-make_Site :: forall id_u . Tree.Tree (Page id_u) -> UserAddressMap id_u -> Site id_u
-make_Site pages ua_map =
+make_Site :: forall id_u . Page id_u -> Tree.Tree (Page id_u) -> UserAddressMap id_u -> Site id_u
+make_Site main_page pages ua_map =
 	let
 		page_map =
 			let
 				make_key_value_pair :: Page id_u -> (Text, Page id_u)
 				make_key_value_pair = id_of_page &&& id
 				in Map.fromList (map make_key_value_pair (Fold.toList pages))
-	in Site pages ua_map page_map
+	in Site main_page pages ua_map page_map
 
 is_link_a_page_break :: Link id_u -> Bool
 is_link_a_page_break =
@@ -224,10 +225,10 @@ compile_site :: forall id_u . Base.Ord id_u => Structure id_u -> Site id_u
 compile_site input_structure = 
 	let
 		pages :: Tree.Tree (Page id_u)
-		pages = snd (divide_to_pages_from_page [] input_structure)
+		(main_page, pages) = divide_to_pages_from_page [] input_structure
 		user_address_map :: UserAddressMap id_u
 		user_address_map = gather_InternalLinkTargets_in_Pages pages
-		in make_Site pages user_address_map
+		in make_Site main_page pages user_address_map
 
 compile_document :: UI.Document UI.NodeIdU UI.NodeIdU -> Site UI.NodeIdU
 compile_document =
