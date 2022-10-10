@@ -61,6 +61,7 @@ common common
       WriteInTree.Document.Core.Serial.Link.Individual
       WriteInTree.Document.Core.Serial.Link.InTree
       WriteInTree.Document.Core.Serial.Page.Border
+      WriteInTree.Document.Core.Serial.Page.Tree
       WriteInTree.Document.Core.Serial.Paragraph
       WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaName
       WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure
@@ -83,7 +84,6 @@ common common
       WriteInTree.Document.SepProps.Parse
       WriteInTree.Document.SepProps.Simco
       WriteInTree.ListIdUs
-      WriteInTree.Output.Pagination
       WriteInTree.Output.Sentence
       WriteInTree.Output.Technical
       WriteInTree.Output.Xml.Render

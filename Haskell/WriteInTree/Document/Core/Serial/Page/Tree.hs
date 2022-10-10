@@ -1,5 +1,5 @@
 -- | write-in-tree output data format.
-module WriteInTree.Output.Pagination
+module WriteInTree.Document.Core.Serial.Page.Tree
 (
 	SubPageTarget (..),
 	CrossLinkTarget (..),
