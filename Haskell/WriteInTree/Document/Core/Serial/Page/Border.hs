@@ -1,4 +1,4 @@
-module WriteInTree.Document.Core.Serial.Paging
+module WriteInTree.Document.Core.Serial.Page.Border
 (
 	CoreHTree, CoreHTree', HTree,
 	layer,

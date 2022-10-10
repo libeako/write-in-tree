@@ -60,7 +60,7 @@ common common
       WriteInTree.Document.Core.Serial.Layers
       WriteInTree.Document.Core.Serial.Link.Individual
       WriteInTree.Document.Core.Serial.Link.InTree
-      WriteInTree.Document.Core.Serial.Paging
+      WriteInTree.Document.Core.Serial.Page.Border
       WriteInTree.Document.Core.Serial.Paragraph
       WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaName
       WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure
