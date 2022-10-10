@@ -21,6 +21,7 @@ import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as CoreData
 import qualified WriteInTree.Document.Core.Document as CoreData
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
+import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified WriteInTree.Document.Folder as Folder
@@ -29,15 +30,15 @@ import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
 
 type Text = Base.String
 
-type WithConcreteDataParams t = t CoreData.NodeIdU CoreData.NodeIdU
+type WithConcreteDataParams t = t CoreData.NodeIdU (Page.LinkInternalTarget CoreData.NodeIdU)
 
 type A = Label.Elem Text
 
 type DocData'' = WithConcreteDataParams Data
-type DocCoreData'' = WithConcreteDataParams CoreData.Document
+type DocCoreData'' = CoreData.Document CoreData.NodeIdU
 
 type DocData = WithConcreteDataParams Data
-type DocCoreData = WithConcreteDataParams CoreData.Document
+type DocCoreData = CoreData.Document CoreData.NodeIdU
 
 render_sep_props :: DocSepProps -> String
 render_sep_props = SepPropsSimco.to_simco_text

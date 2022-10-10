@@ -39,7 +39,8 @@ compile_website sentencing output_folder =
 compile :: Bool -> Tech.FilePath {- output -} -> FilePath {- input -} -> IO ()
 compile sentencing output_folder = 
 	let 
-		translate :: DocData.Data Data.NodeIdU Data.NodeIdU -> Page.Site Data.NodeIdU
-		translate = DocData.doc_core >>> Data.docTree >>> Page.compile_tree_structure
+		translate :: DocRead.DocData -> Page.Site Data.NodeIdU
+		translate = DocData.doc_core >>> Data.docSite
+		document_to_website :: Either DocRead.Error DocRead.DocData -> Ot.Output
 		document_to_website = map translate >>> compile_website sentencing (Tech.deFilePath output_folder) 
 	in DocRead.read >=> (document_to_website >>> Ot.write)

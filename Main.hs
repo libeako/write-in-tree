@@ -3,7 +3,6 @@ module Main where
 
 import Prelude (IO)
 import Fana.Prelude
-import WriteInTree.ListIdUs (list_idus)
 
 import qualified System.Environment as Env
 
@@ -24,6 +23,5 @@ program :: ClC.Command -> IO ()
 program command =
 	case command of
 		ClC.CTranslate ifp ofp sentencing -> Compile.compile sentencing (Tech.FilePath ofp) ifp
-		ClC.CListIdUs ifp -> list_idus ifp
 		ClC.CShowDefaultDocProps -> ShowDefaultProps.doit
 		ClC.CConvert test_idempotence ip op -> Convert.convert test_idempotence ip op

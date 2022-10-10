@@ -12,6 +12,6 @@ import qualified WriteInTree.Document.Core.Document as Core
 
 data Data id_u ia = Data
 	{ doc_sep_props :: DocSepProps
-	, doc_core :: Core.Document id_u ia 
+	, doc_core :: Core.Document id_u 
 	}
 	deriving (Eq)

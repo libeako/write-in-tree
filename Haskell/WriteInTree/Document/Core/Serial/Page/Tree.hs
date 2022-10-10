@@ -10,12 +10,11 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 
 	title_of_section, title_of_page, id_of_page, is_inline_a_page_break, get_subpages_of_page,
 	
-	compile_site, compile_tree_structure, layer
+	melt_pages_to_single, compile_site, layer
 )
 where
 
 import Control.Arrow ((&&&))
-import Data.Foldable
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
@@ -37,7 +36,9 @@ type Text = Base.String
 
 type PagePath = [String]
 
-data SubPageTarget id_u = SubPageTarget { sptPage :: Page id_u, sptId :: Text }
+data SubPageTarget id_u =
+	SubPageTarget { sptPage :: Page id_u, sptId :: Text }
+	deriving (Eq)
 
 type LinkInternalTarget (id_u :: Type) = Either (SubPageTarget id_u) id_u
 
@@ -54,6 +55,7 @@ data Page (id_u :: Type) = Page
 	pageContent :: Structure id_u,
 	pageIsTrunk :: Bool
 	}
+	deriving (Eq)
 
 {-| Link address to page but not to sub-page. -}
 data CrossLinkTarget idts = CrossLinkTarget
@@ -61,6 +63,8 @@ data CrossLinkTarget idts = CrossLinkTarget
 	cltPage :: Page idts, 
 	cltInPage :: Maybe (Node idts)
 	}
+	deriving (Eq)
+	
 type UserAddressMap id_u = Map.Map id_u (CrossLinkTarget id_u)
 
 data Site (id_u :: Type) = Site
@@ -69,6 +73,7 @@ data Site (id_u :: Type) = Site
 	siteUserAddressMap :: UserAddressMap id_u,
 	sitePageMap :: Map.Map Text (Page id_u)
 	}
+	deriving (Eq)
 
 make_Site :: forall id_u . Page id_u -> UserAddressMap id_u -> Site id_u
 make_Site main_page ua_map =
@@ -140,23 +145,34 @@ gather_addresses_by_user_in_Structure :: Structure id_u -> [(id_u, Node id_u)]
 gather_addresses_by_user_in_Structure = 
 	Fold.foldMap (gather_addresses_by_user_in_Node >>> Fold.toList)
 
-gather_InternalLinkTargets_in_Page :: forall id_u . Page id_u -> [(id_u, CrossLinkTarget id_u)]
-gather_InternalLinkTargets_in_Page page = 
+gather_InternalLinkTargets_in_Page ::
+	forall id_u .
+	Page id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) [(id_u, CrossLinkTarget id_u)]
+gather_InternalLinkTargets_in_Page page =
 	let
 		structure = pageContent page
-		make_one :: Node id_u -> CrossLinkTarget id_u
-		make_one node = 
-			CrossLinkTarget page 
-				(
-					if UI.nodeIdAuto node == UI.nodeIdAuto (Tree.rootLabel structure) 
-						then Nothing else Just node
-				)
-		in (map >>> map) make_one (gather_addresses_by_user_in_Structure structure)
+		make_one :: Node id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (CrossLinkTarget id_u)
+		make_one node =
+			if UI.nodeIdAuto node == UI.nodeIdAuto (Tree.rootLabel structure)
+				then Right (CrossLinkTarget page (Just node))
+				else
+					Left
+						(
+						Pos.maybefy_positioned
+							(
+							Pos.position_error
+								(UI.nodeWitSource node)
+								(Accu.single "non-page link target")
+							)
+						)
+		in (traverse >>> traverse) make_one (gather_addresses_by_user_in_Structure structure)
 
 gather_InternalLinkTargets_in_Pages :: 
-	Foldable pc => Base.Ord id_u => pc (Page id_u) -> Map.Map id_u (CrossLinkTarget id_u)
+	Traversable pc => Base.Ord id_u =>
+	pc (Page id_u) ->
+	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Map.Map id_u (CrossLinkTarget id_u))
 gather_InternalLinkTargets_in_Pages pages = 
-	Map.fromList (Fold.foldMap gather_InternalLinkTargets_in_Page pages)
+	 (map (Fold.fold >>> Map.fromList) (traverse gather_InternalLinkTargets_in_Page pages))
 
 -- divide to pages
 
@@ -203,20 +219,16 @@ divide_to_pages_from_page path_to_trunk whole_structure =
 		new_structure = divide_to_pages path_to_trunk False whole_structure
 		in Page path_to_trunk new_structure (List.null path_to_trunk)
 
-compile_site :: forall id_u . Base.Ord id_u => Structure id_u -> Site id_u
+compile_site ::
+	forall id_u .
+	Base.Ord id_u =>
+	Structure id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site id_u)
 compile_site input_structure = 
 	let
 		main_page = divide_to_pages_from_page [] input_structure
-		user_address_map :: UserAddressMap id_u
+		user_address_map :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (UserAddressMap id_u)
 		user_address_map = gather_InternalLinkTargets_in_Pages (get_subpages_of_page main_page)
-		in make_Site main_page user_address_map
-
-compile_tree_structure :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Site UI.NodeIdU
-compile_tree_structure =
-	let
-		rightify :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Structure UI.NodeIdU
-		rightify = Optic.fn_up UI.internal_address_in_tree Right
-		in rightify >>> compile_site
+		in map (make_Site main_page) user_address_map
 
 melt_pages_to_single :: forall id_u . Structure id_u -> UI.StructureAsTree id_u id_u
 melt_pages_to_single (Tree.Node trunk children) =
@@ -239,16 +251,23 @@ melt_pages_to_single (Tree.Node trunk children) =
 						UI.LEx addr -> make_result_with_link (Just (UI.LEx addr))
 						UI.LIn addr ->
 							case addr of
-								Left (SubPageTarget sub_page _) -> melt_pages_to_single (pageContent sub_page)
+								Left (SubPageTarget sub_page _) ->
+									melt_pages_to_single (pageContent sub_page)
 								Right a -> make_result_with_link (Just (UI.LIn a))
 
 render :: Site UI.NodeIdU -> UI.StructureAsTree UI.NodeIdU UI.NodeIdU
 render = siteMainPage >>> pageContent >>> melt_pages_to_single
 
-parse :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Either (Pos.Positioned (Accu.Accumulated Text)) (Site UI.NodeIdU)
-parse = compile_tree_structure >>> Right
+parse ::
+	UI.StructureAsTree UI.NodeIdU UI.NodeIdU ->
+	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site UI.NodeIdU)
+parse =
+	let
+		rightify :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Structure UI.NodeIdU
+		rightify = Optic.fn_up UI.internal_address_in_tree Right
+		in rightify >>> compile_site
 
 layer ::
-	Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text))
+	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text))
 		(UI.StructureAsTree UI.NodeIdU UI.NodeIdU) (Site UI.NodeIdU)
 layer = Optic.PartialIso render parse

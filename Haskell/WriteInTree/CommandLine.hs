@@ -12,7 +12,6 @@ import qualified Options.Applicative as Parse
 
 data Command = 
 	  CTranslate FilePath FilePath Bool -- ^ input and output paths, whether to sentence
-	| CListIdUs FilePath -- ^ lists user given node identifiers [params : input path]
 	| CShowDefaultDocProps -- ^ shows default document properties
 	| CConvert Bool FilePath FilePath
 
@@ -70,15 +69,6 @@ parser_command_translate =
 	in
 		Parse.info options (Parse.progDesc description_text) *>>> Parse.command "translate" 
 
-parser_command_list_idus :: Parse.Mod Parse.CommandFields Command
-parser_command_list_idus =
-	let
-		options :: Parse.Parser Command
-		options = Base.liftA CListIdUs (Parse.strOption option_input_path)
-		description_text = "List the user given node identifiers with their locations."
-	in
-		Parse.info options (Parse.progDesc description_text) *>>> Parse.command "list-identifiers" 
-
 parser_command_convert :: Parse.Mod Parse.CommandFields Command
 parser_command_convert = 
 	let
@@ -104,7 +94,6 @@ parser_commands = Parse.hsubparser
 	(
 		Base.mempty
 		<> parser_command_translate 
-		<> parser_command_list_idus 
 		<> parser_command_convert 
 		<> parser_command_show_default_doc_props
 	)
