@@ -10,7 +10,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 
 	title_of_section, title_of_page, id_of_page, is_inline_a_page_break, get_subpages_of_page,
 	
-	compile_site, compile_document,
+	compile_site, compile_document, layer
 )
 where
 
@@ -26,9 +26,11 @@ import qualified Data.Map as Map
 import qualified Data.Tree as Tree
 import qualified Fana.Data.HeteroPair as HePair
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
+import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as UI
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
@@ -209,6 +211,13 @@ compile_site input_structure =
 		user_address_map = gather_InternalLinkTargets_in_Pages (get_subpages_of_page main_page)
 		in make_Site main_page user_address_map
 
+compile_tree_structure :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Site UI.NodeIdU
+compile_tree_structure =
+	let
+		rightify :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Structure UI.NodeIdU
+		rightify = Optic.fn_up UI.internal_address_in_tree Right
+		in rightify >>> compile_site
+
 compile_document :: UI.Document UI.NodeIdU UI.NodeIdU -> Site UI.NodeIdU
 compile_document =
 	let
@@ -239,3 +248,15 @@ melt_pages_to_single (Tree.Node trunk children) =
 							case addr of
 								Left (SubPageTarget sub_page _) -> melt_pages_to_single (pageContent sub_page)
 								Right a -> make_result_with_link (Just (UI.LIn a))
+
+
+render :: Site UI.NodeIdU -> UI.StructureAsTree UI.NodeIdU UI.NodeIdU
+render = siteMainPage >>> pageContent >>> melt_pages_to_single
+
+parse :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Either (Pos.Positioned (Accu.Accumulated Text)) (Site UI.NodeIdU)
+parse = compile_tree_structure >>> Right
+
+layer ::
+	Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text))
+		(UI.StructureAsTree UI.NodeIdU UI.NodeIdU) (Site UI.NodeIdU)
+layer = Optic.PartialIso render parse
