@@ -10,7 +10,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 
 	title_of_section, title_of_page, id_of_page, is_inline_a_page_break, get_subpages_of_page,
 	
-	compile_site, compile_document, layer
+	compile_site, compile_tree_structure, layer
 )
 where
 
@@ -30,7 +30,6 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as UI
-import qualified WriteInTree.Document.Core.Document as UI
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
@@ -219,13 +218,6 @@ compile_tree_structure =
 		rightify = Optic.fn_up UI.internal_address_in_tree Right
 		in rightify >>> compile_site
 
-compile_document :: UI.Document UI.NodeIdU UI.NodeIdU -> Site UI.NodeIdU
-compile_document =
-	let
-		rightify :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Structure UI.NodeIdU
-		rightify = Optic.fn_up UI.internal_address_in_tree Right
-		in UI.docTree >>> rightify >>> compile_site
-
 melt_pages_to_single :: forall id_u . Structure id_u -> UI.StructureAsTree id_u id_u
 melt_pages_to_single (Tree.Node trunk children) =
 	let
@@ -249,7 +241,6 @@ melt_pages_to_single (Tree.Node trunk children) =
 							case addr of
 								Left (SubPageTarget sub_page _) -> melt_pages_to_single (pageContent sub_page)
 								Right a -> make_result_with_link (Just (UI.LIn a))
-
 
 render :: Site UI.NodeIdU -> UI.StructureAsTree UI.NodeIdU UI.NodeIdU
 render = siteMainPage >>> pageContent >>> melt_pages_to_single

@@ -15,6 +15,7 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
+import qualified WriteInTree.Document.Core.Document as Data
 import qualified WriteInTree.Document.Data as DocData
 import qualified WriteInTree.Document.File as DocRead
 import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
@@ -39,6 +40,6 @@ compile :: Bool -> Tech.FilePath {- output -} -> FilePath {- input -} -> IO ()
 compile sentencing output_folder = 
 	let 
 		translate :: DocData.Data Data.NodeIdU Data.NodeIdU -> Page.Site Data.NodeIdU
-		translate = DocData.doc_core >>> Page.compile_document
+		translate = DocData.doc_core >>> Data.docTree >>> Page.compile_tree_structure
 		document_to_website = map translate >>> compile_website sentencing (Tech.deFilePath output_folder) 
 	in DocRead.read >=> (document_to_website >>> Ot.write)
