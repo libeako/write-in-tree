@@ -4,20 +4,11 @@ module WriteInTree.Output.Pagination
 	SubPageTarget (..),
 	CrossLinkTarget (..),
 	LinkInternalTarget (..),
-	Inline,
-	Link,
-	Paragraph,
-	Node,
-	Structure,
+	Link, Inline, Paragraph, Node, Structure,
 	UserAddressMap,
-	Page (..),
-	Site (..),
+	Page (..), Site (..),
 
-	title_of_section, title_of_page,
-	id_of_page,
-	is_inline_a_page_break,
-
-	get_subpages_of_page,
+	title_of_section, title_of_page, id_of_page, is_inline_a_page_break, get_subpages_of_page,
 	
 	compile_site, compile_document,
 )
@@ -224,3 +215,27 @@ compile_document =
 		rightify :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Structure UI.NodeIdU
 		rightify = Optic.fn_up UI.internal_address_in_tree Right
 		in UI.docTree >>> rightify >>> compile_site
+
+melt_pages_to_single :: forall id_u . Structure id_u -> UI.StructureAsTree id_u id_u
+melt_pages_to_single (Tree.Node trunk children) =
+	let
+		melted_children = map melt_pages_to_single children
+		trunk_node_inline = UI.nodeContent trunk
+		make_result_with_link :: Maybe (UI.Link id_u) -> UI.StructureAsTree id_u id_u
+		make_result_with_link link =
+			let
+				new_trunk_node_inline :: UI.Inline id_u
+				new_trunk_node_inline = UI.Inline (UI.ilVisual trunk_node_inline) link
+				new_trunk_node :: UI.Node id_u id_u
+				new_trunk_node = Optic.fill UI.inNode_content new_trunk_node_inline trunk
+				in Tree.Node new_trunk_node melted_children			
+		in
+			case UI.ilLink trunk_node_inline of
+				Nothing -> make_result_with_link Nothing
+				Just link ->
+					case link of
+						UI.LEx addr -> make_result_with_link (Just (UI.LEx addr))
+						UI.LIn addr ->
+							case addr of
+								Left (SubPageTarget sub_page _) -> melt_pages_to_single (pageContent sub_page)
+								Right a -> make_result_with_link (Just (UI.LIn a))
