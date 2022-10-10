@@ -20,6 +20,7 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
+import qualified WriteInTree.Document.Core.Document as Data
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified WriteInTree.Document.Data as DocData

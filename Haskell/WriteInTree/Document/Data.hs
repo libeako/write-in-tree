@@ -7,7 +7,7 @@ where
 import Fana.Prelude
 
 import WriteInTree.Document.SepProps.Data (DocSepProps)
-import qualified WriteInTree.Document.Core.Data as Core
+import qualified WriteInTree.Document.Core.Document as Core
 
 
 data Data id_u ia = Data

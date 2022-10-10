@@ -16,6 +16,7 @@ import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified Technical.TextTree.MindMap as Tt
 import qualified WriteInTree.Document.Core.Data as Data
+import qualified WriteInTree.Document.Core.Document as Data
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Page.Border as PageBorder
 import qualified WriteInTree.Document.Core.Serial.Paragraph as Paragraph

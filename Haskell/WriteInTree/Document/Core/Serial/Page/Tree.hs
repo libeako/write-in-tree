@@ -30,6 +30,7 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as UI
+import qualified WriteInTree.Document.Core.Document as UI
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
