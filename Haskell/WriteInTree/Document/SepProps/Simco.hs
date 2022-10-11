@@ -73,17 +73,20 @@ parse_from_text = Optic.piso_interpret whole_layer
 test_simco_layer :: Test
 test_simco_layer = 
 	Test.single "simco layer"
-		(Optic.test_piso (Category2.empty, Category2.empty) [] [to_simco Default.def] SimcoSerial.serializer)
+		(
+		Optic.test_piso (Category2.identity, Category2.identity)
+		[] [to_simco Default.def] SimcoSerial.serializer
+		)
 
 test_upper_layer :: Test
 test_upper_layer = 
 	Test.single "upper layer"
-		(Optic.test_piso (Category2.empty, Category2.empty) [] [Default.def] upper_layer)
+		(Optic.test_piso (Category2.identity, Category2.identity) [] [Default.def] upper_layer)
 
 test_layer :: Test
 test_layer = 
 	Test.single "whole layer"
-		(Optic.test_piso (Category2.empty, Category2.empty) [] [Default.def] whole_layer)
+		(Optic.test_piso (Category2.identity, Category2.identity) [] [Default.def] whole_layer)
 
 test :: Test
 test = Test.bunch "document : separate properties : simco" [test_simco_layer, test_upper_layer, test_layer]

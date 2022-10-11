@@ -139,7 +139,8 @@ layer_up_from_intermediate = Optic.PartialIso render_into_intermediate parse_fro
 type Data = Tree ElemTT
 
 layer :: Configuration -> Optic.PartialIso (Accu.Accumulated Text) (Tree ElemLRT) (Tree ElemPT) Data Data
-layer config = Cat2.empty
+layer config =
+	Cat2.identity
 	>**> Lower.layer
 	>**> layer_up_from_intermediate
 	>**> convert_from_describing_class_4 (Optic.lift_iso (Inline.layer config))

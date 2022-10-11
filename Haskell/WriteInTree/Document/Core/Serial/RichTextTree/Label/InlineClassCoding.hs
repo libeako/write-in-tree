@@ -38,13 +38,15 @@ move_class_out_from_container class_name at c = let
 	in Base.either (const (Nothing, c)) when_there (Optic.match at c)
 
 move_class_out_from_elem :: ClassName -> Elem Text e -> (Maybe ClassName, Elem Text e)
-move_class_out_from_elem class_name = let
-	traversal = Category2.empty
-		>**>^ Map.lens_at class_name 
-		>**>^ Optic.prism_Maybe 
-		>**>^ Intermediate.ofLabels_classes
-		>**>^ inElem_labels
-	in move_class_out_from_container class_name traversal
+move_class_out_from_elem class_name =
+	let
+		traversal =
+			Category2.identity
+			>**>^ Map.lens_at class_name 
+			>**>^ Optic.prism_Maybe 
+			>**>^ Intermediate.ofLabels_classes
+			>**>^ inElem_labels
+		in move_class_out_from_container class_name traversal
 
 move_class_out_from_elem_st :: ClassName -> Mtl.State (Elem Text e) (Maybe ClassName)
 move_class_out_from_elem_st = move_class_out_from_elem >>> map Identity >>> Mtl.StateT

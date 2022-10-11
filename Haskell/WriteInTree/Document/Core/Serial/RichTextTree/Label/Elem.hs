@@ -77,7 +77,7 @@ inElem_idu :: Optic.Traversal (id_1) (id_2) (Elem id_1 e) (Elem id_2 e)
 inElem_idu = Intermediate.inLabels_id >**>^ inElem_labels
 
 ofElem_classes :: Optic.AffineTraversal' Intermediate.ClassesMap (Elem id e)
-ofElem_classes = Category2.empty >**>^ Optic.prism_Maybe >**>^ Intermediate.ofLabels_classes >**>^ inElem_labels
+ofElem_classes = Category2.identity >**>^ Optic.prism_Maybe >**>^ Intermediate.ofLabels_classes >**>^ inElem_labels
 
 elem_has_class :: Text -> Elem id e -> Bool
 elem_has_class class_text = ofElem_labels >>> Intermediate.labels_has_class class_text

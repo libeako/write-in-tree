@@ -61,7 +61,7 @@ layer ::
 	SepProps.DocSepProps -> 
 	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text Document
 layer sep_props = 
-	Category2.empty
+	Category2.identity
 	>**>^ Optic.piso_convert_error convert_string_error Tt.layer 
 	>**>^ Path.layer
 	>**>^ Optic.piso_convert_error (Pos.PositionedMb Nothing) (Label.layer (SepProps.prop_inline_classes sep_props))

@@ -179,7 +179,7 @@ layer ::
 	Optic.PartialIso (Accu.Accumulated Text)
 	(Tree ElemLRT) (Tree ElemLPT)
 	IntermediateBranchTreeR IntermediateBranchTreeP
-layer = Category2.empty >**>^ layer_in_node >**>^ layer_any
+layer = Category2.identity >**>^ layer_in_node >**>^ layer_any
 
 
 sort_intermediate_nodes :: [Intermediate.Any] -> ([Text], [Intermediate.ClassesMap])

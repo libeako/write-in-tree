@@ -108,7 +108,7 @@ of_Structure_SubPageTarget ::
 		(SubPageTarget i) (SubPageTarget i)
 		(Structure i) (Structure i)
 of_Structure_SubPageTarget =
-	Category2.empty >**>^ Optic.prism_Left >**>^ UI.internal_address_in_tree
+	Category2.identity >**>^ Optic.prism_Left >**>^ UI.internal_address_in_tree
 
 get_direct_subpages_of_page :: Page i -> [Page i]
 get_direct_subpages_of_page =
