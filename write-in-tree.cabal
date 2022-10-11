@@ -62,7 +62,6 @@ common common
       WriteInTree.Document.Core.Serial.Link.InTree
       WriteInTree.Document.Core.Serial.Page.Border
       WriteInTree.Document.Core.Serial.Page.Tree
-      WriteInTree.Document.Core.Serial.Paragraph
       WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaName
       WriteInTree.Document.Core.Serial.RichTextTree.InNode.MetaStructure
       WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure

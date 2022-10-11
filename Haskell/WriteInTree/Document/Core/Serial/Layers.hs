@@ -6,9 +6,12 @@ module WriteInTree.Document.Core.Serial.Layers
 where
 
 
+import Data.Tree (Tree)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 
+import qualified Fana.Data.HasSingle as Fana
+import qualified Fana.Data.HasSingle as HasSingle
 import qualified Fana.Haskell.DescribingClass as Class
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
@@ -21,7 +24,6 @@ import qualified WriteInTree.Document.Core.Document as Data
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Page.Border as PageBorder
 import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
-import qualified WriteInTree.Document.Core.Serial.Paragraph as Paragraph
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
@@ -39,6 +41,9 @@ type StructureAsTree = Data.StructureAsTree Data.NodeIdU (Page.LinkInternalTarge
 type Document = Data.Document Data.NodeIdU
 
 type StructureAsTreeRaw = Data.StructureAsTree Data.NodeIdU Data.NodeIdU
+
+layer_move_additional_info :: Fana.HasSingle a => Optic.Iso' (Tree (a e)) (Tree (a (), e))
+layer_move_additional_info = Optic.lift_iso HasSingle.iso_separate
 
 layer_meta_text_escapee ::
 	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text))
@@ -61,7 +66,7 @@ layer sep_props =
 	>**>^ Path.layer
 	>**>^ Optic.piso_convert_error (Pos.PositionedMb Nothing) (Label.layer (SepProps.prop_inline_classes sep_props))
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
-	>**>^ Paragraph.layer
+	>**>^ layer_move_additional_info
 	>**>^ PageBorder.layer
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned UserIds.layer
 	>**>^ layer_meta_text_escapee
