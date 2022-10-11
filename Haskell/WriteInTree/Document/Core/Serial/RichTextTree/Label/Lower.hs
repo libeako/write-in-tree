@@ -57,7 +57,7 @@ layer_in_node ::
 	Optic.Iso
 		(Tree ElemLRT) (Tree Path.ElemHPT)
 		(Tree ElemStructuredR) (Tree ElemStructuredP)
-layer_in_node = (Optic.lift_iso >>> Optic.lift_iso) (Ms.layer_in_node_text meta_name_to_text)
+layer_in_node = (Optic.lift_iso >>> Optic.lift_iso)	(Ms.layer_in_node_text meta_name_to_text)
 
 show_error_at :: (Path.ElemHP e) -> Accu.Accumulated Text -> Accu.Accumulated Text
 show_error_at position description = Fana.show (Pos.Positioned (Pos.get_position position) description)

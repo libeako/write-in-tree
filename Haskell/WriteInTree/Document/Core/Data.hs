@@ -183,3 +183,6 @@ internal_address_in_tree ::
 	forall ia1 ia2 id_u .
 	Optic.Traversal ia1 ia2 (StructureAsTree id_u ia1) (StructureAsTree id_u ia2)
 internal_address_in_tree = internal_address_in_node >**>^ node_in_tree
+
+texts_in_Tree :: forall id_u ia . Optic.Traversal' Text (StructureAsTree id_u ia)
+texts_in_Tree = Category2.empty >**>^ texts_in_Node >**>^ node_in_tree

@@ -9,6 +9,7 @@ where
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 
+import qualified Fana.Haskell.DescribingClass as Class
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -21,6 +22,7 @@ import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Page.Border as PageBorder
 import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
 import qualified WriteInTree.Document.Core.Serial.Paragraph as Paragraph
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
@@ -35,6 +37,17 @@ convert_string_error = Fana.show >>> Pos.PositionedMb Nothing
 
 type StructureAsTree = Data.StructureAsTree Data.NodeIdU (Page.LinkInternalTarget Data.NodeIdU)
 type Document = Data.Document Data.NodeIdU
+
+type StructureAsTreeRaw = Data.StructureAsTree Data.NodeIdU Data.NodeIdU
+
+layer_meta_text_escapee ::
+	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text))
+		StructureAsTreeRaw StructureAsTreeRaw
+layer_meta_text_escapee =
+	let
+		iso_escapee :: Optic.Iso' StructureAsTreeRaw StructureAsTreeRaw
+		iso_escapee = Optic.lift_iso_by_function (Optic.fn_up Data.texts_in_Tree) Mtt.layer_escapee
+		in Class.convert_from_describing_class_4 iso_escapee
 
 layer_document :: Optic.Iso' (Page.Site Data.NodeIdU) Document
 layer_document = Optic.Iso Data.docSite Data.Document
@@ -51,6 +64,7 @@ layer sep_props =
 	>**>^ Paragraph.layer
 	>**>^ PageBorder.layer
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned UserIds.layer
+	>**>^ layer_meta_text_escapee
 	>**>^ Page.layer
 	>**>^ layer_document
 

@@ -3,7 +3,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure
 	Content, Content',
 	TextStructureError (..),
 	render_exceptional, render, parse,
-	layer, layer_try,
+	layer_escapee, layer, layer_try,
 )
 where
 
@@ -38,6 +38,23 @@ parse_meta =
 	\case
 		c1 : ' ' : rest | c1 == meta_char -> Just rest
 		_ -> Nothing
+
+layer_escapee :: Optic.Iso' Text Text
+layer_escapee =
+	let
+		r :: Text -> Text
+		r =
+			\case
+				s@(i : ' ' : rest) | i == meta_char -> i : s
+					-- add a meta character to the front
+				x -> x
+		p :: Text -> Text
+		p =
+			\case
+				i1 : s@(i2 : ' ' : rest) | i1 == meta_char && i2 == meta_char -> s
+					-- delete a meta character from the front
+				x -> x
+		in Optic.Iso r p
 
 render :: Content Text Text -> Text
 render = 
