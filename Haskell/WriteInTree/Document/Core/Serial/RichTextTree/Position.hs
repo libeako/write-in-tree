@@ -28,7 +28,7 @@ show_position :: Position -> Accu.Accumulated Text
 show_position =
 	List.reverse >>>
 	map Fana.show >>>
-	List.intersperse (Accu.single " : ") >>>
+	List.intersperse (Accu.single ": ") >>>
 	Fold.fold >>>
 	(Accu.single "\nat "<>)
 
@@ -79,7 +79,7 @@ fill_position a (PositionedMb pos val) = Positioned (Base.fromMaybe (get_positio
 instance Fana.Showable Text e => Fana.Showable Text (PositionedMb e) where
 	show pe = let
 		show_pos :: Position -> Accu.Accumulated Text
-		show_pos p = show_position p <> (Accu.single " :\n")
+		show_pos p = show_position p <> (Accu.single ":\n")
 		pos :: Accu.Accumulated Text
 		pos = Base.maybe mempty show_pos (position_mb pe)
 		in pos <> Fana.show (value_in_PositionedMb pe)

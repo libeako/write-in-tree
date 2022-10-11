@@ -7,9 +7,9 @@ module WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure
 )
 where
 
-import Data.Monoid (Monoid (..))
 import Data.Either as Base
-import Prelude (id, const, (==), (<>), Char)
+import Fana.Prelude
+import Prelude (Char)
 
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -29,6 +29,15 @@ type Content' = Content Text Text
 
 render_exceptional :: Text -> Text
 render_exceptional t = (meta_char : ' ' : t)
+
+render_meta :: Text -> Text
+render_meta m = meta_char : ' ' : m
+
+parse_meta :: Text -> Maybe Text
+parse_meta =
+	\case
+		c1 : ' ' : rest | c1 == meta_char -> Just rest
+		_ -> Nothing
 
 render :: Content Text Text -> Text
 render = 
@@ -58,6 +67,8 @@ parse = \case
 		text -> Left (TextStructureError text)
 	-- a simple text node :
 	text -> Right (Right text)
+
+
 
 
 layer :: Optic.PartialIso' TextStructureError Text (Content Text Text)
