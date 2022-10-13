@@ -1,5 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Lower
 (
+	meta_name_id, meta_name_class,
 	IntermediateTreeP, IntermediateTreeR, IntermediateBranchTreeP, IntermediateBranchTreeR,
 	render_trunk, render_labels_into_siblings, parse_labels_from_siblings,
 	layer,
@@ -44,11 +45,17 @@ type ElemLPT = ElemLP Text
 data MetaName = MnId | MnClass
 	deriving (Bounded, Enum)
 
+meta_name_id :: Text
+meta_name_id = "id"
+
+meta_name_class :: Text
+meta_name_class = "class"
+
 meta_name_to_text :: MetaName -> Text
-meta_name_to_text = 
+meta_name_to_text =
 	\case
-		MnId -> "id"
-		MnClass -> "class"
+		MnId -> meta_name_id
+		MnClass -> meta_name_class
 
 type ElemStructuredR = Path.ElemHR (Either MetaName Text)
 type ElemStructuredP = Path.ElemHP (Either MetaName Text)
@@ -94,8 +101,8 @@ parse_class (Tree.Node trunk _) =
 				description = "the node holding a class name must be regular text, not a meta node"
 				in Left (show_error_at trunk description)
 
-render_class :: (Text, ()) -> Tree ElemStructuredR
-render_class (name, source) = Tree.Node (Tt.Elem Nothing (Right name)) []
+render_class :: Text -> Tree ElemStructuredR
+render_class name = Tree.Node (Tt.Elem Nothing (Right name)) []
 
 parse_classes :: Tree ElemStructuredP -> Either (Accu.Accumulated Text) Intermediate.ClassesMap
 parse_classes (Tree.Node trunk children) = 
@@ -107,7 +114,7 @@ render_classes' cs = let
 	new_trunk = let
 		content = Left MnClass
 		in def @(Path.ElemHR ()) $> content
-	in Tree.Node new_trunk (map render_class (TravKey.key_value_pairs cs))
+	in Tree.Node new_trunk (map (fst >>> render_class) (TravKey.key_value_pairs cs))
 
 render_classes :: Intermediate.ClassesMap -> Maybe (Tree ElemStructuredR)
 render_classes cs =
