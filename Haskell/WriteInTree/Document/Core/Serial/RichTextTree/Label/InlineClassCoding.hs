@@ -20,7 +20,7 @@ import qualified Fana.Data.Key.LensToMaybeElement as Map
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate as Intermediate
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Structure
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit as TextSplit
 
 
@@ -44,7 +44,7 @@ move_class_out_from_elem class_name =
 			Category2.identity
 			>**>^ Map.lens_at class_name 
 			>**>^ Optic.prism_Maybe 
-			>**>^ Intermediate.ofLabels_classes
+			>**>^ Structure.ofLabels_classes
 			>**>^ inElem_labels
 		in move_class_out_from_container class_name traversal
 
@@ -73,7 +73,7 @@ over_Elem' config =
 			case ofElem_core elem of
 				(cs, text) ->
 					Optic.fn_up inElem_labels
-						(Intermediate.add_new_classes_to_Labels cs) (map snd elem)
+						(Structure.add_new_classes_to_Labels cs) (map snd elem)
 		in Optic.Iso (move_classes_out_from_elem' config) parse
 
 layer :: Configuration -> Optic.Iso' ElemTT ElemTT

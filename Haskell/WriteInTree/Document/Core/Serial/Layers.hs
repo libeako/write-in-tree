@@ -25,7 +25,7 @@ import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Page.Border as PageBorder
 import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Mtt
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified WriteInTree.Document.Core.Serial.UserIdentifiers as UserIds

@@ -26,7 +26,7 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as UsI
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 

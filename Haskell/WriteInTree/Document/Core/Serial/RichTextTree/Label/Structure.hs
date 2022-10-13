@@ -1,4 +1,4 @@
-module WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate
+module WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure
 (
 	ClassesMap,
 	Any (..),

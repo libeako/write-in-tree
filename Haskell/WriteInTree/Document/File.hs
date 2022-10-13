@@ -22,7 +22,7 @@ import qualified WriteInTree.Document.Core.Data as CoreData
 import qualified WriteInTree.Document.Core.Document as CoreData
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
 import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified WriteInTree.Document.Folder as Folder
 import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco

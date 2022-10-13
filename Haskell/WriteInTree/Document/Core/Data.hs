@@ -12,7 +12,7 @@ import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Data.HeteroPair as Pair
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 
 
 type Text = Base.String

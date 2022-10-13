@@ -1,8 +1,8 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 (
-	Intermediate.add_new_classes_to_Labels,
-	Intermediate.inLabel_id_source_mb,
-	Intermediate.id_of_Labels,
+	Structure.add_new_classes_to_Labels,
+	Structure.inLabel_id_source_mb,
+	Structure.id_of_Labels,
 	fromElem_id_au_content,
 	ofElem_pos,
 	ofElem_class_values,
@@ -30,7 +30,7 @@ import qualified Fana.Optic.Concrete.Categories.Traversal as Optic
 import qualified Prelude as Base
 import qualified Technical.TextTree.Data as Tt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Intermediate as Intermediate
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Structure
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
@@ -46,7 +46,7 @@ data Elem id e = Elem
 	{ ofElem_auto_id :: Maybe Text
 		-- ^ automatic identifier
 	, ofElem_position :: Pos.Position
-	, ofElem_labels :: Intermediate.Labels id
+	, ofElem_labels :: Structure.Labels id
 	, ofElem_core :: e
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
@@ -58,7 +58,7 @@ ofElem_pos :: Optic.Lens' Pos.Position (Elem id e)
 ofElem_pos = Optic.lens_from_get_set ofElem_position (\ e c -> c { ofElem_position = e })
 
 ofElem_id_u_content :: Elem id e -> Maybe id
-ofElem_id_u_content = ofElem_labels >>> Intermediate.id_of_Labels
+ofElem_id_u_content = ofElem_labels >>> Structure.id_of_Labels
 
 fromElem_id_au_content :: Elem id e -> (Maybe Text, Maybe id)
 fromElem_id_au_content = liftA2 (,) ofElem_auto_id ofElem_id_u_content
@@ -66,21 +66,21 @@ fromElem_id_au_content = liftA2 (,) ofElem_auto_id ofElem_id_u_content
 ofElem_class_values :: Elem id e -> [Text]
 ofElem_class_values = id 
 	>>> ofElem_labels 
-	>>> Intermediate.classes_of_Labels 
+	>>> Structure.classes_of_Labels
 	>>> map TravKey.keys
 	>>> Fold.concat
 
-inElem_labels :: Optic.Lens (Intermediate.Labels id_1) (Intermediate.Labels id_2) (Elem id_1 e) (Elem id_2 e)
+inElem_labels :: Optic.Lens (Structure.Labels id_1) (Structure.Labels id_2) (Elem id_1 e) (Elem id_2 e)
 inElem_labels = Optic.lens_from_get_set ofElem_labels (\ p w -> w { ofElem_labels = p })
 
 inElem_idu :: Optic.Traversal (id_1) (id_2) (Elem id_1 e) (Elem id_2 e)
-inElem_idu = Intermediate.inLabels_id >**>^ inElem_labels
+inElem_idu = Structure.inLabels_id >**>^ inElem_labels
 
-ofElem_classes :: Optic.AffineTraversal' Intermediate.ClassesMap (Elem id e)
-ofElem_classes = Category2.identity >**>^ Optic.prism_Maybe >**>^ Intermediate.ofLabels_classes >**>^ inElem_labels
+ofElem_classes :: Optic.AffineTraversal' Structure.ClassesMap (Elem id e)
+ofElem_classes = Category2.identity >**>^ Optic.prism_Maybe >**>^ Structure.ofLabels_classes >**>^ inElem_labels
 
 elem_has_class :: Text -> Elem id e -> Bool
-elem_has_class class_text = ofElem_labels >>> Intermediate.labels_has_class class_text
+elem_has_class class_text = ofElem_labels >>> Structure.labels_has_class class_text
 
 
 instance Pos.HasPosition (Elem id e) where get_position = ofElem_position
@@ -95,7 +95,7 @@ elem_dp x = Path.ElemHP
 	, Path.inElemHPCore = Tt.Elem (ofElem_auto_id x) (ofElem_core x)
 	}
 -- | convert an element from picture to data format.
-elem_pd :: Intermediate.Labels id -> ElemP e -> Elem id e
+elem_pd :: Structure.Labels id -> ElemP e -> Elem id e
 elem_pd labels p = Elem
 	{ ofElem_auto_id = Tt.elemId (Path.inElemHPCore p)
 	, ofElem_position = Path.inElemHPPos p

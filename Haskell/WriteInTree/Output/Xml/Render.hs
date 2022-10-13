@@ -24,7 +24,7 @@ import qualified Technical.Html as Html
 import qualified Technical.Xml.Data as Xml
 import qualified WriteInTree.Document.Core.Data as UI
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix as Class
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Main as Label
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.Page.Tree as OData
 import qualified WriteInTree.Output.Technical as T
 import qualified WriteInTree.Output.Sentence as Sentence
