@@ -19,7 +19,7 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Enum as Serial
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ntt
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Ntt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
@@ -70,9 +70,9 @@ parse_core' =
 
 parse :: Tree Text -> Maybe (Either ParseError' (Data.Link Text))
 parse (Node trunk children) =
-	case Ntt.parse trunk of
-		Right (Left mt) | mt == meta_node_name -> Just (parse_core' children)
-		_ -> Nothing
+	if trunk == Ntt.render_exceptional meta_node_name
+		then Just (parse_core' children)
+		else Nothing
 
 parse' :: Tree (A Text) -> Maybe (Either ParseError (Data.Link Text))
 parse' tree =
@@ -86,7 +86,7 @@ render d =
 			case d of
 				Data.LIn a -> (Internal, a)
 				Data.LEx a -> (External, a)
-		in Node (Ntt.render (Left meta_node_name))
+		in Node (Ntt.render_exceptional meta_node_name)
 			(map (flip Node []) [render_DestinationType dt, addr])
 
 wrap_into_default_context :: x -> A x

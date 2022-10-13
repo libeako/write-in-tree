@@ -12,7 +12,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize
 	inElem_idu, inElem_labels,
 	ofElem_classes,
 	elem_has_class,
-	Elem (..), ElemT,
+	Elem (..),
 )
 where
 
@@ -43,7 +43,7 @@ import qualified Fana.Math.Algebra.Category.OnTypePairs as Cat2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Mtt
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem as Elem
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.InlineClassCoding as Inline
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Structure

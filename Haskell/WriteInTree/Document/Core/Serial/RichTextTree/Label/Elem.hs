@@ -11,7 +11,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 	ofElem_classes,
 	elem_has_class,
 	default_Elem_context,
-	Elem (..), ElemT,
+	Elem (..),
 	elem_pd, elem_dp,
 )
 where
@@ -29,7 +29,6 @@ import qualified Fana.Optic.Concrete.Categories.Prism as Optic
 import qualified Fana.Optic.Concrete.Categories.Traversal as Optic
 import qualified Prelude as Base
 import qualified Technical.TextTree.Data as Tt
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNode.TextStructure as Ts
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Structure
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
@@ -50,7 +49,6 @@ data Elem id e = Elem
 	, ofElem_core :: e
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
-type ElemT = Elem Text (Ts.Content')
 
 instance Fana.HasSingle (Elem id) where elem = ofElem_core
 
