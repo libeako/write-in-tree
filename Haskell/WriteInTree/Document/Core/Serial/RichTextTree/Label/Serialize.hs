@@ -25,6 +25,7 @@ import Fana.Haskell.DescribingClass
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configuration)
 
 import qualified Control.Monad.State.Lazy as Base
@@ -44,7 +45,6 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Mtt
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem as Elem
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.InlineClassCoding as Inline
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Structure
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
@@ -98,6 +98,9 @@ check_uniquness_of_id_u tree =
 meta_name_id :: Text
 meta_name_id = "id"
 
+meta_name_address :: Text
+meta_name_address = "address"
+
 meta_name_class :: Text
 meta_name_class = "class"
 
@@ -108,17 +111,34 @@ render_id_tree :: Text -> Tree Text
 render_id_tree identifier =
 	Node (Mtt.render_exceptional meta_name_id) [Node identifier []]
 
+render_address_tree :: PageAddress -> Tree Text
+render_address_tree address =
+	Node (Mtt.render_exceptional meta_name_address) [Node (unwrapPageAddress address) []]
+
 parse_identifier :: [Tree Text] -> Either (Accu.Accumulated Text) Text
 parse_identifier =
 	\case
 		[Node identifier []] -> Right identifier
 		_ -> Left (Accu.single "wrong format of identifier text value [must be a single tree node]")
 
+parse_address :: [Tree Text] -> Either (Accu.Accumulated Text) PageAddress
+parse_address =
+	\case
+		[Node address []] -> Right (PageAddress address)
+		_ -> Left (Accu.single "wrong format of page address text value [must be a single tree node]")
+
 parse_id_tree_as_exceptional ::
 	HasSingle a => Tree (a Text) -> Either (Either (Accu.Accumulated Text) Text) (Tree (a Text))
 parse_id_tree_as_exceptional tree@(Node trunk children) =
 	if HasSingle.elem trunk == (Mtt.render_exceptional meta_name_id)
 		then Left (parse_identifier ((map >>> map) HasSingle.elem children))
+		else Right tree
+
+parse_address_tree_as_exceptional ::
+	HasSingle a => Tree (a Text) -> Either (Either (Accu.Accumulated Text) PageAddress) (Tree (a Text))
+parse_address_tree_as_exceptional tree@(Node trunk children) =
+	if HasSingle.elem trunk == (Mtt.render_exceptional meta_name_address)
+		then Left (parse_address ((map >>> map) HasSingle.elem children))
 		else Right tree
 
 render_id_into_siblings ::
@@ -129,6 +149,15 @@ render_id_into_siblings =
 	\case
 		Nothing -> id
 		Just identifier -> (map wrap (render_id_tree identifier) :)
+
+render_address_into_siblings ::
+	forall a .
+	(Functor a, Default (a Text)) =>
+	Maybe PageAddress -> Fn.Endo (Forest (a Text))
+render_address_into_siblings =
+	\case
+		Nothing -> id
+		Just address -> (map wrap (render_address_tree address) :)
 
 parse_id_from_siblings ::
 	forall a .
@@ -174,6 +203,24 @@ render_classes_into_siblings classes =
 				[] -> id
 				_ -> (map wrap (render_class_tree class_list) :)
 
+parse_address_from_siblings ::
+	forall a .
+	HasSingle a =>
+	Base.StateT (Forest (a Text)) (Either (Accu.Accumulated Text)) (Maybe PageAddress)
+parse_address_from_siblings =
+	let
+		raw :: Forest (a Text) -> Either (Accu.Accumulated Text) (Maybe PageAddress, Forest (a Text))
+		raw siblings =
+			let
+				(address_results, normal_children) =
+					Base.partitionEithers (map parse_address_tree_as_exceptional siblings)
+				in
+					case address_results of
+						[] -> Right (Nothing, normal_children)
+						(first_address_result : _) ->
+							map (Just >>> Pair.before normal_children) first_address_result
+		in Base.StateT raw
+
 parse_classes_from_siblings ::
 	forall a .
 	HasSingle a =>
@@ -196,44 +243,47 @@ parse_classes_from_siblings =
 render_all_into_siblings ::
 	forall a .
 	(Functor a, Default (a Text)) =>
-	(Maybe Text, Classes) -> Fn.Endo (Forest (a Text))
-render_all_into_siblings (identifier_mb, classes) =
+	(Maybe Text, Maybe PageAddress, Classes) -> Fn.Endo (Forest (a Text))
+render_all_into_siblings (identifier_mb, address, classes) =
 	render_classes_into_siblings classes >>>
+	render_address_into_siblings address >>>
 	render_id_into_siblings identifier_mb
 
 parse_all_from_siblings ::
 	forall a .
 	HasSingle a =>
-	Base.StateT (Forest (a Text)) (Either (Accu.Accumulated Text)) (Maybe Text, Classes)
+	Base.StateT (Forest (a Text)) (Either (Accu.Accumulated Text)) (Maybe Text, Maybe PageAddress, Classes)
 parse_all_from_siblings =
-	liftA2 (,) parse_id_from_siblings parse_classes_from_siblings
+	liftA3 (,,) parse_id_from_siblings parse_address_from_siblings parse_classes_from_siblings
 
 render_tree :: Tree ElemTT -> Tree ElemLRT
 render_tree (Node trunk children) =
 	let
 		labels = ofElem_labels trunk
 		identifier :: Maybe Text
-		identifier = Elem.id_of_Labels labels
+		identifier = Structure.id_of_Labels labels
+		address :: Maybe PageAddress
+		address = Structure.address_of_Labels labels
 		classes :: Classes
 		classes = maybe Fana.empty_coll id (Structure.classes_of_Labels labels)
 		in
 			Node (Tt.Elem (ofElem_auto_id trunk) (HasSingle.elem trunk))
-				(render_all_into_siblings (identifier, classes) (map render_tree children))
+				(render_all_into_siblings (identifier, address, classes) (map render_tree children))
 
 parse_tree_r :: Tree ElemPT -> Either (Accu.Accumulated Text) (Tree ElemTT)
 parse_tree_r (Node trunk all_children) =
 	let
-		current_parse_result :: Either (Accu.Accumulated Text) ((Maybe Text, Classes), [Tree ElemPT])
+		current_parse_result :: Either (Accu.Accumulated Text) ((Maybe Text, Maybe PageAddress, Classes), [Tree ElemPT])
 		current_parse_result = Base.runStateT parse_all_from_siblings all_children
 		continue_parse_result ::
-			((Maybe Text, Classes), [Tree ElemPT]) ->
+			((Maybe Text, Maybe PageAddress, Classes), [Tree ElemPT]) ->
 			Either (Accu.Accumulated Text) (Tree ElemTT)
-		continue_parse_result ((user_id, classes), normal_children) =
+		continue_parse_result ((user_id, page_address, classes), normal_children) =
 			let
 				auto_id = Tt.elemId (Path.inElemHPCore trunk)
 				position = Path.inElemHPPos trunk
 				classes_mb = if Fana.is_coll_empty classes then Nothing else (Just classes)
-				labels = Structure.Labels user_id classes_mb
+				labels = Structure.Labels user_id page_address classes_mb
 				in
 					map (Node (Elem auto_id position labels (HasSingle.elem trunk)))
 						(traverse parse_tree_r normal_children)

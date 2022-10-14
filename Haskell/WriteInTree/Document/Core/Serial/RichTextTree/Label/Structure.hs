@@ -1,5 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure
 (
+	PageAddress (..),
 	ClassesMap,
 	Any (..),
 	Labels (..), LabelsT, no_Labels,
@@ -53,16 +54,21 @@ add_new incoming_classes old_classes = let
 contains :: Text -> ClassesMap -> Bool
 contains class_text = LensAt.get_at class_text >>> Base.isJust
 
+data PageAddress = 
+	PageAddress { unwrapPageAddress :: Text }
+	deriving Eq
+
 -- | user given labels of a node.
 data Labels id = Labels
 	{ id_of_Labels :: Maybe id
+	, address_of_Labels :: Maybe PageAddress
 	, classes_of_Labels :: Maybe ClassesMap
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 type LabelsT = Labels Text
 
 no_Labels :: Labels id
-no_Labels = Labels Nothing Nothing
+no_Labels = Labels Nothing Nothing Nothing
 
 instance Default (Labels id) where def = no_Labels
 
