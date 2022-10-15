@@ -4,7 +4,8 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure
 	ClassesMap,
 	Any (..),
 	Labels (..), LabelsT, no_Labels,
-	inLabels_id, inLabel_id_source_mb, ofLabels_classes, labels_has_class, add_new_classes_to_Labels,
+	inLabels_id, inLabel_id_source_mb, inLabel_page_address, ofLabels_classes, 
+	labels_has_class, add_new_classes_to_Labels,
 	index_classes,
 	contains,
 	add_new,
@@ -80,6 +81,13 @@ inLabel_id_source_mb ::
 		(Maybe id_1) (Maybe id_2)
 		(Labels id_1) (Labels id_2)
 inLabel_id_source_mb = Optic.lens_from_get_set id_of_Labels (\ p w -> w { id_of_Labels = p })
+
+inLabel_page_address ::
+	Optic.Lens
+		(Maybe PageAddress) (Maybe PageAddress)
+		(Labels i) (Labels i)
+inLabel_page_address = Optic.lens_from_get_set address_of_Labels (\ p w -> w { address_of_Labels = p })
+
 
 ofLabels_classes :: Optic.Lens' (Maybe ClassesMap) (Labels id)
 ofLabels_classes = Optic.lens_from_get_set classes_of_Labels (\ e c -> c { classes_of_Labels = e })

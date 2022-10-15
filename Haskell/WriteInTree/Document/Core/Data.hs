@@ -6,6 +6,8 @@ import Fana.Data.Identified (Identified)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String, Int)
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem (inElem_labels)
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), inLabel_page_address)
 
 import qualified Data.Tree as Tree
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
@@ -184,6 +186,9 @@ internal_address_in_tree ::
 	forall ia1 ia2 id_u .
 	Optic.Traversal ia1 ia2 (StructureAsTree id_u ia1) (StructureAsTree id_u ia2)
 internal_address_in_tree = internal_address_in_node >**>^ node_in_tree
+
+page_addresses_in_Tree :: Optic.Traversal' (Maybe PageAddress) (StructureAsTree id_u ia)
+page_addresses_in_Tree = Category2.identity >**>^ inLabel_page_address >**>^ inElem_labels >**>^ inNode_source >**>^ node_in_tree
 
 texts_in_Tree :: forall id_u ia . Optic.Traversal' Text (StructureAsTree id_u ia)
 texts_in_Tree = Category2.identity >**>^ texts_in_Node >**>^ node_in_tree
