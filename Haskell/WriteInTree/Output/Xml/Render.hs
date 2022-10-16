@@ -290,11 +290,7 @@ link_to_address address_map =
 									" is not in address map during link resolution"
 						ilt :: OData.CrossLinkTarget UI.NodeIdU
 						ilt = Base.fromMaybe (Base.error error_message) (Map.lookup idu address_map)
-						add_in_page_address =
-							case OData.cltInPage ilt of
-								Nothing -> id
-								Just ipt -> (<> "#" <> UI.nodeIdAuto ipt)
-						in add_in_page_address (page_file_name (OData.cltPage ilt))
+						in page_file_name (OData.cltPage ilt)
 		UI.LEx a -> a
 
 node_address_for_navigation_bar :: OData.Site UI.NodeIdU -> OData.Node UI.NodeIdU -> Maybe String

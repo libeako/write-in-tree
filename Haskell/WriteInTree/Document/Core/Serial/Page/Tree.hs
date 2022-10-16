@@ -15,10 +15,12 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 where
 
 import Control.Arrow ((&&&))
+import Data.Array (listArray)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import Prelude (String)
+import Prelude (String, Int, (+), (-))
 
+import qualified Data.Array as Array
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Map as Map
@@ -33,6 +35,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
+type Array = Array.Array Int
 
 type PagePath = [String]
 
@@ -49,7 +52,7 @@ type Node (id_u :: Type) = UI.Node id_u (LinkInternalTarget id_u)
 
 type Structure (id_u :: Type) = Tree.Tree (Node id_u)
 
-data Page (id_u :: Type) = Page 
+data Page (id_u :: Type) = Page
 	{
 	pagePathToTrunk :: [Node id_u],
 	pageContent :: Structure id_u,
@@ -58,10 +61,10 @@ data Page (id_u :: Type) = Page
 	deriving (Eq)
 
 {-| Link address to page but not to sub-page. -}
-data CrossLinkTarget idts = CrossLinkTarget
+data CrossLinkTarget idts =
+	CrossLinkTarget
 	{ 
-	cltPage :: Page idts, 
-	cltInPage :: Maybe (Node idts)
+		cltPage :: Page idts
 	}
 	deriving (Eq)
 	
@@ -70,20 +73,21 @@ type UserAddressMap id_u = Map.Map id_u (CrossLinkTarget id_u)
 data Site (id_u :: Type) = Site
 	{
 	siteMainPage :: Page id_u,
+	siteAllPages :: Array (Page id_u),
 	siteUserAddressMap :: UserAddressMap id_u,
 	sitePageMap :: Map.Map Text (Page id_u)
 	}
 	deriving (Eq)
 
-make_Site :: forall id_u . Page id_u -> UserAddressMap id_u -> Site id_u
-make_Site main_page ua_map =
+make_Site :: forall id_u . Page id_u -> Array (Page id_u)-> UserAddressMap id_u -> Site id_u
+make_Site main_page all_pages ua_map =
 	let
 		page_map =
 			let
 				make_key_value_pair :: Page id_u -> (Text, Page id_u)
 				make_key_value_pair = id_of_page &&& id
 				in Map.fromList (map make_key_value_pair (Fold.toList (get_subpages_of_page main_page)))
-	in Site main_page ua_map page_map
+	in Site main_page all_pages ua_map page_map
 
 is_link_a_page_break :: Link id_u -> Bool
 is_link_a_page_break =
@@ -154,7 +158,7 @@ gather_InternalLinkTargets_in_Page page =
 		make_one :: Node id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (CrossLinkTarget id_u)
 		make_one node =
 			if UI.nodeIdAuto node == UI.nodeIdAuto (Tree.rootLabel structure)
-				then Right (CrossLinkTarget page (Just node))
+				then Right (CrossLinkTarget page)
 				else
 					Left
 						(
@@ -219,6 +223,12 @@ divide_to_pages_from_page path_to_trunk whole_structure =
 		new_structure = divide_to_pages path_to_trunk False whole_structure
 		in Page path_to_trunk new_structure (List.null path_to_trunk)
 
+page_ordinal_start :: Int
+page_ordinal_start = 1
+
+array_from_list :: [e] -> Array e
+array_from_list list = listArray (page_ordinal_start, page_ordinal_start + List.length list - 1) list
+
 compile_site ::
 	forall id_u .
 	Base.Ord id_u =>
@@ -226,9 +236,10 @@ compile_site ::
 compile_site input_structure = 
 	let
 		main_page = divide_to_pages_from_page [] input_structure
+		all_pages = get_subpages_of_page main_page
 		user_address_map :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (UserAddressMap id_u)
 		user_address_map = gather_InternalLinkTargets_in_Pages (get_subpages_of_page main_page)
-		in map (make_Site main_page) user_address_map
+		in map (make_Site main_page (array_from_list (Fold.toList all_pages))) user_address_map
 
 melt_pages_to_single :: forall id_u . Structure id_u -> UI.StructureAsTree id_u id_u
 melt_pages_to_single (Tree.Node trunk children) =
