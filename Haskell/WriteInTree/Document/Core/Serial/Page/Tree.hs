@@ -16,11 +16,13 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 where
 
 import Control.Arrow ((&&&))
+import Control.Monad.State.Lazy (State, evalState)
 import Data.Array (listArray, (!))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String, Int, (+), (-))
 
+import qualified Control.Monad.State.Lazy as State
 import qualified Data.Array as Array
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
@@ -37,7 +39,10 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 type Text = Base.String
 type PageKey = Int
+page_key_start :: PageKey
+page_key_start = 1
 type Array = Array.Array PageKey
+type KeyedPage i = (PageKey, Page i)
 
 type PagePath = [String]
 
@@ -186,51 +191,46 @@ gather_InternalLinkTargets_in_Pages pages =
 -- | creates an output clone of the node 
 -- which will be just a link to the page that the input node is a trunk of.
 page_node_as_link :: forall id_u . Page id_u -> Node id_u -> Node id_u
-page_node_as_link page trunk_node = 
-	let 
+page_node_as_link page trunk_node =
+	let
 		changer :: Node id_u -> Node id_u
-		changer = 
+		changer =
 			id
 			>>> Optic.fill UI.inNode_idu_source_mb Nothing
 			>>> Optic.fill UI.links_in_Node 
-				(
-					Just (UI.LIn (Left (SubPageTarget page (UI.nodeIdAuto trunk_node))))
-					-- this feels an ugly solution, but i hope will do it for now
-				)
+				(Just (UI.LIn (Left (SubPageTarget page (UI.nodeIdAuto trunk_node)))))
 		in changer trunk_node
 
-divide_to_pages :: 
-	forall id_u . [Node id_u] -> Bool -> Structure id_u -> Structure id_u
+divide_to_pages :: forall i . [Node i] -> Bool -> Structure i -> State PageKey (Structure i)
 divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 	let
-		trunk_node :: Node id_u
+		trunk_node :: Node i
 		trunk_node = Tree.rootLabel whole_structure
 		in
 			if may_treat_as_page_trunk && UI.nodeIsSeparatePage trunk_node
 				then 
 					let
-						trunk_page = divide_to_pages_from_page path_to_trunk whole_structure
-						in (Tree.Node (page_node_as_link trunk_page trunk_node) [])
+						make_the_tree :: KeyedPage i -> Structure i
+						make_the_tree (trunk_page_id, trunk_page :: Page i) = 
+							Tree.Node (page_node_as_link trunk_page trunk_node) []
+						in map make_the_tree (divide_to_pages_from_page path_to_trunk whole_structure)
 				else
 					let
 						children = Tree.subForest whole_structure
-						sub_results = 
-							map 
-								(divide_to_pages (trunk_node : path_to_trunk) True) 
-								children
-						in Tree.Node trunk_node sub_results
+						recursive_call = divide_to_pages (trunk_node : path_to_trunk) True
+						sub_results = traverse recursive_call children
+						in map (Tree.Node trunk_node) sub_results
 
-divide_to_pages_from_page :: [Node id_u] -> Structure id_u -> Page id_u
+divide_to_pages_from_page :: [Node i] -> Structure i -> State PageKey (KeyedPage i)
 divide_to_pages_from_page path_to_trunk whole_structure = 
-	let
-		new_structure = divide_to_pages path_to_trunk False whole_structure
-		in Page path_to_trunk new_structure (List.null path_to_trunk)
-
-page_ordinal_start :: Int
-page_ordinal_start = 1
+	do
+		new_structure <- divide_to_pages path_to_trunk False whole_structure
+		current_key <- State.get
+		State.modify (+ 1)
+		pure (current_key, Page path_to_trunk new_structure (List.null path_to_trunk))
 
 array_from_list :: [e] -> Array e
-array_from_list list = listArray (page_ordinal_start, page_ordinal_start + List.length list - 1) list
+array_from_list list = listArray (page_key_start, page_key_start + List.length list - 1) list
 
 compile_site ::
 	forall id_u .
@@ -238,7 +238,7 @@ compile_site ::
 	Structure id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site id_u)
 compile_site input_structure = 
 	let
-		main_page = divide_to_pages_from_page [] input_structure
+		(_, main_page) = evalState (divide_to_pages_from_page [] input_structure) page_key_start
 		all_pages :: Array (Page id_u)
 		all_pages = array_from_list (Fold.toList (get_subpages_of_page main_page))
 		user_address_map :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (UserAddressMap id_u)
