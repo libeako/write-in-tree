@@ -35,7 +35,8 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
-type Array = Array.Array Int
+type PageId = Int
+type Array = Array.Array PageId
 
 type PagePath = [String]
 
@@ -64,7 +65,7 @@ data Page (id_u :: Type) = Page
 data CrossLinkTarget idts =
 	CrossLinkTarget
 	{ 
-		cltPage :: Page idts
+	cltPage :: Page idts
 	}
 	deriving (Eq)
 	
@@ -151,8 +152,8 @@ gather_addresses_by_user_in_Structure =
 
 gather_InternalLinkTargets_in_Page ::
 	forall id_u .
-	Page id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) [(id_u, CrossLinkTarget id_u)]
-gather_InternalLinkTargets_in_Page page =
+	(PageId, Page id_u) -> Either (Pos.PositionedMb (Accu.Accumulated Text)) [(id_u, CrossLinkTarget id_u)]
+gather_InternalLinkTargets_in_Page (page_key, page) =
 	let
 		structure = pageContent page
 		make_one :: Node id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (CrossLinkTarget id_u)
@@ -172,11 +173,11 @@ gather_InternalLinkTargets_in_Page page =
 		in (traverse >>> traverse) make_one (gather_addresses_by_user_in_Structure structure)
 
 gather_InternalLinkTargets_in_Pages :: 
-	Traversable pc => Base.Ord id_u =>
-	pc (Page id_u) ->
+	Base.Ord id_u =>
+	Array (Page id_u) ->
 	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Map.Map id_u (CrossLinkTarget id_u))
 gather_InternalLinkTargets_in_Pages pages = 
-	 (map (Fold.fold >>> Map.fromList) (traverse gather_InternalLinkTargets_in_Page pages))
+	 (map (Fold.fold >>> Map.fromList) (traverse gather_InternalLinkTargets_in_Page (Array.assocs pages)))
 
 -- divide to pages
 
@@ -236,10 +237,11 @@ compile_site ::
 compile_site input_structure = 
 	let
 		main_page = divide_to_pages_from_page [] input_structure
-		all_pages = get_subpages_of_page main_page
+		all_pages :: Array (Page id_u)
+		all_pages = array_from_list (Fold.toList (get_subpages_of_page main_page))
 		user_address_map :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (UserAddressMap id_u)
-		user_address_map = gather_InternalLinkTargets_in_Pages (get_subpages_of_page main_page)
-		in map (make_Site main_page (array_from_list (Fold.toList all_pages))) user_address_map
+		user_address_map = gather_InternalLinkTargets_in_Pages all_pages
+		in map (make_Site main_page all_pages) user_address_map
 
 melt_pages_to_single :: forall id_u . Structure id_u -> UI.StructureAsTree id_u id_u
 melt_pages_to_single (Tree.Node trunk children) =
