@@ -17,10 +17,12 @@ where
 
 import Control.Arrow ((&&&))
 import Control.Monad.State.Lazy (State, evalState)
-import Data.Array (listArray, (!))
+import Data.Ord (max)
+import Data.Tree (Tree)
+import Data.Array (array, (!))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import Prelude (String, Int, (+), (-))
+import Prelude (String, Int, (+))
 
 import qualified Control.Monad.State.Lazy as State
 import qualified Data.Array as Array
@@ -128,7 +130,7 @@ get_direct_subpages_of_page =
 	Optic.to_list of_Structure_SubPageTarget >>>
 	map sptPage
 
-get_subpages_of_page :: Page i -> Tree.Tree (Page i)
+get_subpages_of_page :: Page i -> Tree (Page i)
 get_subpages_of_page trunk =
 	Tree.Node trunk (map get_subpages_of_page (get_direct_subpages_of_page trunk))
 
@@ -201,7 +203,8 @@ page_node_as_link page trunk_node =
 				(Just (UI.LIn (Left (SubPageTarget page (UI.nodeIdAuto trunk_node)))))
 		in changer trunk_node
 
-divide_to_pages :: forall i . [Node i] -> Bool -> Structure i -> State PageKey (Structure i)
+
+divide_to_pages :: forall i . [Node i] -> Bool -> Structure i -> State PageKey (Structure i, [Tree (KeyedPage i)])
 divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 	let
 		trunk_node :: Node i
@@ -210,38 +213,50 @@ divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 			if may_treat_as_page_trunk && UI.nodeIsSeparatePage trunk_node
 				then 
 					let
-						make_the_tree :: KeyedPage i -> Structure i
-						make_the_tree (trunk_page_id, trunk_page :: Page i) = 
-							Tree.Node (page_node_as_link trunk_page trunk_node) []
+						make_the_tree :: Tree (KeyedPage i) -> (Structure i, [Tree (KeyedPage i)])
+						make_the_tree page_tree@(Tree.Node (trunk_page_id, trunk_page :: Page i) _) = 
+							(Tree.Node (page_node_as_link trunk_page trunk_node) [], [page_tree])
 						in map make_the_tree (divide_to_pages_from_page path_to_trunk whole_structure)
 				else
 					let
 						children = Tree.subForest whole_structure
 						recursive_call = divide_to_pages (trunk_node : path_to_trunk) True
+						sub_results :: State PageKey [(Structure i, [Tree (KeyedPage i)])]
 						sub_results = traverse recursive_call children
-						in map (Tree.Node trunk_node) sub_results
+						merge_the_subresult_pairs :: 
+							([Structure i], [[Tree (KeyedPage i)]]) -> (Structure i, [Tree (KeyedPage i)])
+						merge_the_subresult_pairs (page_contents, sub_pages) =
+							(Tree.Node trunk_node page_contents, Fold.concat sub_pages)
+						merge_the_subresults :: [(Structure i, [Tree (KeyedPage i)])] -> (Structure i, [Tree (KeyedPage i)])
+						merge_the_subresults = List.unzip >>> merge_the_subresult_pairs
+						in map merge_the_subresults sub_results
 
-divide_to_pages_from_page :: [Node i] -> Structure i -> State PageKey (KeyedPage i)
+divide_to_pages_from_page :: [Node i] -> Structure i -> State PageKey (Tree (KeyedPage i))
 divide_to_pages_from_page path_to_trunk whole_structure = 
 	do
-		new_structure <- divide_to_pages path_to_trunk False whole_structure
+		(new_structure, subtrees) <- divide_to_pages path_to_trunk False whole_structure
 		current_key <- State.get
 		State.modify (+ 1)
-		pure (current_key, Page path_to_trunk new_structure (List.null path_to_trunk))
-
-array_from_list :: [e] -> Array e
-array_from_list list = listArray (page_key_start, page_key_start + List.length list - 1) list
+		let new_page = Page path_to_trunk new_structure (List.null path_to_trunk)
+		pure (Tree.Node (current_key, new_page) subtrees)
 
 compile_site ::
-	forall id_u .
-	Base.Ord id_u =>
-	Structure id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site id_u)
+	forall i .
+	Base.Ord i =>
+	Structure i -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site i)
 compile_site input_structure = 
 	let
-		(_, main_page) = evalState (divide_to_pages_from_page [] input_structure) page_key_start
-		all_pages :: Array (Page id_u)
-		all_pages = array_from_list (Fold.toList (get_subpages_of_page main_page))
-		user_address_map :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (UserAddressMap id_u)
+		pages_tree :: Tree (KeyedPage i)
+		pages_tree = evalState (divide_to_pages_from_page [] input_structure) page_key_start
+		Tree.Node (_, main_page) _  = pages_tree
+		all_pages :: Array (Page i)
+		all_pages = 
+			let 
+				pairs = Fold.toList pages_tree
+				keys = map fst pairs
+				max_key = Fold.foldl' max page_key_start keys
+				in array (page_key_start, max_key) pairs
+		user_address_map :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (UserAddressMap i)
 		user_address_map = gather_InternalLinkTargets_in_Pages all_pages
 		in map (make_Site main_page all_pages) user_address_map
 
