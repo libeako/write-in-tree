@@ -311,9 +311,12 @@ compile_a_page sentencing site output_folder_path page =
 to_technical :: Bool -> FilePath -> OData.Site UI.NodeIdU -> T.FileOps
 to_technical sentencing output_folder_path site = 
 	let
-		pages = OData.get_subpages_of_page (OData.siteMainPage site)
-		main_page = Tree.rootLabel pages
-		regular_files = map (compile_a_page sentencing site output_folder_path) pages
+		pages = OData.sitePageRelations site
+		main_page = OData.get_page_of_Site_at site (Tree.rootLabel pages)
+		regular_files =
+			map
+				(OData.get_page_of_Site_at site >>> compile_a_page sentencing site output_folder_path)
+				pages
 		redirect_file = 
 			let 
 				main_content = Html.redirect_page (page_file_path (OData.id_of_page main_page))

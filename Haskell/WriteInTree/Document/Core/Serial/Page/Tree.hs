@@ -9,7 +9,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	Page (..), Site (..),
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
-	title_of_section, title_of_page, id_of_page, is_inline_a_page_break, get_subpages_of_page,
+	title_of_section, title_of_page, id_of_page, is_inline_a_page_break,
 	
 	melt_pages_to_single, compile_site, layer
 )
@@ -49,22 +49,22 @@ type KeyedPage i = (PageKey, Page i)
 type PagePath = [String]
 
 data SubPageTarget id_u =
-	SubPageTarget { sptPage :: Page id_u, sptId :: Text }
+	SubPageTarget { sptPageKey :: PageKey, sptId :: Text }
 	deriving (Eq)
 
-type LinkInternalTarget (id_u :: Type) = Either (SubPageTarget id_u) id_u
+type LinkInternalTarget (i :: Type) = Either (SubPageTarget i) i
 
-type Link (id_u :: Type) = UI.Link (LinkInternalTarget id_u)
-type Inline (id_u :: Type) = UI.Inline (LinkInternalTarget id_u)
-type Paragraph (id_u :: Type) = UI.Paragraph (LinkInternalTarget id_u)
-type Node (id_u :: Type) = UI.Node id_u (LinkInternalTarget id_u)
+type Link (i :: Type) = UI.Link (LinkInternalTarget i)
+type Inline (i :: Type) = UI.Inline (LinkInternalTarget i)
+type Paragraph (i :: Type) = UI.Paragraph (LinkInternalTarget i)
+type Node (i :: Type) = UI.Node i (LinkInternalTarget i)
 
-type Structure (id_u :: Type) = Tree.Tree (Node id_u)
+type Structure (i :: Type) = Tree.Tree (Node i)
 
-data Page (id_u :: Type) = Page
+data Page (i :: Type) = Page
 	{
-	pagePathToTrunk :: [Node id_u],
-	pageContent :: Structure id_u,
+	pagePathToTrunk :: [Node i],
+	pageContent :: Structure i,
 	pageIsTrunk :: Bool
 	}
 	deriving (Eq)
@@ -74,30 +74,31 @@ data CrossLinkTarget = CrossLinkTarget { cltPage :: PageKey } deriving (Eq)
 	
 type UserAddressMap id_u = Map.Map id_u CrossLinkTarget
 
-data Site (id_u :: Type) = Site
+data Site (i :: Type) = Site
 	{
-	siteMainPage :: Page id_u,
-	siteAllPages :: Array (Page id_u),
-	siteUserAddressMap :: UserAddressMap id_u,
-	sitePageMap :: Map.Map Text (Page id_u)
+	siteMainPage :: Page i,
+	sitePageRelations :: Tree PageKey,
+	siteAllPages :: Array (Page i),
+	siteUserAddressMap :: UserAddressMap i,
+	sitePageMap :: Map.Map Text (Page i)
 	}
 	deriving (Eq)
 
-get_page_of_Site_at :: Site id_u -> PageKey -> Page id_u
+get_page_of_Site_at :: Site i -> PageKey -> Page i
 get_page_of_Site_at site key = siteAllPages site ! key
 
-get_CrossLinkTarget_page :: Site id_u -> CrossLinkTarget -> Page id_u
+get_CrossLinkTarget_page :: Site i -> CrossLinkTarget -> Page i
 get_CrossLinkTarget_page site = cltPage >>> get_page_of_Site_at site
 
-make_Site :: forall id_u . Page id_u -> Array (Page id_u)-> UserAddressMap id_u -> Site id_u
-make_Site main_page all_pages ua_map =
+make_Site :: forall i . Page i -> Tree PageKey -> Array (Page i)-> UserAddressMap i -> Site i
+make_Site main_page page_relations all_pages ua_map =
 	let
 		page_map =
 			let
 				make_key_value_pair :: Page id_u -> (Text, Page id_u)
 				make_key_value_pair = id_of_page &&& id
-				in Map.fromList (map make_key_value_pair (Fold.toList (get_subpages_of_page main_page)))
-	in Site main_page all_pages ua_map page_map
+				in Map.fromList (map make_key_value_pair (Fold.toList all_pages))
+	in Site main_page page_relations all_pages ua_map page_map
 
 is_link_a_page_break :: Link id_u -> Bool
 is_link_a_page_break =
@@ -124,19 +125,8 @@ of_Structure_SubPageTarget ::
 of_Structure_SubPageTarget =
 	Category2.identity >**>^ Optic.prism_Left >**>^ UI.internal_address_in_tree
 
-get_direct_subpages_of_page :: Page i -> [Page i]
-get_direct_subpages_of_page =
-	pageContent >>>
-	Optic.to_list of_Structure_SubPageTarget >>>
-	map sptPage
-
-get_subpages_of_page :: Page i -> Tree (Page i)
-get_subpages_of_page trunk =
-	Tree.Node trunk (map get_subpages_of_page (get_direct_subpages_of_page trunk))
-
 content_in_Page :: Optic.Lens' (Structure idts) (Page idts)
 content_in_Page = Optic.lens_from_get_set pageContent (\ c p -> p { pageContent = c })
-
 
 trunk_node_of_page :: Page idts -> Node idts
 trunk_node_of_page = pageContent >>> Tree.rootLabel
@@ -192,15 +182,15 @@ gather_InternalLinkTargets_in_Pages pages =
 
 -- | creates an output clone of the node 
 -- which will be just a link to the page that the input node is a trunk of.
-page_node_as_link :: forall id_u . Page id_u -> Node id_u -> Node id_u
-page_node_as_link page trunk_node =
+page_node_as_link :: forall i . PageKey -> Node i -> Node i
+page_node_as_link page_key trunk_node =
 	let
-		changer :: Node id_u -> Node id_u
+		changer :: Node i -> Node i
 		changer =
 			id
 			>>> Optic.fill UI.inNode_idu_source_mb Nothing
 			>>> Optic.fill UI.links_in_Node 
-				(Just (UI.LIn (Left (SubPageTarget page (UI.nodeIdAuto trunk_node)))))
+				(Just (UI.LIn (Left (SubPageTarget page_key (UI.nodeIdAuto trunk_node)))))
 		in changer trunk_node
 
 
@@ -215,7 +205,7 @@ divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 					let
 						make_the_tree :: Tree (KeyedPage i) -> (Structure i, [Tree (KeyedPage i)])
 						make_the_tree page_tree@(Tree.Node (trunk_page_id, trunk_page :: Page i) _) = 
-							(Tree.Node (page_node_as_link trunk_page trunk_node) [], [page_tree])
+							(Tree.Node (page_node_as_link trunk_page_id trunk_node) [], [page_tree])
 						in map make_the_tree (divide_to_pages_from_page path_to_trunk whole_structure)
 				else
 					let
@@ -258,19 +248,19 @@ compile_site input_structure =
 				in array (page_key_start, max_key) pairs
 		user_address_map :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (UserAddressMap i)
 		user_address_map = gather_InternalLinkTargets_in_Pages all_pages
-		in map (make_Site main_page all_pages) user_address_map
+		in map (make_Site main_page (map fst pages_tree) all_pages) user_address_map
 
-melt_pages_to_single :: forall id_u . Structure id_u -> UI.StructureAsTree id_u id_u
-melt_pages_to_single (Tree.Node trunk children) =
+melt_pages_to_single :: forall i . Site i -> Structure i -> UI.StructureAsTree i i
+melt_pages_to_single site (Tree.Node trunk children) =
 	let
-		melted_children = map melt_pages_to_single children
+		melted_children = map (melt_pages_to_single site) children
 		trunk_node_inline = UI.nodeContent trunk
-		make_result_with_link :: Maybe (UI.Link id_u) -> UI.StructureAsTree id_u id_u
+		make_result_with_link :: Maybe (UI.Link i) -> UI.StructureAsTree i i
 		make_result_with_link link =
 			let
-				new_trunk_node_inline :: UI.Inline id_u
+				new_trunk_node_inline :: UI.Inline i
 				new_trunk_node_inline = UI.Inline (UI.ilVisual trunk_node_inline) link
-				new_trunk_node :: UI.Node id_u id_u
+				new_trunk_node :: UI.Node i i
 				new_trunk_node = Optic.fill UI.inNode_content new_trunk_node_inline trunk
 				in Tree.Node new_trunk_node melted_children			
 		in
@@ -281,12 +271,12 @@ melt_pages_to_single (Tree.Node trunk children) =
 						UI.LEx addr -> make_result_with_link (Just (UI.LEx addr))
 						UI.LIn addr ->
 							case addr of
-								Left (SubPageTarget sub_page _) ->
-									melt_pages_to_single (pageContent sub_page)
+								Left (SubPageTarget sub_page_key _) ->
+									melt_pages_to_single site (pageContent (get_page_of_Site_at site sub_page_key))
 								Right a -> make_result_with_link (Just (UI.LIn a))
 
 render :: Site UI.NodeIdU -> UI.StructureAsTree UI.NodeIdU UI.NodeIdU
-render = siteMainPage >>> pageContent >>> melt_pages_to_single
+render site = melt_pages_to_single site (pageContent (siteMainPage site))
 
 parse ::
 	UI.StructureAsTree UI.NodeIdU UI.NodeIdU ->

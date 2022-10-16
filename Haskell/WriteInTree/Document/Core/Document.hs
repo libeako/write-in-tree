@@ -28,8 +28,11 @@ uids_int_doc_with_nodes =
 -- optics :
 
 tree_in_Document :: Document id_u -> StructureAsTree id_u id_u
-tree_in_Document =
-	docSite >>>
-	Page.siteMainPage >>>
-	Page.pageContent >>>
-	Page.melt_pages_to_single
+tree_in_Document d =
+	let
+		site = docSite d
+		pipe = 
+			Page.siteMainPage >>>
+			Page.pageContent >>>
+			Page.melt_pages_to_single site
+		in pipe site
