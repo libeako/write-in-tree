@@ -76,7 +76,6 @@ type UserAddressMap id_u = Map.Map id_u CrossLinkTarget
 
 data Site (i :: Type) = Site
 	{
-	siteMainPage :: Page i,
 	sitePageRelations :: Tree PageKey,
 	siteAllPages :: Array (Page i),
 	siteUserAddressMap :: UserAddressMap i,
@@ -87,18 +86,22 @@ data Site (i :: Type) = Site
 get_page_of_Site_at :: Site i -> PageKey -> Page i
 get_page_of_Site_at site key = siteAllPages site ! key
 
+get_main_page_of_Site :: Site i -> Page i
+get_main_page_of_Site site =
+	get_page_of_Site_at site (Tree.rootLabel (sitePageRelations site))
+
 get_CrossLinkTarget_page :: Site i -> CrossLinkTarget -> Page i
 get_CrossLinkTarget_page site = cltPage >>> get_page_of_Site_at site
 
-make_Site :: forall i . Page i -> Tree PageKey -> Array (Page i)-> UserAddressMap i -> Site i
-make_Site main_page page_relations all_pages ua_map =
+make_Site :: forall i . Tree PageKey -> Array (Page i)-> UserAddressMap i -> Site i
+make_Site page_relations all_pages ua_map =
 	let
 		page_map =
 			let
 				make_key_value_pair :: Page id_u -> (Text, Page id_u)
 				make_key_value_pair = id_of_page &&& id
 				in Map.fromList (map make_key_value_pair (Fold.toList all_pages))
-	in Site main_page page_relations all_pages ua_map page_map
+	in Site page_relations all_pages ua_map page_map
 
 is_link_a_page_break :: Link id_u -> Bool
 is_link_a_page_break =
@@ -238,7 +241,6 @@ compile_site input_structure =
 	let
 		pages_tree :: Tree (KeyedPage i)
 		pages_tree = evalState (divide_to_pages_from_page [] input_structure) page_key_start
-		Tree.Node (_, main_page) _  = pages_tree
 		all_pages :: Array (Page i)
 		all_pages = 
 			let 
@@ -248,7 +250,7 @@ compile_site input_structure =
 				in array (page_key_start, max_key) pairs
 		user_address_map :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (UserAddressMap i)
 		user_address_map = gather_InternalLinkTargets_in_Pages all_pages
-		in map (make_Site main_page (map fst pages_tree) all_pages) user_address_map
+		in map (make_Site (map fst pages_tree) all_pages) user_address_map
 
 melt_pages_to_single :: forall i . Site i -> Structure i -> UI.StructureAsTree i i
 melt_pages_to_single site (Tree.Node trunk children) =
@@ -276,7 +278,9 @@ melt_pages_to_single site (Tree.Node trunk children) =
 								Right a -> make_result_with_link (Just (UI.LIn a))
 
 render :: Site UI.NodeIdU -> UI.StructureAsTree UI.NodeIdU UI.NodeIdU
-render site = melt_pages_to_single site (pageContent (siteMainPage site))
+render site =
+	melt_pages_to_single site
+		(pageContent (get_main_page_of_Site site))
 
 parse ::
 	UI.StructureAsTree UI.NodeIdU UI.NodeIdU ->
