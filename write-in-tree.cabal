@@ -28,7 +28,7 @@ common common
     -Wname-shadowing -Wincomplete-record-updates -Woverflowed-literals -Wmonomorphism-restriction
     -Wwrong-do-bind -Wunticked-promoted-constructors -Wunsupported-llvm-version
     -Worphans -Wsemigroup -Wnoncanonical-monoid-instances -Wnoncanonical-monad-instances
-    -Wredundant-constraints -Wunused-imports -Wunused-foralls -Wmissing-signatures -Wcompat
+    -Wredundant-constraints -Wunused-imports -Wunused-packages -Wmissing-signatures -Wcompat
     -Wno-missing-home-modules -Werror -fshow-warning-groups
     -O -fspecialise-aggressively -fexpose-all-unfoldings
   build-depends:
@@ -40,7 +40,6 @@ common common
     , filepath <=1.4
     , mtl >=2.2 && <2.3
     , optparse-applicative >=0.14 && <0.17
-    , text >=1.2 && <1.3
     , xml >=1.3 && <1.4
   default-language: Haskell2010
   other-modules:
