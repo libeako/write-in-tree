@@ -114,7 +114,6 @@ wrap_by_header_content =
 		Nothing -> id
 		Just header -> wrap_subcontent_by_div >>> pure >>> (header :)
 
-
 render_inline_visual :: Text -> Xml.ContentL
 render_inline_visual t = Xml.text t
 
@@ -124,7 +123,7 @@ render_link =
 		wrap_with_link_to :: String -> Fn.Endo Xml.ContentL
 		wrap_with_link_to target = pure >>> Html.with_link_to target >>> Xml.element_as_content
 		get_address :: OData.Link UI.NodeIdU -> OData.Site UI.NodeIdU -> String
-		get_address link = OData.siteUserAddressMap >>> flip link_to_address link
+		get_address link site = link_to_address site (OData.siteUserAddressMap site) link 
 	in
 		\case
 			Nothing -> const id
@@ -275,8 +274,8 @@ page_file_name page = page_file_name_from_id (OData.id_of_page page)
 page_file_path :: Text -> FilePath
 page_file_path page_id = Fp.joinPath ["c", page_file_name_from_id page_id]
 
-link_to_address :: OData.UserAddressMap UI.NodeIdU -> OData.Link UI.NodeIdU -> String
-link_to_address address_map = 
+link_to_address :: OData.Site UI.NodeIdU -> OData.UserAddressMap UI.NodeIdU -> OData.Link UI.NodeIdU -> String
+link_to_address site address_map = 
 	\ case
 		UI.LIn node_id -> 
 			case node_id of
@@ -288,9 +287,9 @@ link_to_address address_map =
 								in 
 									"internal error : key " <> idu_text <>
 									" is not in address map during link resolution"
-						ilt :: OData.CrossLinkTarget UI.NodeIdU
+						ilt :: OData.CrossLinkTarget
 						ilt = Base.fromMaybe (Base.error error_message) (Map.lookup idu address_map)
-						in page_file_name (OData.cltPage ilt)
+						in page_file_name (OData.get_CrossLinkTarget_page site ilt)
 		UI.LEx a -> a
 
 node_address_for_navigation_bar :: OData.Site UI.NodeIdU -> OData.Node UI.NodeIdU -> Maybe String

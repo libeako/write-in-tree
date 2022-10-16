@@ -7,6 +7,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	Link, Inline, Paragraph, Node, Structure,
 	UserAddressMap,
 	Page (..), Site (..),
+	get_page_of_Site_at, get_CrossLinkTarget_page,
 
 	title_of_section, title_of_page, id_of_page, is_inline_a_page_break, get_subpages_of_page,
 	
@@ -15,7 +16,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 where
 
 import Control.Arrow ((&&&))
-import Data.Array (listArray)
+import Data.Array (listArray, (!))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String, Int, (+), (-))
@@ -35,8 +36,8 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
-type PageId = Int
-type Array = Array.Array PageId
+type PageKey = Int
+type Array = Array.Array PageKey
 
 type PagePath = [String]
 
@@ -62,14 +63,9 @@ data Page (id_u :: Type) = Page
 	deriving (Eq)
 
 {-| Link address to page but not to sub-page. -}
-data CrossLinkTarget idts =
-	CrossLinkTarget
-	{ 
-	cltPage :: Page idts
-	}
-	deriving (Eq)
+data CrossLinkTarget = CrossLinkTarget { cltPage :: PageKey } deriving (Eq)
 	
-type UserAddressMap id_u = Map.Map id_u (CrossLinkTarget id_u)
+type UserAddressMap id_u = Map.Map id_u CrossLinkTarget
 
 data Site (id_u :: Type) = Site
 	{
@@ -79,6 +75,12 @@ data Site (id_u :: Type) = Site
 	sitePageMap :: Map.Map Text (Page id_u)
 	}
 	deriving (Eq)
+
+get_page_of_Site_at :: Site id_u -> PageKey -> Page id_u
+get_page_of_Site_at site key = siteAllPages site ! key
+
+get_CrossLinkTarget_page :: Site id_u -> CrossLinkTarget -> Page id_u
+get_CrossLinkTarget_page site = cltPage >>> get_page_of_Site_at site
 
 make_Site :: forall id_u . Page id_u -> Array (Page id_u)-> UserAddressMap id_u -> Site id_u
 make_Site main_page all_pages ua_map =
@@ -152,14 +154,14 @@ gather_addresses_by_user_in_Structure =
 
 gather_InternalLinkTargets_in_Page ::
 	forall id_u .
-	(PageId, Page id_u) -> Either (Pos.PositionedMb (Accu.Accumulated Text)) [(id_u, CrossLinkTarget id_u)]
+	(PageKey, Page id_u) -> Either (Pos.PositionedMb (Accu.Accumulated Text)) [(id_u, CrossLinkTarget)]
 gather_InternalLinkTargets_in_Page (page_key, page) =
 	let
 		structure = pageContent page
-		make_one :: Node id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (CrossLinkTarget id_u)
+		make_one :: Node id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) CrossLinkTarget
 		make_one node =
 			if UI.nodeIdAuto node == UI.nodeIdAuto (Tree.rootLabel structure)
-				then Right (CrossLinkTarget page)
+				then Right (CrossLinkTarget page_key)
 				else
 					Left
 						(
@@ -172,10 +174,10 @@ gather_InternalLinkTargets_in_Page (page_key, page) =
 						)
 		in (traverse >>> traverse) make_one (gather_addresses_by_user_in_Structure structure)
 
-gather_InternalLinkTargets_in_Pages :: 
+gather_InternalLinkTargets_in_Pages ::
 	Base.Ord id_u =>
 	Array (Page id_u) ->
-	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Map.Map id_u (CrossLinkTarget id_u))
+	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Map.Map id_u (CrossLinkTarget))
 gather_InternalLinkTargets_in_Pages pages = 
 	 (map (Fold.fold >>> Map.fromList) (traverse gather_InternalLinkTargets_in_Page (Array.assocs pages)))
 
