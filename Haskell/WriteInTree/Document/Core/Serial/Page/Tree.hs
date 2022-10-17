@@ -30,7 +30,7 @@ import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Tree as Tree
-import qualified Fana.Data.HeteroPair as HePair
+import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -128,16 +128,16 @@ of_Structure_SubPageTarget ::
 of_Structure_SubPageTarget =
 	Category2.identity >**>^ Optic.prism_Left >**>^ UI.internal_address_in_tree
 
-content_in_Page :: Optic.Lens' (Structure idts) (Page idts)
+content_in_Page :: Optic.Lens' (Structure i) (Page i)
 content_in_Page = Optic.lens_from_get_set pageContent (\ c p -> p { pageContent = c })
 
-trunk_node_of_page :: Page idts -> Node idts
+trunk_node_of_page :: Page i -> Node i
 trunk_node_of_page = pageContent >>> Tree.rootLabel
 
-both_id_of_page :: Page idts -> (Text, Maybe idts)
+both_id_of_page :: Page i -> (Text, Maybe i)
 both_id_of_page = trunk_node_of_page >>> UI.both_id_of_node
 
-id_of_page :: Page id_u -> Text
+id_of_page :: Page i -> Text
 id_of_page = trunk_node_of_page >>> UI.nodeIdAuto
 
 
@@ -145,39 +145,22 @@ id_of_page = trunk_node_of_page >>> UI.nodeIdAuto
 
 -- gather addresses by user
 
-gather_addresses_by_user_in_Node :: Node id_u -> Maybe (id_u, Node id_u)
-gather_addresses_by_user_in_Node n = map (HePair.before n) (UI.uid_of_node n)
-
-gather_addresses_by_user_in_Structure :: Structure id_u -> [(id_u, Node id_u)]
-gather_addresses_by_user_in_Structure = 
-	Fold.foldMap (gather_addresses_by_user_in_Node >>> Fold.toList)
-
 gather_InternalLinkTargets_in_Page ::
-	forall id_u .
-	(PageKey, Page id_u) -> Either (Pos.PositionedMb (Accu.Accumulated Text)) [(id_u, CrossLinkTarget)]
+	forall i .
+	(PageKey, Page i) -> Either (Pos.PositionedMb (Accu.Accumulated Text)) [(i, CrossLinkTarget)]
 gather_InternalLinkTargets_in_Page (page_key, page) =
 	let
 		structure = pageContent page
-		make_one :: Node id_u -> Either (Pos.PositionedMb (Accu.Accumulated Text)) CrossLinkTarget
-		make_one node =
-			if UI.nodeIdAuto node == UI.nodeIdAuto (Tree.rootLabel structure)
-				then Right (CrossLinkTarget page_key)
-				else
-					Left
-						(
-						Pos.maybefy_positioned
-							(
-							Pos.position_error
-								(UI.nodeWitSource node)
-								(Accu.single "non-page link target")
-							)
-						)
-		in (traverse >>> traverse) make_one (gather_addresses_by_user_in_Structure structure)
+		trunk_node :: Node i
+		trunk_node = Tree.rootLabel structure
+		meaningful_name_mb :: Maybe i
+		meaningful_name_mb = UI.uid_of_node trunk_node
+		in (Fold.toList >>> Right) (map (Pair.before (CrossLinkTarget page_key)) meaningful_name_mb)
 
 gather_InternalLinkTargets_in_Pages ::
-	Base.Ord id_u =>
-	Array (Page id_u) ->
-	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Map.Map id_u (CrossLinkTarget))
+	Base.Ord i =>
+	Array (Page i) ->
+	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Map.Map i (CrossLinkTarget))
 gather_InternalLinkTargets_in_Pages pages = 
 	 (map (Fold.fold >>> Map.fromList) (traverse gather_InternalLinkTargets_in_Page (Array.assocs pages)))
 
