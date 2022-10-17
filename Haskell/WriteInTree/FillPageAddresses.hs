@@ -1,33 +1,50 @@
 module WriteInTree.FillPageAddresses
 (
-	-- ~ fill_page_addresses,
+	fill_page_addresses,
 )
 where
 
 import Prelude (IO)
+import Control.Monad.State.Lazy (State)
 import Fana.Prelude
--- ~ import Technical.Else (tell_error)
+import Technical.Else (tell_error)
 import System.FilePath (FilePath)
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 
+import qualified Control.Monad.State.Lazy as State
+import qualified Data.List as List
+import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.File as File
+import qualified WriteInTree.Document.Data as Data
 
 
 type Text = Base.String
 
-type Doc = File.DocData''
-type DocCore = File.DocCoreData''
+type Doc = File.DocData
+type DocCore = File.DocCoreData
 
-write :: Bool -> FilePath -> Doc -> IO ()
-write do_readback_test address doc = 
+write :: FilePath -> Doc -> IO ()
+write address doc = File.write'' address doc
+
+algorithm' :: [Text] -> Doc -> Doc
+algorithm' new_addresses =
+	let
+		step :: Maybe PageAddress -> State [Text] (Maybe PageAddress)
+		step _ =
+			do
+				addresses <- State.get
+				let current_address = List.head addresses
+				State.modify List.tail
+				pure (Just (PageAddress current_address))
+		in Optic.traverse Data.page_addresses_in_document step >>> flip State.evalState new_addresses
+
+algorithm :: Text -> Doc -> Doc
+algorithm = List.lines >>> algorithm'
+
+fill_page_addresses :: FilePath {- the addresses to fill with -} -> FilePath {- input -} -> FilePath {- output -} -> IO ()
+fill_page_addresses addresses_file input_address output_address = 
 	do
-		File.write'' address doc
-
-
-
--- ~ fill_page_addresses :: FilePath {- the addresses to fill with -} -> FilePath {- input -} -> FilePath {- output -} -> IO ()
--- ~ fill_page_addresses addresses_file input_address output_address = 
-	-- ~ let
-		-- ~ from_doc_result :: Either File.Error Doc -> IO ()
-		-- ~ from_doc_result = Base.either tell_error (write do_readback_test output_address)
-		-- ~ in File.read'' input_address >>= from_doc_result
+		addresses_string <- Base.readFile addresses_file
+		input_doc_result <- File.read'' input_address
+		Base.either tell_error (algorithm addresses_string >>> write output_address) input_doc_result

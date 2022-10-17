@@ -2,7 +2,6 @@ module WriteInTree.Document.File
 (
 	Error, 
 	DocData, DocCoreData,
-	DocData'', DocCoreData'',
 	write'', read, read''
 )
 where
@@ -34,19 +33,16 @@ type WithConcreteDataParams t = t CoreData.NodeIdU (Page.LinkInternalTarget Core
 
 type A = Label.Elem Text
 
-type DocData'' = WithConcreteDataParams Data
-type DocCoreData'' = CoreData.Document CoreData.NodeIdU
-
-type DocData = WithConcreteDataParams Data
+type DocData = Data CoreData.NodeIdU
 type DocCoreData = CoreData.Document CoreData.NodeIdU
 
 render_sep_props :: DocSepProps -> String
 render_sep_props = SepPropsSimco.to_simco_text
 
-render_core'' :: DocSepProps -> DocCoreData'' -> String
+render_core'' :: DocSepProps -> DocCoreData -> String
 render_core'' config = Optic.down (CoreSerial.layer config)
 
-render_all'' :: DocData'' -> FolderStructure String
+render_all'' :: DocData -> FolderStructure String
 render_all'' d =
 	let
 		config = doc_sep_props d
@@ -54,7 +50,7 @@ render_all'' d =
 		core_text = render_core'' config (doc_core d)
 		in FolderStructure config_text core_text
 
-write'' :: FilePath -> DocData'' -> IO ()
+write'' :: FilePath -> DocData -> IO ()
 write'' address d = Folder.write address (render_all'' d)
 
 
@@ -71,13 +67,13 @@ instance Fana.Showable Text Error where
 parse_sep_props :: String -> Either Error DocSepProps
 parse_sep_props = SepPropsSimco.parse_from_text >>> Bifunctor.first ErrorInSeparateProperties
 
-parse_core'' :: DocSepProps -> String -> Either Error DocCoreData''
+parse_core'' :: DocSepProps -> String -> Either Error DocCoreData
 parse_core'' config = Optic.piso_interpret (CoreSerial.layer config) >>> Bifunctor.first ErrorInCore
 
 parse_core :: DocSepProps -> String -> Either Error DocCoreData
 parse_core config = Optic.piso_interpret (CoreSerial.layer config) >>> Bifunctor.first ErrorInCore
 
-parse_all'' :: FolderStructure String -> Either Error DocData''
+parse_all'' :: FolderStructure String -> Either Error DocData
 parse_all'' fs = do
 	config <- parse_sep_props (fs_separate_properties fs)
 	core <- parse_core'' config (fs_tree fs)
@@ -89,7 +85,7 @@ parse_all fs = do
 	core <- parse_core config (fs_tree fs)
 	pure (Data config core)
 
-read'' :: FilePath -> IO (Either Error DocData'')
+read'' :: FilePath -> IO (Either Error DocData)
 read'' = Folder.read >>> map parse_all''
 
 read :: FilePath -> IO (Either Error DocData)

@@ -9,11 +9,13 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	Page (..), Site (..),
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
-	title_of_section, title_of_page, id_of_page, is_inline_a_page_break,
+	title_of_section, title_of_page, id_of_page, is_inline_a_page_break, page_addresses_in_site,
 	
 	melt_pages_to_single, compile_site, layer
 )
 where
+
+import Prelude (String, Int, (+))
 
 import Control.Arrow ((&&&))
 import Control.Monad.State.Lazy (State, evalState)
@@ -22,7 +24,7 @@ import Data.Tree (Tree)
 import Data.Array (array, (!))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import Prelude (String, Int, (+))
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 
 import qualified Control.Monad.State.Lazy as State
 import qualified Data.Array as Array
@@ -31,6 +33,7 @@ import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Tree as Tree
 import qualified Fana.Data.HeteroPair as Pair
+import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -45,6 +48,7 @@ page_key_start :: PageKey
 page_key_start = 1
 type Array = Array.Array PageKey
 type KeyedPage i = (PageKey, Page i)
+type AllPages i = Array (Page i)
 
 type PagePath = [String]
 
@@ -77,7 +81,7 @@ type UserAddressMap id_u = Map.Map id_u CrossLinkTarget
 data Site (i :: Type) = Site
 	{
 	sitePageRelations :: Tree PageKey,
-	siteAllPages :: Array (Page i),
+	siteAllPages :: AllPages i,
 	siteUserAddressMap :: UserAddressMap i,
 	sitePageMap :: Map.Map Text (Page i)
 	}
@@ -93,7 +97,7 @@ get_main_page_of_Site site =
 get_CrossLinkTarget_page :: Site i -> CrossLinkTarget -> Page i
 get_CrossLinkTarget_page site = cltPage >>> get_page_of_Site_at site
 
-make_Site :: forall i . Tree PageKey -> Array (Page i)-> UserAddressMap i -> Site i
+make_Site :: forall i . Tree PageKey -> AllPages i-> UserAddressMap i -> Site i
 make_Site page_relations all_pages ua_map =
 	let
 		page_map =
@@ -131,6 +135,9 @@ of_Structure_SubPageTarget =
 content_in_Page :: Optic.Lens' (Structure i) (Page i)
 content_in_Page = Optic.lens_from_get_set pageContent (\ c p -> p { pageContent = c })
 
+trunk_node_in_Page :: Optic.Lens' (Node i) (Page i)
+trunk_node_in_Page = Tree.trunk_in_tree >**>^ content_in_Page
+
 trunk_node_of_page :: Page i -> Node i
 trunk_node_of_page = pageContent >>> Tree.rootLabel
 
@@ -139,6 +146,21 @@ both_id_of_page = trunk_node_of_page >>> UI.both_id_of_node
 
 id_of_page :: Page i -> Text
 id_of_page = trunk_node_of_page >>> UI.nodeIdAuto
+
+pages_in_site :: Optic.Lens' (AllPages i) (Site i)
+pages_in_site =
+	Optic.lens_from_get_set
+		siteAllPages
+		(\ aps (Site relations _ meaningful_ids page_map) -> Site relations aps meaningful_ids page_map)
+
+trunk_node_in_site :: Optic.Traversal' (Node i) (Site i)
+trunk_node_in_site =
+	Category2.identity >**>^
+	trunk_node_in_Page >**>^ Optic.from_Traversable >**>^ pages_in_site
+
+
+page_addresses_in_site :: Optic.Traversal' (Maybe PageAddress) (Site i)
+page_addresses_in_site = UI.page_addresses_in_Node >**>^ trunk_node_in_site
 
 
 -- compilation

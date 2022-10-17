@@ -167,6 +167,9 @@ internal_address_in_node =
 	>**>^ internal_address_in_Inline
 	>**>^ inNode_content
 
+page_addresses_in_Node :: Optic.Traversal' (Maybe PageAddress) (Node i ia)
+page_addresses_in_Node = Category2.identity >**>^ inLabel_page_address >**>^ inElem_labels >**>^ inNode_source
+
 node_in_tree ::
 	Optic.Traversal
 		(Node id_u_1 ia1) (Node id_u_2 ia2)
@@ -186,9 +189,6 @@ internal_address_in_tree ::
 	forall ia1 ia2 id_u .
 	Optic.Traversal ia1 ia2 (StructureAsTree id_u ia1) (StructureAsTree id_u ia2)
 internal_address_in_tree = internal_address_in_node >**>^ node_in_tree
-
-page_addresses_in_Tree :: Optic.Traversal' (Maybe PageAddress) (StructureAsTree id_u ia)
-page_addresses_in_Tree = Category2.identity >**>^ inLabel_page_address >**>^ inElem_labels >**>^ inNode_source >**>^ node_in_tree
 
 texts_in_Tree :: forall id_u ia . Optic.Traversal' Text (StructureAsTree id_u ia)
 texts_in_Tree = Category2.identity >**>^ texts_in_Node >**>^ node_in_tree

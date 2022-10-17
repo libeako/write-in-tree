@@ -17,8 +17,8 @@ import qualified WriteInTree.Document.File as File
 
 type Text = Base.String
 
-type Doc = File.DocData''
-type DocCore = File.DocCoreData''
+type Doc = File.DocData
+type DocCore = File.DocCoreData
 
 write :: Bool -> FilePath -> Doc -> IO ()
 write do_readback_test address doc = 
