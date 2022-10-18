@@ -237,7 +237,7 @@ render_page_body_content :: Bool -> OData.Site UI.NodeIdU -> OData.Page UI.NodeI
 render_page_body_content sentencing site page = 
 	let
 		page_is_trunk :: Bool
-		page_is_trunk = OData.pageIsTrunk page
+		page_is_trunk = OData.page_is_trunk page
 		node_tree = OData.pageContent page
 		trunk_node = Tree.rootLabel node_tree
 		path_to_trunk = OData.pagePathToTrunk page
@@ -257,7 +257,7 @@ render_page :: Bool -> OData.Site UI.NodeIdU -> OData.Page UI.NodeIdU -> Xml.Ele
 render_page sentencing site page = 
 	let
 		classes :: [Text]
-		classes = html_classes_of_whether_page_is_trunk (OData.pageIsTrunk page)
+		classes = html_classes_of_whether_page_is_trunk (OData.page_is_trunk page)
 		in 
 			Html.page classes (Html.header (OData.title_of_page page) "style.css")
 				(render_page_body_content sentencing site page)

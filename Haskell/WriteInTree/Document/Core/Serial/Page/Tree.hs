@@ -6,7 +6,8 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	LinkInternalTarget (..),
 	Link, Inline, Paragraph, Node, Structure,
 	UserAddressMap,
-	Page (..), Site (..),
+	Page (..), page_is_trunk,
+	Site (..),
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
 	title_of_section, title_of_page, id_of_page, is_inline_a_page_break, page_addresses_in_site,
@@ -68,10 +69,12 @@ type Structure (i :: Type) = Tree.Tree (Node i)
 data Page (i :: Type) = Page
 	{
 	pagePathToTrunk :: [Node i],
-	pageContent :: Structure i,
-	pageIsTrunk :: Bool
+	pageContent :: Structure i
 	}
 	deriving (Eq)
+
+page_is_trunk :: Page i -> Bool
+page_is_trunk = pagePathToTrunk >>> List.null
 
 {-| Link address to page but not to sub-page. -}
 data CrossLinkTarget = CrossLinkTarget { cltPage :: PageKey } deriving (Eq)
@@ -235,7 +238,7 @@ divide_to_pages_from_page path_to_trunk whole_structure =
 		(new_structure, subtrees) <- divide_to_pages path_to_trunk False whole_structure
 		current_key <- State.get
 		State.modify (+ 1)
-		let new_page = Page path_to_trunk new_structure (List.null path_to_trunk)
+		let new_page = Page path_to_trunk new_structure
 		pure (Tree.Node (current_key, new_page) subtrees)
 
 compile_site ::
