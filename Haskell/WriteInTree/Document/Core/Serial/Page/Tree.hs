@@ -40,6 +40,8 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as UI
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem as LabelElem
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
@@ -48,7 +50,6 @@ type PageKey = Int
 page_key_start :: PageKey
 page_key_start = 1
 type Array = Array.Array PageKey
-type KeyedPage i = (PageKey, Page i)
 type AllPages i = Array (Page i)
 
 type PagePath = [String]
@@ -66,9 +67,13 @@ type Node (i :: Type) = UI.Node i (LinkInternalTarget i)
 
 type Structure (i :: Type) = Tree.Tree (Node i)
 
+type PageContent i = Structure i
+type KeyedPage i = (PageKey, Page i)
+type KeyedPageContent i = (PageKey, PageContent i)
+
 data Page (i :: Type) = Page
-	{
-	pageContent :: Structure i
+	{ pageAddress :: PageAddress
+	, pageContent :: Structure i
 	}
 	deriving (Eq)
 
@@ -201,7 +206,7 @@ page_node_as_link page_key trunk_node =
 		in changer trunk_node
 
 
-divide_to_pages :: forall i . Bool -> Structure i -> State PageKey (Structure i, [Tree (KeyedPage i)])
+divide_to_pages :: forall i . Bool -> Structure i -> State PageKey (PageContent i, [Tree (KeyedPageContent i)])
 divide_to_pages may_treat_as_page_trunk whole_structure =
 	let
 		trunk_node :: Node i
@@ -210,51 +215,65 @@ divide_to_pages may_treat_as_page_trunk whole_structure =
 			if may_treat_as_page_trunk && UI.nodeIsSeparatePage trunk_node
 				then 
 					let
-						make_the_tree :: Tree (KeyedPage i) -> (Structure i, [Tree (KeyedPage i)])
-						make_the_tree page_tree@(Tree.Node (trunk_page_id, trunk_page :: Page i) _) = 
+						make_the_tree :: Tree (KeyedPageContent i) -> (PageContent i, [Tree (KeyedPageContent i)])
+						make_the_tree page_tree@(Tree.Node (trunk_page_id, trunk_page :: PageContent i) _) = 
 							(Tree.Node (page_node_as_link trunk_page_id trunk_node) [], [page_tree])
 						in map make_the_tree (divide_to_pages_from_page whole_structure)
 				else
 					let
 						children = Tree.subForest whole_structure
 						recursive_call = divide_to_pages True
-						sub_results :: State PageKey [(Structure i, [Tree (KeyedPage i)])]
+						sub_results :: State PageKey [(PageContent i, [Tree (KeyedPageContent i)])]
 						sub_results = traverse recursive_call children
 						merge_the_subresult_pairs :: 
-							([Structure i], [[Tree (KeyedPage i)]]) -> (Structure i, [Tree (KeyedPage i)])
+							([PageContent i], [[Tree (KeyedPageContent i)]]) ->
+							(PageContent i, [Tree (KeyedPageContent i)])
 						merge_the_subresult_pairs (page_contents, sub_pages) =
 							(Tree.Node trunk_node page_contents, Fold.concat sub_pages)
-						merge_the_subresults :: [(Structure i, [Tree (KeyedPage i)])] -> (Structure i, [Tree (KeyedPage i)])
+						merge_the_subresults ::
+							[(PageContent i, [Tree (KeyedPageContent i)])] ->
+							(PageContent i, [Tree (KeyedPageContent i)])
 						merge_the_subresults = List.unzip >>> merge_the_subresult_pairs
 						in map merge_the_subresults sub_results
 
-divide_to_pages_from_page :: Structure i -> State PageKey (Tree (KeyedPage i))
+divide_to_pages_from_page :: Structure i -> State PageKey (Tree (KeyedPageContent i))
 divide_to_pages_from_page whole_structure = 
 	do
 		(new_structure, subtrees) <- divide_to_pages False whole_structure
 		current_key <- State.get
 		State.modify (+ 1)
-		let new_page = Page new_structure
+		let new_page = new_structure
 		pure (Tree.Node (current_key, new_page) subtrees)
 
 compile_site ::
 	forall i .
 	Base.Ord i =>
-	Structure i -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site i)
+	PageContent i -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site i)
 compile_site input_structure = 
 	let
-		pages_tree :: Tree (KeyedPage i)
+		pages_tree :: Tree (KeyedPageContent i)
 		pages_tree = evalState (divide_to_pages_from_page input_structure) page_key_start
-		all_pages :: Array (Page i)
-		all_pages = 
+		all_pages_content :: Array (PageContent i)
+		all_pages_content = 
 			let 
 				pairs = Fold.toList pages_tree
 				keys = map fst pairs
 				max_key = Fold.foldl' max page_key_start keys
 				in array (page_key_start, max_key) pairs
+		make_page :: PageContent i -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Page i)
+		make_page page_content =
+			let
+				page_trunk_label_elem = UI.nodeWitSource (Tree.rootLabel page_content)
+				in
+					case (LabelElem.ofElem_labels >>> Label.address_of_Labels) page_trunk_label_elem of
+						Nothing -> Left (Pos.position_error_mb page_trunk_label_elem (Accu.single "page has no address"))
+						Just address -> Right (Page address page_content)
+		all_pages :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (AllPages i)
+		all_pages = traverse make_page all_pages_content
 		user_address_map :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (UserAddressMap i)
-		user_address_map = gather_InternalLinkTargets_in_Pages all_pages
-		in map (make_Site (map fst pages_tree) all_pages) user_address_map
+		user_address_map = all_pages >>= gather_InternalLinkTargets_in_Pages
+		relations = map fst pages_tree
+		in liftA2 (make_Site relations) all_pages user_address_map
 
 melt_pages_to_single :: forall i . Site i -> Structure i -> UI.StructureAsTree i i
 melt_pages_to_single site (Tree.Node trunk children) =

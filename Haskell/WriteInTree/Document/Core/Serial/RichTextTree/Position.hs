@@ -3,7 +3,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Position
 	Position,
 	HasPosition (..), Positioned (..), PositionedMb (..),
 	position_error_in_piso,
-	position_error, without_position, maybefy_positioned, fill_position,
+	position_error, without_position, maybefy_positioned, position_error_mb, fill_position,
 	show_position,
 )
 where
@@ -72,6 +72,9 @@ without_position e = PositionedMb Nothing e
 
 maybefy_positioned :: Positioned e -> PositionedMb e
 maybefy_positioned (Positioned pos val) = PositionedMb (Just pos) val
+
+position_error_mb :: HasPosition a => a -> e -> PositionedMb e
+position_error_mb a = position_error a >>> maybefy_positioned
 
 fill_position :: HasPosition a => a -> PositionedMb e -> Positioned e
 fill_position a (PositionedMb pos val) = Positioned (Base.fromMaybe (get_position a) pos) val
