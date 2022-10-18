@@ -9,6 +9,7 @@ import Data.Tree (Tree)
 import Fana.Prelude
 import Prelude (String, FilePath)
 import WriteInTree.Document.Core.Serial.Page.Tree (PageKey)
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
@@ -272,17 +273,17 @@ page_file_name_from_id :: Text -> String
 page_file_name_from_id page = Fp.addExtension page "html"
 
 page_file_name :: OData.Page u -> String
-page_file_name page = page_file_name_from_id (OData.id_of_page page)
+page_file_name = OData.pageAddress >>> unwrapPageAddress >>> page_file_name_from_id
 
-page_file_path :: Text -> FilePath
-page_file_path page_id = Fp.joinPath ["c", page_file_name_from_id page_id]
+page_file_path :: OData.Page u -> FilePath
+page_file_path page = Fp.joinPath ["c", page_file_name page]
 
 link_to_address :: OData.Site UI.NodeIdU -> OData.UserAddressMap UI.NodeIdU -> OData.Link UI.NodeIdU -> String
 link_to_address site address_map = 
 	\ case
 		UI.LIn node_id -> 
 			case node_id of
-				Left (OData.SubPageTarget _ ida) -> page_file_name_from_id ida
+				Left (OData.SubPageTarget key _) -> page_file_name (OData.get_page_of_Site_at site key)
 				Right idu ->
 					let
 						error_message = 
@@ -304,7 +305,7 @@ node_address_for_navigation_bar site node =
 compile_a_page :: Bool -> OData.Site UI.NodeIdU -> FilePath -> ([Page], Page) -> T.FileCreation
 compile_a_page sentencing site output_folder_path (path_to_trunk, page) =
 	let 
-		page_f_path = page_file_path (OData.id_of_page page)
+		page_f_path = page_file_path page
 		in
 			(
 			Fp.joinPath [output_folder_path, page_f_path],
@@ -330,7 +331,7 @@ to_technical sentencing output_folder_path site =
 				pages_with_pathes
 		redirect_file =
 			let 
-				main_content = Html.redirect_page (page_file_path (OData.id_of_page main_page))
+				main_content = Html.redirect_page (page_file_path main_page)
 				file_path = Fp.joinPath [output_folder_path, "index.html"]
 				full_content = Html.page_text main_content
 				in (file_path, full_content)

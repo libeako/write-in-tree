@@ -80,7 +80,7 @@ data Page (i :: Type) = Page
 {-| Link address to page but not to sub-page. -}
 data CrossLinkTarget = CrossLinkTarget { cltPage :: PageKey } deriving (Eq)
 	
-type UserAddressMap id_u = Map.Map id_u CrossLinkTarget
+type UserAddressMap i = Map.Map i CrossLinkTarget
 
 data Site (i :: Type) = Site
 	{
