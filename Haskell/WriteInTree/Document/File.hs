@@ -60,8 +60,8 @@ data Error =
 
 instance Fana.Showable Text Error where
 	show = \case
-		ErrorInCore details -> "error in reading core file : " <> Fana.show details
-		ErrorInSeparateProperties details -> "error in separate properties file : " <> Fana.show details
+		ErrorInCore details -> "error in reading core file: " <> Fana.show details
+		ErrorInSeparateProperties details -> "error in separate properties file: " <> Fana.show details
 
 
 parse_sep_props :: String -> Either Error DocSepProps
