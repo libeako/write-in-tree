@@ -5,8 +5,10 @@ module WriteInTree.Output.Xml.Render
 where
 
 import Data.Bool (not)
+import Data.Tree (Tree)
 import Fana.Prelude
 import Prelude (String, FilePath)
+import WriteInTree.Document.Core.Serial.Page.Tree (PageKey)
 
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
@@ -18,6 +20,7 @@ import qualified System.FilePath as Fp
 
 import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.Identified as Identified
+import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Optic.Concrete.Prelude as Optic
 
 import qualified Technical.Html as Html
@@ -31,7 +34,7 @@ import qualified WriteInTree.Output.Sentence as Sentence
 
 
 type Text = Base.String
-
+type Page = OData.Page UI.NodeIdU
 
 -- | text prefix for html class names - to prevent name collision with
 text_class_prefix :: Text
@@ -217,15 +220,15 @@ render_navigation_bar_per_element site not_this_page node =
 		add_classes = (: []) >>> Html.classify_into (classes) >>> Xml.element_as_content
 		in add_classes content
 
-render_navigation_bar :: 
-	Bool -> 
-	OData.Site UI.NodeIdU -> 
-	OData.Node UI.NodeIdU -> 
-	[OData.Node UI.NodeIdU] -> 
+render_navigation_bar ::
+	OData.Site UI.NodeIdU ->
+	OData.Node UI.NodeIdU ->
+	[OData.Page UI.NodeIdU] ->
 	Xml.Element Xml.Labels
-render_navigation_bar page_is_trunk site trunk_node path_to_site_trunk = 
+render_navigation_bar site trunk_node path_to_site_trunk = 
 	let
-		list_core = trunk_node : path_to_site_trunk
+		page_is_trunk = List.null path_to_site_trunk
+		list_core = trunk_node : (map (OData.pageContent >>> Tree.rootLabel) path_to_site_trunk)
 		list_is_trunk = False : List.repeat True
 		list = List.zipWith (render_navigation_bar_per_element site) list_is_trunk list_core 
 		navigation_classes = html_classes_of_whether_page_is_trunk page_is_trunk
@@ -233,18 +236,17 @@ render_navigation_bar page_is_trunk site trunk_node path_to_site_trunk =
 			(Xml.Head "p" [] (Xml.Labels Nothing [text_class_nav_core]), List.reverse list)
 	in Xml.tree (Xml.Head "nav" [] (Xml.Labels Nothing navigation_classes)) [navigation_content_single_line]
 
-render_page_body_content :: Bool -> OData.Site UI.NodeIdU -> OData.Page UI.NodeIdU -> [Xml.ContentL]
-render_page_body_content sentencing site page = 
+render_page_body_content :: Bool -> OData.Site UI.NodeIdU -> ([Page], Page) -> [Xml.ContentL]
+render_page_body_content sentencing site (path_to_trunk, page) =
 	let
 		node_tree = OData.pageContent page
 		trunk_node = Tree.rootLabel node_tree
-		path_to_trunk = OData.pagePathToTrunk page
 		page_is_trunk :: Bool
 		page_is_trunk = List.null path_to_trunk
 		content = 
 			[Html.classify_into [text_class_page_main_part]
 				[Xml.element_as_content (render_section sentencing True site node_tree)]]
-		navigation_bar = render_navigation_bar page_is_trunk site trunk_node path_to_trunk
+		navigation_bar = render_navigation_bar site trunk_node path_to_trunk
 		nav_separator =
 			let
 				classes_names :: [Text]
@@ -253,17 +255,18 @@ render_page_body_content sentencing site page =
 				in Html.horizontal_line (Xml.Labels Nothing classes_names)
 		in map Xml.element_as_content (navigation_bar : nav_separator : content)
 
-render_page :: Bool -> OData.Site UI.NodeIdU -> OData.Page UI.NodeIdU -> Xml.ElementL
-render_page sentencing site page = 
+render_page :: Bool -> OData.Site UI.NodeIdU -> ([Page], Page) -> Xml.ElementL
+render_page sentencing site (path_to_trunk, page) = 
 	let
 		classes :: [Text]
-		classes = html_classes_of_whether_page_is_trunk (List.null (OData.pagePathToTrunk page))
+		classes = html_classes_of_whether_page_is_trunk (List.null path_to_trunk)
 		in 
 			Html.page classes (Html.header (OData.title_of_page page) "style.css")
-				(render_page_body_content sentencing site page)
+				(render_page_body_content sentencing site (path_to_trunk, page))
 
-render_page_to_text :: Bool -> OData.Site UI.NodeIdU -> OData.Page UI.NodeIdU -> String
-render_page_to_text sentencing site page = Html.page_text (render_page sentencing site page)
+render_page_to_text :: Bool -> OData.Site UI.NodeIdU -> ([Page], Page) -> String
+render_page_to_text sentencing site (path_to_trunk, page) =
+	Html.page_text (render_page sentencing site (path_to_trunk, page))
 
 page_file_name_from_id :: Text -> String
 page_file_name_from_id page = Fp.addExtension page "html"
@@ -298,26 +301,34 @@ node_address_for_navigation_bar site node =
 		address = Map.lookup (UI.nodeIdAuto node) (OData.sitePageMap site)
 		in map page_file_name address
 
-compile_a_page :: Bool -> OData.Site UI.NodeIdU -> FilePath -> OData.Page UI.NodeIdU -> T.FileCreation
-compile_a_page sentencing site output_folder_path page =
+compile_a_page :: Bool -> OData.Site UI.NodeIdU -> FilePath -> ([Page], Page) -> T.FileCreation
+compile_a_page sentencing site output_folder_path (path_to_trunk, page) =
 	let 
 		page_f_path = page_file_path (OData.id_of_page page)
 		in
 			(
 			Fp.joinPath [output_folder_path, page_f_path],
-			render_page_to_text sentencing site page
+			render_page_to_text sentencing site (path_to_trunk, page)
 			)
 
 to_technical :: Bool -> FilePath -> OData.Site UI.NodeIdU -> T.FileOps
-to_technical sentencing output_folder_path site = 
+to_technical sentencing output_folder_path site =
 	let
 		pages = OData.sitePageRelations site
+		pages_with_pathes :: Tree ([Tree PageKey], PageKey)
+		pages_with_pathes = Tree.with_path_to_trunk pages
 		main_page = OData.get_page_of_Site_at site (Tree.rootLabel pages)
+		keys_to_pages :: ([Tree PageKey], PageKey) -> ([Page], Page)
+		keys_to_pages (path, key) =
+			(
+				map (Tree.rootLabel >>> OData.get_page_of_Site_at site) path,
+				OData.get_page_of_Site_at site key
+			)
 		regular_files =
 			map
-				(OData.get_page_of_Site_at site >>> compile_a_page sentencing site output_folder_path)
-				pages
-		redirect_file = 
+				(keys_to_pages >>> compile_a_page sentencing site output_folder_path)
+				pages_with_pathes
+		redirect_file =
 			let 
 				main_content = Html.redirect_page (page_file_path (OData.id_of_page main_page))
 				file_path = Fp.joinPath [output_folder_path, "index.html"]

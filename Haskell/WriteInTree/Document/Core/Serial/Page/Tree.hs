@@ -7,7 +7,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	Link, Inline, Paragraph, Node, Structure,
 	UserAddressMap,
 	Page (..),
-	Site (..),
+	PageKey, Site (..),
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
 	title_of_section, title_of_page, id_of_page, is_inline_a_page_break, page_addresses_in_site,
@@ -68,7 +68,6 @@ type Structure (i :: Type) = Tree.Tree (Node i)
 
 data Page (i :: Type) = Page
 	{
-	pagePathToTrunk :: [Node i],
 	pageContent :: Structure i
 	}
 	deriving (Eq)
@@ -202,8 +201,8 @@ page_node_as_link page_key trunk_node =
 		in changer trunk_node
 
 
-divide_to_pages :: forall i . [Node i] -> Bool -> Structure i -> State PageKey (Structure i, [Tree (KeyedPage i)])
-divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
+divide_to_pages :: forall i . Bool -> Structure i -> State PageKey (Structure i, [Tree (KeyedPage i)])
+divide_to_pages may_treat_as_page_trunk whole_structure =
 	let
 		trunk_node :: Node i
 		trunk_node = Tree.rootLabel whole_structure
@@ -214,11 +213,11 @@ divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 						make_the_tree :: Tree (KeyedPage i) -> (Structure i, [Tree (KeyedPage i)])
 						make_the_tree page_tree@(Tree.Node (trunk_page_id, trunk_page :: Page i) _) = 
 							(Tree.Node (page_node_as_link trunk_page_id trunk_node) [], [page_tree])
-						in map make_the_tree (divide_to_pages_from_page path_to_trunk whole_structure)
+						in map make_the_tree (divide_to_pages_from_page whole_structure)
 				else
 					let
 						children = Tree.subForest whole_structure
-						recursive_call = divide_to_pages (trunk_node : path_to_trunk) True
+						recursive_call = divide_to_pages True
 						sub_results :: State PageKey [(Structure i, [Tree (KeyedPage i)])]
 						sub_results = traverse recursive_call children
 						merge_the_subresult_pairs :: 
@@ -229,13 +228,13 @@ divide_to_pages path_to_trunk may_treat_as_page_trunk whole_structure =
 						merge_the_subresults = List.unzip >>> merge_the_subresult_pairs
 						in map merge_the_subresults sub_results
 
-divide_to_pages_from_page :: [Node i] -> Structure i -> State PageKey (Tree (KeyedPage i))
-divide_to_pages_from_page path_to_trunk whole_structure = 
+divide_to_pages_from_page :: Structure i -> State PageKey (Tree (KeyedPage i))
+divide_to_pages_from_page whole_structure = 
 	do
-		(new_structure, subtrees) <- divide_to_pages path_to_trunk False whole_structure
+		(new_structure, subtrees) <- divide_to_pages False whole_structure
 		current_key <- State.get
 		State.modify (+ 1)
-		let new_page = Page path_to_trunk new_structure
+		let new_page = Page new_structure
 		pure (Tree.Node (current_key, new_page) subtrees)
 
 compile_site ::
@@ -245,7 +244,7 @@ compile_site ::
 compile_site input_structure = 
 	let
 		pages_tree :: Tree (KeyedPage i)
-		pages_tree = evalState (divide_to_pages_from_page [] input_structure) page_key_start
+		pages_tree = evalState (divide_to_pages_from_page input_structure) page_key_start
 		all_pages :: Array (Page i)
 		all_pages = 
 			let 
