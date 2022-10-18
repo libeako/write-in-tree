@@ -6,7 +6,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 	fromElem_id_au_content,
 	ofElem_pos,
 	ofElem_class_values,
-	ofElem_id_u_content,
+	ofElem_id_u_content, ofElem_address,
 	inElem_idu, inElem_labels,
 	ofElem_classes,
 	elem_has_class,
@@ -18,6 +18,7 @@ where
 
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 
 import qualified Data.Foldable as Fold
 import qualified Fana.Data.HasSingle as Fana
@@ -55,8 +56,11 @@ instance Fana.HasSingle (Elem id) where elem = ofElem_core
 ofElem_pos :: Optic.Lens' Pos.Position (Elem id e)
 ofElem_pos = Optic.lens_from_get_set ofElem_position (\ e c -> c { ofElem_position = e })
 
-ofElem_id_u_content :: Elem id e -> Maybe id
+ofElem_id_u_content :: Elem i e -> Maybe i
 ofElem_id_u_content = ofElem_labels >>> Structure.id_of_Labels
+
+ofElem_address :: Elem i e -> Maybe Text
+ofElem_address = ofElem_labels >>> Structure.address_of_Labels >>> map unwrapPageAddress
 
 fromElem_id_au_content :: Elem id e -> (Maybe Text, Maybe id)
 fromElem_id_au_content = liftA2 (,) ofElem_auto_id ofElem_id_u_content

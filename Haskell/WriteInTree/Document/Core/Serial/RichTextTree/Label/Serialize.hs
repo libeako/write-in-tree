@@ -19,6 +19,7 @@ where
 import Control.Monad ((>=>))
 import Data.Default.Class
 import Data.Functor (($>))
+import Data.Traversable (sequence)
 import Data.Tree (Tree (..), Forest)
 import Fana.Data.HasSingle (HasSingle)
 import Fana.Haskell.DescribingClass
@@ -29,11 +30,12 @@ import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddres
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configuration)
 
 import qualified Control.Monad.State.Lazy as Base
-import qualified Data.Either as Base
 import qualified Data.Bifunctor as BiFr
+import qualified Data.Either as Base
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Maybe as Base
+import qualified Data.Tree as Tree
 import qualified Fana.Data.CollectionWithEmpty as Fana
 import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.HasSingle as HasSingle
@@ -41,6 +43,7 @@ import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
 import qualified Fana.Data.Key.Traversable as TravKey
+import qualified Fana.Data.List as List
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Cat2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -61,8 +64,26 @@ type ElemPT = ElemP Text
 type ElemTT = Elem Text Text
 type Classes = Structure.ClassesMap
 
-any_repetition_in_id_u :: Tree ElemTT -> [ElemTT]
-any_repetition_in_id_u = 
+data IdRepetitionSearchInput =
+	IdRepetitionSearchInput
+	{ irsiGetter :: forall i e . Base.Show i => Elem i e -> Maybe Text
+	, irsiName :: Text
+	}
+
+id_repetition_search_input__human :: IdRepetitionSearchInput
+id_repetition_search_input__human = IdRepetitionSearchInput (ofElem_id_u_content >>> map Base.show) "human"
+id_repetition_search_input__machine :: IdRepetitionSearchInput
+id_repetition_search_input__machine = IdRepetitionSearchInput ofElem_address "machine"
+
+id_repetition_search_inputs :: [IdRepetitionSearchInput]
+id_repetition_search_inputs =
+	[
+		id_repetition_search_input__human,
+		id_repetition_search_input__machine
+	]
+
+any_repetition_in_id :: (Elem Text Text -> Maybe Text) -> Tree ElemTT -> [ElemTT]
+any_repetition_in_id id_getter = 
 	let
 		select :: [[ElemTT]] -> [ElemTT]
 		select = 
@@ -72,7 +93,7 @@ any_repetition_in_id_u =
 		in 
 			id
 			>>> Fold.toList 
-			>>> map (liftA2 (,) id ofElem_id_u_content >>> Base.sequenceA) 
+			>>> map (liftA2 (,) id id_getter >>> Base.sequenceA) 
 			>>> Base.catMaybes
 			>>> map Pair.swap
 			>>> MapI.from_list_lists @(StringyMap.Map Char)
@@ -80,10 +101,10 @@ any_repetition_in_id_u =
 			>>> List.filter (List.take 2 >>> List.length >>> (Base.> 1)) >>> select 
 	
 
-check_uniquness_of_id_u :: Tree ElemTT -> Either (Accu.Accumulated Text) (Tree ElemTT)
-check_uniquness_of_id_u tree = 
-	case any_repetition_in_id_u tree of
-		[] -> Right tree
+check_uniquness_of_id :: IdRepetitionSearchInput -> Tree ElemTT -> Maybe (Accu.Accumulated Text)
+check_uniquness_of_id id_type tree = 
+	case any_repetition_in_id (irsiGetter id_type) tree of
+		[] -> Nothing
 		list -> 
 			let
 				per_line :: Accu.Accumulated Text -> Accu.Accumulated Text
@@ -91,10 +112,26 @@ check_uniquness_of_id_u tree =
 				node_writer :: ElemTT -> Accu.Accumulated Text
 				node_writer = ofElem_position >>> Pos.show_position >>> per_line
 				message :: Accu.Accumulated Text
-				message = 
-					Fold.foldl' (<>) "the following nodes share a same user given identifier :\n"
-						(map node_writer list)
-				in Left message
+				message =
+					let
+						text_intro :: Accu.Accumulated Text
+						text_intro =
+							Fold.fold
+								(
+									map Accu.single
+										["the following nodes share a same identifier for ", irsiName id_type, " :\n"]
+								)
+						in Fold.foldl' (<>) text_intro (map node_writer list)
+				in Just message
+
+check_uniquness_of_ids :: Tree ElemTT -> Maybe (Accu.Accumulated Text)
+check_uniquness_of_ids =
+	let
+		uniquness_checks :: [Tree ElemTT -> Maybe (Accu.Accumulated Text)]
+		uniquness_checks = map check_uniquness_of_id id_repetition_search_inputs
+		extract_single :: [Maybe e] -> Maybe e
+		extract_single = Base.catMaybes >>> List.first
+		in sequence uniquness_checks >>> extract_single
 
 meta_name_id :: Text
 meta_name_id = "id"
@@ -295,7 +332,16 @@ parse_tree_r (Node trunk all_children) =
 		in current_parse_result >>= continue_parse_result
 
 parse_tree :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemTT)
-parse_tree = parse_tree_r >=> (check_uniquness_of_id_u >>> BiFr.first Pos.without_position)
+parse_tree =
+	let
+		from_tree tree =
+			BiFr.first (Pos.position_error_mb (Tree.rootLabel tree))
+			(
+				case check_uniquness_of_ids tree of
+					Just e -> Left e
+					Nothing -> Right tree
+			)			
+		in parse_tree_r >=> from_tree
 
 layer_new_simple ::
 	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
