@@ -6,7 +6,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	LinkInternalTarget (..),
 	Link, Inline, Paragraph, Node, Structure,
 	UserAddressMap,
-	Page (..), page_is_trunk,
+	Page (..),
 	Site (..),
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
@@ -72,9 +72,6 @@ data Page (i :: Type) = Page
 	pageContent :: Structure i
 	}
 	deriving (Eq)
-
-page_is_trunk :: Page i -> Bool
-page_is_trunk = pagePathToTrunk >>> List.null
 
 {-| Link address to page but not to sub-page. -}
 data CrossLinkTarget = CrossLinkTarget { cltPage :: PageKey } deriving (Eq)

@@ -236,11 +236,11 @@ render_navigation_bar page_is_trunk site trunk_node path_to_site_trunk =
 render_page_body_content :: Bool -> OData.Site UI.NodeIdU -> OData.Page UI.NodeIdU -> [Xml.ContentL]
 render_page_body_content sentencing site page = 
 	let
-		page_is_trunk :: Bool
-		page_is_trunk = OData.page_is_trunk page
 		node_tree = OData.pageContent page
 		trunk_node = Tree.rootLabel node_tree
 		path_to_trunk = OData.pagePathToTrunk page
+		page_is_trunk :: Bool
+		page_is_trunk = List.null path_to_trunk
 		content = 
 			[Html.classify_into [text_class_page_main_part]
 				[Xml.element_as_content (render_section sentencing True site node_tree)]]
@@ -257,7 +257,7 @@ render_page :: Bool -> OData.Site UI.NodeIdU -> OData.Page UI.NodeIdU -> Xml.Ele
 render_page sentencing site page = 
 	let
 		classes :: [Text]
-		classes = html_classes_of_whether_page_is_trunk (OData.page_is_trunk page)
+		classes = html_classes_of_whether_page_is_trunk (List.null (OData.pagePathToTrunk page))
 		in 
 			Html.page classes (Html.header (OData.title_of_page page) "style.css")
 				(render_page_body_content sentencing site page)
