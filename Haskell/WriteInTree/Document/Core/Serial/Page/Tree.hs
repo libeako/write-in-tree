@@ -55,7 +55,7 @@ type AllPages i = Array (Page i)
 type PagePath = [String]
 
 data SubPageTarget id_u =
-	SubPageTarget { sptPageKey :: PageKey, sptId :: Text }
+	SubPageTarget { sptPageKey :: PageKey }
 	deriving (Eq)
 
 type LinkInternalTarget (i :: Type) = Either (SubPageTarget i) i
@@ -202,7 +202,7 @@ page_node_as_link page_key trunk_node =
 			id
 			>>> Optic.fill UI.inNode_idu_source_mb Nothing
 			>>> Optic.fill UI.links_in_Node 
-				(Just (UI.LIn (Left (SubPageTarget page_key (UI.nodeIdAuto trunk_node)))))
+				(Just (UI.LIn (Left (SubPageTarget page_key))))
 		in changer trunk_node
 
 
@@ -296,7 +296,7 @@ melt_pages_to_single site (Tree.Node trunk children) =
 						UI.LEx addr -> make_result_with_link (Just (UI.LEx addr))
 						UI.LIn addr ->
 							case addr of
-								Left (SubPageTarget sub_page_key _) ->
+								Left (SubPageTarget sub_page_key) ->
 									melt_pages_to_single site (pageContent (get_page_of_Site_at site sub_page_key))
 								Right a -> make_result_with_link (Just (UI.LIn a))
 

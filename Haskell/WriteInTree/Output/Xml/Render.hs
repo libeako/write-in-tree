@@ -273,7 +273,7 @@ link_to_address site address_map =
 	\ case
 		Data.LIn node_id -> 
 			case node_id of
-				Left (PData.SubPageTarget key _) -> page_file_name (PData.get_page_of_Site_at site key)
+				Left (PData.SubPageTarget key) -> page_file_name (PData.get_page_of_Site_at site key)
 				Right idu ->
 					let
 						error_message = 
