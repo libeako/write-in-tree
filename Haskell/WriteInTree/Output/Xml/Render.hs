@@ -89,22 +89,12 @@ html_classes_of_whether_page_is_trunk :: Bool -> [Text]
 html_classes_of_whether_page_is_trunk page_is_trunk =
 	if page_is_trunk then [text_class_trunk_page] else []
 
-wrap_by_id :: PData.Node Data.NodeIdU -> Fn.Endo Xml.ElementL
-wrap_by_id n = 
-	case Label.ofElem_id_u_content (Data.nodeWitSource n) of
-		Just _ -> Optic.fill Xml.lens_id_of_Element (Just (Data.nodeIdAuto n))
-		Nothing -> id
-
 wrap_by_classes :: [Text] -> PData.Node Data.NodeIdU -> Fn.Endo Xml.ElementL
 wrap_by_classes additional_classes n = let
 	classes_from_node :: [Text]
 	classes_from_node = Label.ofElem_class_values (Data.nodeWitSource n)
 	all_classes = classes_from_node <> additional_classes
 	in Optic.fn_up Xml.lens_classes_of_Element (all_classes <>)
-
-wrap_by_id_and_classes :: [Text] -> PData.Node Data.NodeIdU -> Fn.Endo Xml.ElementL
-wrap_by_id_and_classes additional_classes source_node = 
-	wrap_by_classes additional_classes source_node >>> wrap_by_id source_node
 
 wrap_subcontent_by_div :: [Xml.ElementL] -> Xml.ElementL
 wrap_subcontent_by_div = Xml.tree (Xml.Head "div" [] (Xml.Labels Nothing [text_class_wit_content]))
@@ -198,7 +188,7 @@ render_section sentencing is_page_root site node_tree =
 				is_page_break = PData.is_inline_a_page_break (Data.nodeContent trunk_node)
 				in
 					wrap_by_header_content header >>>
-					wrap_by_section >>> wrap_by_id_and_classes [] trunk_node
+					wrap_by_section >>> wrap_by_classes [] trunk_node
 		in from_sub_content sub_content
 
 render_navigation_bar_per_element :: 
