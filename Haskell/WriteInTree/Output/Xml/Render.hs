@@ -26,16 +26,16 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 
 import qualified Technical.Html as Html
 import qualified Technical.Xml.Data as Xml
-import qualified WriteInTree.Document.Core.Data as UI
+import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix as Class
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
-import qualified WriteInTree.Document.Core.Serial.Page.Tree as OData
+import qualified WriteInTree.Document.Core.Serial.Page.Tree as PData
 import qualified WriteInTree.Output.Technical as T
 import qualified WriteInTree.Output.Sentence as Sentence
 
 
 type Text = Base.String
-type Page = OData.Page UI.NodeIdU
+type Page = PData.Page Data.NodeIdU
 
 -- | text prefix for html class names - to prevent name collision with
 text_class_prefix :: Text
@@ -89,20 +89,20 @@ html_classes_of_whether_page_is_trunk :: Bool -> [Text]
 html_classes_of_whether_page_is_trunk page_is_trunk =
 	if page_is_trunk then [text_class_trunk_page] else []
 
-wrap_by_id :: OData.Node UI.NodeIdU -> Fn.Endo Xml.ElementL
+wrap_by_id :: PData.Node Data.NodeIdU -> Fn.Endo Xml.ElementL
 wrap_by_id n = 
-	case Label.ofElem_id_u_content (UI.nodeWitSource n) of
-		Just _ -> Optic.fill Xml.lens_id_of_Element (Just (UI.nodeIdAuto n))
+	case Label.ofElem_id_u_content (Data.nodeWitSource n) of
+		Just _ -> Optic.fill Xml.lens_id_of_Element (Just (Data.nodeIdAuto n))
 		Nothing -> id
 
-wrap_by_classes :: [Text] -> OData.Node UI.NodeIdU -> Fn.Endo Xml.ElementL
+wrap_by_classes :: [Text] -> PData.Node Data.NodeIdU -> Fn.Endo Xml.ElementL
 wrap_by_classes additional_classes n = let
 	classes_from_node :: [Text]
-	classes_from_node = Label.ofElem_class_values (UI.nodeWitSource n)
+	classes_from_node = Label.ofElem_class_values (Data.nodeWitSource n)
 	all_classes = classes_from_node <> additional_classes
 	in Optic.fn_up Xml.lens_classes_of_Element (all_classes <>)
 
-wrap_by_id_and_classes :: [Text] -> OData.Node UI.NodeIdU -> Fn.Endo Xml.ElementL
+wrap_by_id_and_classes :: [Text] -> PData.Node Data.NodeIdU -> Fn.Endo Xml.ElementL
 wrap_by_id_and_classes additional_classes source_node = 
 	wrap_by_classes additional_classes source_node >>> wrap_by_id source_node
 
@@ -121,40 +121,40 @@ wrap_by_header_content =
 render_inline_visual :: Text -> Xml.ContentL
 render_inline_visual t = Xml.text t
 
-render_link :: Maybe (OData.Link UI.NodeIdU) -> OData.Site UI.NodeIdU -> Fn.Endo Xml.ContentL
+render_link :: Maybe (PData.Link Data.NodeIdU) -> PData.Site Data.NodeIdU -> Fn.Endo Xml.ContentL
 render_link =
 	let
 		wrap_with_link_to :: String -> Fn.Endo Xml.ContentL
 		wrap_with_link_to target = pure >>> Html.with_link_to target >>> Xml.element_as_content
-		get_address :: OData.Link UI.NodeIdU -> OData.Site UI.NodeIdU -> String
-		get_address link site = link_to_address site (OData.siteUserAddressMap site) link 
+		get_address :: PData.Link Data.NodeIdU -> PData.Site Data.NodeIdU -> String
+		get_address link site = link_to_address site (PData.siteUserAddressMap site) link 
 	in
 		\case
 			Nothing -> const id
 			Just l -> get_address l >>> wrap_with_link_to
 
-render_inline :: OData.Inline UI.NodeIdU -> OData.Site UI.NodeIdU -> Xml.ContentL
-render_inline il = flip (render_link (UI.ilLink il)) (render_inline_visual (UI.ilVisual il))
+render_inline :: PData.Inline Data.NodeIdU -> PData.Site Data.NodeIdU -> Xml.ContentL
+render_inline il = flip (render_link (Data.ilLink il)) (render_inline_visual (Data.ilVisual il))
 
-unite_neighboring_texts :: [UI.Inline idts] -> [UI.Inline idts]
+unite_neighboring_texts :: [Data.Inline idts] -> [Data.Inline idts]
 unite_neighboring_texts =
 	\case
 		[] -> []
 		[x] -> [x]
-		(UI.Inline t1 Nothing : UI.Inline t2 Nothing : rest) ->
-			UI.Inline (t1 <> t2) Nothing : unite_neighboring_texts rest
+		(Data.Inline t1 Nothing : Data.Inline t2 Nothing : rest) ->
+			Data.Inline (t1 <> t2) Nothing : unite_neighboring_texts rest
 		(to_not_change : rest) -> to_not_change : unite_neighboring_texts rest
 
-render_possibly_sentence :: OData.Site UI.NodeIdU -> OData.Inline UI.NodeIdU -> Xml.ContentL
+render_possibly_sentence :: PData.Site Data.NodeIdU -> PData.Inline Data.NodeIdU -> Xml.ContentL
 render_possibly_sentence site inline =
 	case inline of
-		UI.Inline t Nothing ->
+		Data.Inline t Nothing ->
 			Xml.element_as_content ((pure >>> Html.classify_into [text_class_sentence]) (render_inline inline site))
 		_ -> render_inline inline site
 
 render_paragraph :: 
 	Bool -> Bool -> 
-	OData.Paragraph UI.NodeIdU -> OData.Site UI.NodeIdU -> Xml.ElementL
+	PData.Paragraph Data.NodeIdU -> PData.Site Data.NodeIdU -> Xml.ElementL
 render_paragraph is_page_break sentencing p site = 
 	let
 		content :: [Xml.ContentL]
@@ -163,7 +163,7 @@ render_paragraph is_page_break sentencing p site =
 				then [(flip render_inline site) p]
 				else
 					let
-						all_sections :: [OData.Inline UI.NodeIdU]
+						all_sections :: [PData.Inline Data.NodeIdU]
 						all_sections = Sentence.sentences p
 						render_possibly_sentence' = 
 							flip render_inline site >>> List.singleton >>> Html.classify_into [text_class_sentence] >>> Xml.element_as_content
@@ -173,7 +173,7 @@ render_paragraph is_page_break sentencing p site =
 	in (Xml.Head "p" [] (Xml.Labels Nothing classes), content)
 
 render_section :: 
-	Bool -> Bool -> OData.Site UI.NodeIdU -> OData.Structure UI.NodeIdU -> Xml.ElementL
+	Bool -> Bool -> PData.Site Data.NodeIdU -> PData.Structure Data.NodeIdU -> Xml.ElementL
 render_section sentencing is_page_root site node_tree =
 	let
 		sub_content :: [Xml.ElementL]
@@ -181,34 +181,34 @@ render_section sentencing is_page_root site node_tree =
 		from_sub_content :: [Xml.ElementL] -> Xml.ElementL
 		from_sub_content =
 			let
-				trunk_node :: OData.Node UI.NodeIdU
+				trunk_node :: PData.Node Data.NodeIdU
 				trunk_node = Tree.rootLabel node_tree
 				has_class_code :: Bool
 				has_class_code =
 					let 
-						current_classes = (UI.nodeWitSource >>> Label.ofElem_class_values) trunk_node
+						current_classes = (Data.nodeWitSource >>> Label.ofElem_class_values) trunk_node
 						exceptional_classes = text_classes_non_sentencing
 						in Fold.any (flip Fold.elem exceptional_classes) current_classes
 				revised_sentencing = sentencing && not has_class_code
 				header :: Maybe Xml.ElementL
 				header =
 					if is_page_root then Nothing else
-						Just (render_paragraph is_page_break revised_sentencing (UI.nodeContent trunk_node) site)
+						Just (render_paragraph is_page_break revised_sentencing (Data.nodeContent trunk_node) site)
 				is_page_break :: Bool
-				is_page_break = OData.is_inline_a_page_break (UI.nodeContent trunk_node)
+				is_page_break = PData.is_inline_a_page_break (Data.nodeContent trunk_node)
 				in
 					wrap_by_header_content header >>>
 					wrap_by_section >>> wrap_by_id_and_classes [] trunk_node
 		in from_sub_content sub_content
 
 render_navigation_bar_per_element :: 
-	OData.Site UI.NodeIdU -> 
+	PData.Site Data.NodeIdU -> 
 	Bool -> 
-	OData.Node UI.NodeIdU -> 
+	PData.Node Data.NodeIdU -> 
 	Xml.Content Xml.Labels
 render_navigation_bar_per_element site not_this_page node = 
 	let
-		text = Xml.text (OData.title_of_section node)
+		text = Xml.text (PData.title_of_section node)
 		address_maybe = (node_address_for_navigation_bar site) node
 		content :: Xml.ContentL
 		content = 
@@ -222,14 +222,14 @@ render_navigation_bar_per_element site not_this_page node =
 		in add_classes content
 
 render_navigation_bar ::
-	OData.Site UI.NodeIdU ->
-	OData.Node UI.NodeIdU ->
-	[OData.Page UI.NodeIdU] ->
+	PData.Site Data.NodeIdU ->
+	PData.Node Data.NodeIdU ->
+	[PData.Page Data.NodeIdU] ->
 	Xml.Element Xml.Labels
 render_navigation_bar site trunk_node path_to_site_trunk = 
 	let
 		page_is_trunk = List.null path_to_site_trunk
-		list_core = trunk_node : (map (OData.pageContent >>> Tree.rootLabel) path_to_site_trunk)
+		list_core = trunk_node : (map (PData.pageContent >>> Tree.rootLabel) path_to_site_trunk)
 		list_is_trunk = False : List.repeat True
 		list = List.zipWith (render_navigation_bar_per_element site) list_is_trunk list_core 
 		navigation_classes = html_classes_of_whether_page_is_trunk page_is_trunk
@@ -237,10 +237,10 @@ render_navigation_bar site trunk_node path_to_site_trunk =
 			(Xml.Head "p" [] (Xml.Labels Nothing [text_class_nav_core]), List.reverse list)
 	in Xml.tree (Xml.Head "nav" [] (Xml.Labels Nothing navigation_classes)) [navigation_content_single_line]
 
-render_page_body_content :: Bool -> OData.Site UI.NodeIdU -> ([Page], Page) -> [Xml.ContentL]
+render_page_body_content :: Bool -> PData.Site Data.NodeIdU -> ([Page], Page) -> [Xml.ContentL]
 render_page_body_content sentencing site (path_to_trunk, page) =
 	let
-		node_tree = OData.pageContent page
+		node_tree = PData.pageContent page
 		trunk_node = Tree.rootLabel node_tree
 		page_is_trunk :: Bool
 		page_is_trunk = List.null path_to_trunk
@@ -256,53 +256,53 @@ render_page_body_content sentencing site (path_to_trunk, page) =
 				in Html.horizontal_line (Xml.Labels Nothing classes_names)
 		in map Xml.element_as_content (navigation_bar : nav_separator : content)
 
-render_page :: Bool -> OData.Site UI.NodeIdU -> ([Page], Page) -> Xml.ElementL
+render_page :: Bool -> PData.Site Data.NodeIdU -> ([Page], Page) -> Xml.ElementL
 render_page sentencing site (path_to_trunk, page) = 
 	let
 		classes :: [Text]
 		classes = html_classes_of_whether_page_is_trunk (List.null path_to_trunk)
 		in 
-			Html.page classes (Html.header (OData.title_of_page page) "style.css")
+			Html.page classes (Html.header (PData.title_of_page page) "style.css")
 				(render_page_body_content sentencing site (path_to_trunk, page))
 
-render_page_to_text :: Bool -> OData.Site UI.NodeIdU -> ([Page], Page) -> String
+render_page_to_text :: Bool -> PData.Site Data.NodeIdU -> ([Page], Page) -> String
 render_page_to_text sentencing site (path_to_trunk, page) =
 	Html.page_text (render_page sentencing site (path_to_trunk, page))
 
 page_file_name_from_id :: Text -> String
 page_file_name_from_id page = Fp.addExtension page "html"
 
-page_file_name :: OData.Page u -> String
-page_file_name = OData.pageAddress >>> unwrapPageAddress >>> page_file_name_from_id
+page_file_name :: PData.Page u -> String
+page_file_name = PData.pageAddress >>> unwrapPageAddress >>> page_file_name_from_id
 
-page_file_path :: OData.Page u -> FilePath
+page_file_path :: PData.Page u -> FilePath
 page_file_path page = Fp.joinPath ["c", page_file_name page]
 
-link_to_address :: OData.Site UI.NodeIdU -> OData.UserAddressMap UI.NodeIdU -> OData.Link UI.NodeIdU -> String
+link_to_address :: PData.Site Data.NodeIdU -> PData.UserAddressMap Data.NodeIdU -> PData.Link Data.NodeIdU -> String
 link_to_address site address_map = 
 	\ case
-		UI.LIn node_id -> 
+		Data.LIn node_id -> 
 			case node_id of
-				Left (OData.SubPageTarget key _) -> page_file_name (OData.get_page_of_Site_at site key)
+				Left (PData.SubPageTarget key _) -> page_file_name (PData.get_page_of_Site_at site key)
 				Right idu ->
 					let
 						error_message = 
-							let idu_text = UI.nidun_u (Identified.cargo idu)
+							let idu_text = Data.nidun_u (Identified.cargo idu)
 								in 
 									"internal error : key " <> idu_text <>
 									" is not in address map during link resolution"
-						ilt :: OData.CrossLinkTarget
+						ilt :: PData.CrossLinkTarget
 						ilt = Base.fromMaybe (Base.error error_message) (Map.lookup idu address_map)
-						in page_file_name (OData.get_CrossLinkTarget_page site ilt)
-		UI.LEx a -> a
+						in page_file_name (PData.get_CrossLinkTarget_page site ilt)
+		Data.LEx a -> a
 
-node_address_for_navigation_bar :: OData.Site UI.NodeIdU -> OData.Node UI.NodeIdU -> Maybe String
+node_address_for_navigation_bar :: PData.Site Data.NodeIdU -> PData.Node Data.NodeIdU -> Maybe String
 node_address_for_navigation_bar site node =
 	let 
-		address = Map.lookup (UI.nodeIdAuto node) (OData.sitePageMap site)
+		address = Map.lookup (Data.nodeIdAuto node) (PData.sitePageMap site)
 		in map page_file_name address
 
-compile_a_page :: Bool -> OData.Site UI.NodeIdU -> FilePath -> ([Page], Page) -> T.FileCreation
+compile_a_page :: Bool -> PData.Site Data.NodeIdU -> FilePath -> ([Page], Page) -> T.FileCreation
 compile_a_page sentencing site output_folder_path (path_to_trunk, page) =
 	let 
 		page_f_path = page_file_path page
@@ -312,18 +312,18 @@ compile_a_page sentencing site output_folder_path (path_to_trunk, page) =
 			render_page_to_text sentencing site (path_to_trunk, page)
 			)
 
-to_technical :: Bool -> FilePath -> OData.Site UI.NodeIdU -> T.FileOps
+to_technical :: Bool -> FilePath -> PData.Site Data.NodeIdU -> T.FileOps
 to_technical sentencing output_folder_path site =
 	let
-		pages = OData.sitePageRelations site
+		pages = PData.sitePageRelations site
 		pages_with_pathes :: Tree ([Tree PageKey], PageKey)
 		pages_with_pathes = Tree.with_path_to_trunk pages
-		main_page = OData.get_page_of_Site_at site (Tree.rootLabel pages)
+		main_page = PData.get_page_of_Site_at site (Tree.rootLabel pages)
 		keys_to_pages :: ([Tree PageKey], PageKey) -> ([Page], Page)
 		keys_to_pages (path, key) =
 			(
-				map (Tree.rootLabel >>> OData.get_page_of_Site_at site) path,
-				OData.get_page_of_Site_at site key
+				map (Tree.rootLabel >>> PData.get_page_of_Site_at site) path,
+				PData.get_page_of_Site_at site key
 			)
 		regular_files =
 			map
