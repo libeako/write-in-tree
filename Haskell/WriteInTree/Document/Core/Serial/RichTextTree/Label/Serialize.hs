@@ -30,6 +30,7 @@ import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configurat
 
 import qualified Control.Monad.State.Lazy as Base
 import qualified Data.Either as Base
+import qualified Data.Bifunctor as BiFr
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Maybe as Base
@@ -270,14 +271,18 @@ render_tree (Node trunk children) =
 			Node (Tt.Elem (ofElem_auto_id trunk) (HasSingle.elem trunk))
 				(render_all_into_siblings (identifier, address, classes) (map render_tree children))
 
-parse_tree_r :: Tree ElemPT -> Either (Accu.Accumulated Text) (Tree ElemTT)
+parse_tree_r :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemTT)
 parse_tree_r (Node trunk all_children) =
 	let
-		current_parse_result :: Either (Accu.Accumulated Text) ((Maybe Text, Maybe PageAddress, Classes), [Tree ElemPT])
-		current_parse_result = Base.runStateT parse_all_from_siblings all_children
+		current_parse_result ::
+			Either (Pos.PositionedMb (Accu.Accumulated Text))
+				((Maybe Text, Maybe PageAddress, Classes), [Tree ElemPT])
+		current_parse_result =
+			BiFr.first (Pos.position_error_mb trunk)
+			(Base.runStateT parse_all_from_siblings all_children)
 		continue_parse_result ::
 			((Maybe Text, Maybe PageAddress, Classes), [Tree ElemPT]) ->
-			Either (Accu.Accumulated Text) (Tree ElemTT)
+			Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemTT)
 		continue_parse_result ((user_id, page_address, classes), normal_children) =
 			let
 				auto_id = Tt.elemId (Path.inElemHPCore trunk)
@@ -289,14 +294,18 @@ parse_tree_r (Node trunk all_children) =
 						(traverse parse_tree_r normal_children)
 		in current_parse_result >>= continue_parse_result
 
-parse_tree :: Tree ElemPT -> Either (Accu.Accumulated Text) (Tree ElemTT)
-parse_tree = parse_tree_r >=> check_uniquness_of_id_u
+parse_tree :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemTT)
+parse_tree = parse_tree_r >=> (check_uniquness_of_id_u >>> BiFr.first Pos.without_position)
 
-layer_new_simple :: Optic.PartialIso (Accu.Accumulated Text) (Tree ElemLRT) (Tree ElemPT) (Tree ElemTT) (Tree ElemTT)
+layer_new_simple ::
+	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
+		(Tree ElemLRT) (Tree ElemPT) (Tree ElemTT) (Tree ElemTT)
 layer_new_simple = Optic.PartialIso render_tree parse_tree
 
 
-layer :: Configuration -> Optic.PartialIso (Accu.Accumulated Text) (Tree ElemLRT) (Tree ElemPT) (Tree ElemTT) (Tree ElemTT)
+layer :: Configuration ->
+	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
+		(Tree ElemLRT) (Tree ElemPT) (Tree ElemTT) (Tree ElemTT)
 layer config =
 	Cat2.identity
 	>**> layer_new_simple

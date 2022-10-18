@@ -64,7 +64,7 @@ layer sep_props =
 	Category2.identity
 	>**>^ Optic.piso_convert_error convert_string_error Tt.layer 
 	>**>^ Path.layer
-	>**>^ Optic.piso_convert_error (Pos.PositionedMb Nothing) (Label.layer (SepProps.prop_inline_classes sep_props))
+	>**>^ Label.layer (SepProps.prop_inline_classes sep_props)
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
 	>**>^ layer_move_additional_info
 	>**>^ PageBorder.layer
