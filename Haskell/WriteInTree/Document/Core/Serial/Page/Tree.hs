@@ -18,7 +18,6 @@ where
 
 import Prelude (String, Int, (+))
 
-import Control.Arrow ((&&&))
 import Control.Monad.State.Lazy (State, evalState)
 import Data.Ord (max)
 import Data.Tree (Tree)
@@ -86,8 +85,7 @@ data Site (i :: Type) = Site
 	{
 	sitePageRelations :: Tree PageKey,
 	siteAllPages :: AllPages i,
-	siteUserAddressMap :: UserAddressMap i,
-	sitePageMap :: Map.Map Text (Page i)
+	siteUserAddressMap :: UserAddressMap i
 	}
 	deriving (Eq)
 
@@ -102,14 +100,7 @@ get_CrossLinkTarget_page :: Site i -> CrossLinkTarget -> Page i
 get_CrossLinkTarget_page site = cltPage >>> get_page_of_Site_at site
 
 make_Site :: forall i . Tree PageKey -> AllPages i-> UserAddressMap i -> Site i
-make_Site page_relations all_pages ua_map =
-	let
-		page_map =
-			let
-				make_key_value_pair :: Page id_u -> (Text, Page id_u)
-				make_key_value_pair = id_of_page &&& id
-				in Map.fromList (map make_key_value_pair (Fold.toList all_pages))
-	in Site page_relations all_pages ua_map page_map
+make_Site page_relations all_pages ua_map = Site page_relations all_pages ua_map
 
 is_link_a_page_break :: Link id_u -> Bool
 is_link_a_page_break =
@@ -155,7 +146,7 @@ pages_in_site :: Optic.Lens' (AllPages i) (Site i)
 pages_in_site =
 	Optic.lens_from_get_set
 		siteAllPages
-		(\ aps (Site relations _ meaningful_ids page_map) -> Site relations aps meaningful_ids page_map)
+		(\ aps (Site relations _ meaningful_ids) -> Site relations aps meaningful_ids)
 
 trunk_node_in_site :: Optic.Traversal' (Node i) (Site i)
 trunk_node_in_site =

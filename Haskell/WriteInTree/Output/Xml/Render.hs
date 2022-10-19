@@ -185,16 +185,16 @@ render_section sentencing is_page_root site node_tree =
 render_navigation_bar_per_element :: 
 	PData.Site Data.NodeIdU -> 
 	Bool -> 
-	PData.Node Data.NodeIdU -> 
+	PData.Page Data.NodeIdU -> 
 	Xml.Content Xml.Labels
-render_navigation_bar_per_element site not_this_page node = 
+render_navigation_bar_per_element site not_this_page page =
 	let
-		text = Xml.text (PData.title_of_section node)
-		address_maybe = (node_address_for_navigation_bar site) node
+		text = Xml.text (PData.title_of_page page)
+		address = (node_address_for_navigation_bar site) page
 		content :: Xml.ContentL
 		content = 
-			case (not_this_page, address_maybe) of
-				(True, Just address) -> Xml.element_as_content (Html.with_link_to address [text])
+			case not_this_page of
+				True -> Xml.element_as_content (Html.with_link_to address [text])
 				_ -> text
 		classes_whether_current_page = if not_this_page then [] else [text_class_nav_current_page]
 		classes = [text_class_nav_item] <> classes_whether_current_page
@@ -204,13 +204,13 @@ render_navigation_bar_per_element site not_this_page node =
 
 render_navigation_bar ::
 	PData.Site Data.NodeIdU ->
-	PData.Node Data.NodeIdU ->
+	PData.Page Data.NodeIdU ->
 	[PData.Page Data.NodeIdU] ->
 	Xml.Element Xml.Labels
-render_navigation_bar site trunk_node path_to_site_trunk = 
+render_navigation_bar site trunk_page path_to_site_trunk = 
 	let
 		page_is_trunk = List.null path_to_site_trunk
-		list_core = trunk_node : (map (PData.pageContent >>> Tree.rootLabel) path_to_site_trunk)
+		list_core = trunk_page : path_to_site_trunk
 		list_is_trunk = False : List.repeat True
 		list = List.zipWith (render_navigation_bar_per_element site) list_is_trunk list_core 
 		navigation_classes = html_classes_of_whether_page_is_trunk page_is_trunk
@@ -228,7 +228,7 @@ render_page_body_content sentencing site (path_to_trunk, page) =
 		content = 
 			[Html.classify_into [text_class_page_main_part]
 				[Xml.element_as_content (render_section sentencing True site node_tree)]]
-		navigation_bar = render_navigation_bar site trunk_node path_to_trunk
+		navigation_bar = render_navigation_bar site page path_to_trunk
 		nav_separator =
 			let
 				classes_names :: [Text]
@@ -277,11 +277,8 @@ link_to_address site address_map =
 						in page_file_name (PData.get_CrossLinkTarget_page site ilt)
 		Data.LEx a -> a
 
-node_address_for_navigation_bar :: PData.Site Data.NodeIdU -> PData.Node Data.NodeIdU -> Maybe String
-node_address_for_navigation_bar site node =
-	let 
-		address = Map.lookup (Data.nodeIdAuto node) (PData.sitePageMap site)
-		in map page_file_name address
+node_address_for_navigation_bar :: PData.Site Data.NodeIdU -> PData.Page Data.NodeIdU -> String
+node_address_for_navigation_bar site = page_file_path
 
 compile_a_page :: Bool -> PData.Site Data.NodeIdU -> FilePath -> ([Page], Page) -> T.FileCreation
 compile_a_page sentencing site output_folder_path (path_to_trunk, page) =
