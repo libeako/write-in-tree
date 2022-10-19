@@ -57,9 +57,7 @@ count core = do
 	pure (Identified current_count core)
 
 make_changed_NodeIdUCore ::  UsI.Node id_u Text -> Text -> UsI.NodeIdUCore
-make_changed_NodeIdUCore n idu =
-	UsI.NodeIdUCore (UsI.nodeIdAuto n) idu 
-		(Pos.get_position (UsI.nodeWitSource n))
+make_changed_NodeIdUCore n idu = UsI.NodeIdUCore idu (Pos.get_position (UsI.nodeWitSource n))
 
 node_richener :: UsI.Node Text Text -> UsI.Node UsI.NodeIdUCore Text
 node_richener n = Optic.fn_up UsI.idu_in_Node (make_changed_NodeIdUCore n) n

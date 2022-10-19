@@ -23,7 +23,7 @@ type Text = Base.String
 
 
 data NodeIdUCore = NodeIdUCore
-	{ nidun_a :: Text, nidun_u :: Text, nidun_path_to_trunk :: [String] }
+	{ nidun_u :: Text, nidun_path_to_trunk :: [String] }
 -- | at this stage of the application this type is used instead of the user-given string alone.
 type NodeIdU = Identified Int NodeIdUCore
 
