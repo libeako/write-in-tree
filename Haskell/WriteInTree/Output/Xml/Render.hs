@@ -126,15 +126,6 @@ render_link =
 render_inline :: PData.Inline Data.NodeIdU -> PData.Site Data.NodeIdU -> Xml.ContentL
 render_inline il = flip (render_link (Data.ilLink il)) (render_inline_visual (Data.ilVisual il))
 
-unite_neighboring_texts :: [Data.Inline idts] -> [Data.Inline idts]
-unite_neighboring_texts =
-	\case
-		[] -> []
-		[x] -> [x]
-		(Data.Inline t1 Nothing : Data.Inline t2 Nothing : rest) ->
-			Data.Inline (t1 <> t2) Nothing : unite_neighboring_texts rest
-		(to_not_change : rest) -> to_not_change : unite_neighboring_texts rest
-
 render_possibly_sentence :: PData.Site Data.NodeIdU -> PData.Inline Data.NodeIdU -> Xml.ContentL
 render_possibly_sentence site inline =
 	case inline of
@@ -266,7 +257,7 @@ page_file_name :: PData.Page u -> String
 page_file_name = PData.pageAddress >>> unwrapPageAddress >>> page_file_name_from_id
 
 page_file_path :: PData.Page u -> FilePath
-page_file_path page = Fp.joinPath ["c", page_file_name page]
+page_file_path page = page_file_name page
 
 link_to_address :: PData.Site Data.NodeIdU -> PData.UserAddressMap Data.NodeIdU -> PData.Link Data.NodeIdU -> String
 link_to_address site address_map = 
