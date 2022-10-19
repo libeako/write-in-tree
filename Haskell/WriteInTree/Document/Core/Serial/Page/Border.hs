@@ -9,13 +9,11 @@ import Fana.Prelude
 
 import qualified Data.Char as Base
 import qualified Data.Foldable as Fold
-import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix as Class
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
@@ -35,23 +33,17 @@ type NodeH = Data.Node Text Text
 render_from_node :: forall a . a ~ Label.Elem Text => NodeH -> (a (), Paragraph)
 render_from_node i = (Data.nodeWitSource i, Data.nodeContent i)
 
-parse_into_node ::
-	forall a . a ~ Label.Elem Text =>
-	(a (), Paragraph) -> Either (Pos.Positioned (Accu.Accumulated Text)) NodeH
+parse_into_node :: forall a . a ~ Label.Elem Text => (a (), Paragraph) -> NodeH
 parse_into_node (a, paragraph) =
 	let
-		make :: Text -> Data.Node Text Text
-		make id_a = Data.Node id_a a paragraph (has_page_class a)
-		error_message :: Pos.Positioned (Accu.Accumulated Text)
-		error_message = Pos.Positioned (Pos.get_position a) "node does not have an automatic identifier"
-		in Base.maybe (Left error_message) Right (map make (Label.ofElem_auto_id a))
+		new_node :: Data.Node Text Text
+		new_node = Data.Node a paragraph (has_page_class a)
+		in new_node
 
 layer ::
 	a ~ Label.Elem Text =>
-	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) (Tree (a (), Paragraph)) (Tree NodeH)
-layer = 
-	Optic.piso_convert_error Pos.maybefy_positioned
-		(Optic.lift_piso (Optic.PartialIso render_from_node parse_into_node))
+	Optic.Iso' (Tree (a (), Paragraph)) (Tree NodeH)
+layer = (Optic.lift_iso (Optic.Iso render_from_node parse_into_node))
 
 
 -- other stuff:

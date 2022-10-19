@@ -45,7 +45,6 @@ type Paragraph ia = Inline ia
 data Node (id_u :: Type) ia =
 	Node
 	{
-		nodeIdAuto :: Text,
 		nodeWitSource :: Label.Elem id_u (),
 		nodeContent :: Paragraph ia,
 		nodeIsSeparatePage :: Bool
