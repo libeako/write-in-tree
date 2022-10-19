@@ -43,9 +43,7 @@ type ElemPT = ElemP Text
 
 
 data Elem id e = Elem
-	{ ofElem_auto_id :: Maybe Text
-		-- ^ automatic identifier
-	, ofElem_position :: Pos.Position
+	{ ofElem_position :: Pos.Position
 	, ofElem_labels :: Structure.Labels id
 	, ofElem_core :: e
 	}
@@ -62,8 +60,8 @@ ofElem_id_u_content = ofElem_labels >>> Structure.id_of_Labels
 ofElem_address :: Elem i e -> Maybe Text
 ofElem_address = ofElem_labels >>> Structure.address_of_Labels >>> map unwrapPageAddress
 
-fromElem_id_au_content :: Elem id e -> (Maybe Text, Maybe id)
-fromElem_id_au_content = liftA2 (,) ofElem_auto_id ofElem_id_u_content
+fromElem_id_au_content :: Elem id e -> Maybe id
+fromElem_id_au_content = ofElem_id_u_content
 
 ofElem_class_values :: Elem id e -> [Text]
 ofElem_class_values = id 
@@ -88,19 +86,19 @@ elem_has_class class_text = ofElem_labels >>> Structure.labels_has_class class_t
 instance Pos.HasPosition (Elem id e) where get_position = ofElem_position
 
 default_Elem_context :: e -> Elem id e
-default_Elem_context e = Elem def def def e
+default_Elem_context e = Elem def def e
 
 -- | convert an element from data to picture format.
 elem_dp :: Elem id e -> ElemP e
 elem_dp x = Path.ElemHP
 	{ Path.inElemHPPos = ofElem_position x
-	, Path.inElemHPCore = Tt.Elem (ofElem_auto_id x) (ofElem_core x)
+	, Path.inElemHPCore = Tt.Elem (ofElem_core x)
 	}
 -- | convert an element from picture to data format.
 elem_pd :: Structure.Labels id -> ElemP e -> Elem id e
-elem_pd labels p = Elem
-	{ ofElem_auto_id = Tt.elemId (Path.inElemHPCore p)
-	, ofElem_position = Path.inElemHPPos p
+elem_pd labels p =
+	Elem
+	{ofElem_position = Path.inElemHPPos p
 	, ofElem_labels = labels
 	, ofElem_core = Tt.elemValue (Path.inElemHPCore p)
 	}

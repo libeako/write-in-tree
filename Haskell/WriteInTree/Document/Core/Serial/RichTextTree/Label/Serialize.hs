@@ -305,7 +305,7 @@ render_tree (Node trunk children) =
 		classes :: Classes
 		classes = maybe Fana.empty_coll id (Structure.classes_of_Labels labels)
 		in
-			Node (Tt.Elem (ofElem_auto_id trunk) (HasSingle.elem trunk))
+			Node (Tt.Elem (HasSingle.elem trunk))
 				(render_all_into_siblings (identifier, address, classes) (map render_tree children))
 
 parse_tree_r :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemTT)
@@ -322,12 +322,11 @@ parse_tree_r (Node trunk all_children) =
 			Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemTT)
 		continue_parse_result ((user_id, page_address, classes), normal_children) =
 			let
-				auto_id = Tt.elemId (Path.inElemHPCore trunk)
 				position = Path.inElemHPPos trunk
 				classes_mb = if Fana.is_coll_empty classes then Nothing else (Just classes)
 				labels = Structure.Labels user_id page_address classes_mb
 				in
-					map (Node (Elem auto_id position labels (HasSingle.elem trunk)))
+					map (Node (Elem position labels (HasSingle.elem trunk)))
 						(traverse parse_tree_r normal_children)
 		in current_parse_result >>= continue_parse_result
 

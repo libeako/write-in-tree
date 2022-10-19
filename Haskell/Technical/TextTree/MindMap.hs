@@ -16,7 +16,6 @@ import qualified Data.Tree as Tree
 import qualified Prelude as Base
 
 import qualified Fana.Data.Either as Either
-import qualified Fana.Data.HomoPair as HoPair
 import qualified Fana.Data.Maybe as Maybe
 import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
@@ -41,9 +40,6 @@ xml_elem :: Text -> [Xml.Attr] -> [Xml.Element] -> Xml.Element
 xml_elem name attributes children = Xml.Element (xml_name name) attributes (map Xml.Elem children) Nothing
 
 
-attribute_id_name :: Text
-attribute_id_name = "ID"
-
 attribute_text_name :: Text
 attribute_text_name = "TEXT"
 
@@ -52,8 +48,7 @@ node_name = "node"
 
 
 render_elem :: Data.ElemT -> [Xml.Attr]
-render_elem (Data.Elem iden text) = Base.catMaybes
-	[map (xml_attribute attribute_id_name) iden, Just (xml_attribute attribute_text_name text)]
+render_elem (Data.Elem text) = [xml_attribute attribute_text_name text]
 
 render_elem_tree :: Tree.Tree Data.ElemT -> Xml.Element
 render_elem_tree tree = 
@@ -102,14 +97,12 @@ elem_from_attributes attributes =
 		-- finds the attribute with the given name
 		find_attr :: Base.String -> Maybe Xml.Attr
 		find_attr s = Base.find ((Base.== s) . Xml.qName . Xml.attrKey) attributes
-		from_attributes :: (Maybe Xml.Attr, Xml.Attr) -> Data.ElemT
-		from_attributes (attr_id, attr_value) =
-			Data.Elem (map Xml.attrVal attr_id) (Xml.attrVal attr_value)
-	in
-		(attribute_id_name, attribute_text_name) -- we are interested in these attributes
-		*>>> HoPair.map_homo_pair find_attr -- find them 
-		*>>> Base.sequenceA -- both of them are needed
-		*>>> Base.fmap from_attributes
+		from_attributes :: Xml.Attr -> Data.ElemT
+		from_attributes attr_value = Data.Elem (Xml.attrVal attr_value)
+		in
+			attribute_text_name -- we are interested in these attributes
+			*>>> find_attr -- find them 
+			*>>> Base.fmap from_attributes
 
 extract_single_elem :: [a] -> Either ParseErrorMindMap a
 extract_single_elem = 
