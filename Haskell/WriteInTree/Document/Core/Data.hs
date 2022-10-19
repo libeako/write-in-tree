@@ -71,9 +71,6 @@ inNode_idu_source_mb = Label.inLabel_id_source_mb >**>^ Label.inElem_labels >**>
 uid_of_node :: Node id_u li -> Maybe id_u
 uid_of_node = nodeWitSource >>> Label.ofElem_labels >>> Label.id_of_Labels
 
-both_id_of_node :: Node id_u ia -> (Text, Maybe id_u)
-both_id_of_node node = (nodeIdAuto node, uid_of_node node)
-
 attach_its_uid_to_node :: Node id_u ia -> Maybe (id_u, Node id_u ia)
 attach_its_uid_to_node n = map (Pair.before n) (uid_of_node n)
 

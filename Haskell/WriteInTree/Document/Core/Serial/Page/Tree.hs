@@ -10,7 +10,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	PageKey, Site (..),
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
-	title_of_section, title_of_page, id_of_page, is_inline_a_page_break, page_addresses_in_site,
+	title_of_section, title_of_page, is_inline_a_page_break, page_addresses_in_site,
 	
 	melt_pages_to_single, compile_site, layer
 )
@@ -135,12 +135,6 @@ trunk_node_in_Page = Tree.trunk_in_tree >**>^ content_in_Page
 
 trunk_node_of_page :: Page i -> Node i
 trunk_node_of_page = pageContent >>> Tree.rootLabel
-
-both_id_of_page :: Page i -> (Text, Maybe i)
-both_id_of_page = trunk_node_of_page >>> UI.both_id_of_node
-
-id_of_page :: Page i -> Text
-id_of_page = trunk_node_of_page >>> UI.nodeIdAuto
 
 pages_in_site :: Optic.Lens' (AllPages i) (Site i)
 pages_in_site =
