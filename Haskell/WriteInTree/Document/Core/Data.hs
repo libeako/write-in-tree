@@ -155,10 +155,10 @@ separate_page_in_Node = Optic.lens_from_get_set nodeIsSeparatePage (\ p w -> w {
 idu_in_Node :: Optic.Traversal (id_u_1) (id_u_2) (Node id_u_1 ia) (Node id_u_2 ia)
 idu_in_Node = Category2.identity >**>^ Label.inElem_idu >**>^ inNode_source
 
-internal_address_in_node ::
+internal_address_in_link_in_node ::
 	forall ia1 ia2 id_u .
 	Optic.Traversal ia1 ia2 (Node id_u ia1) (Node id_u ia2)
-internal_address_in_node =
+internal_address_in_link_in_node =
 	Category2.identity
 	>**>^ internal_address_in_Inline
 	>**>^ inNode_content
@@ -181,10 +181,10 @@ idu_in_tree ::
 		(StructureAsTree id_u_1 ia) (StructureAsTree id_u_2 ia)
 idu_in_tree = idu_in_Node >**>^ node_in_tree
 
-internal_address_in_tree ::
+internal_address_in_link_in_tree ::
 	forall ia1 ia2 id_u .
 	Optic.Traversal ia1 ia2 (StructureAsTree id_u ia1) (StructureAsTree id_u ia2)
-internal_address_in_tree = internal_address_in_node >**>^ node_in_tree
+internal_address_in_link_in_tree = internal_address_in_link_in_node >**>^ node_in_tree
 
 texts_in_Tree :: forall id_u ia . Optic.Traversal' Text (StructureAsTree id_u ia)
 texts_in_Tree = Category2.identity >**>^ texts_in_Node >**>^ node_in_tree

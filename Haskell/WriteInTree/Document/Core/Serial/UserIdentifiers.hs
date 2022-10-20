@@ -114,7 +114,7 @@ change_reference_from_node ::
 	Either (Pos.Positioned (Accu.Accumulated Text)) (UsI.Node UsI.NodeIdU UsI.NodeIdU)
 change_reference_from_node m node = let
 	computation_result :: Either (Accu.Accumulated Text) (UsI.Node UsI.NodeIdU UsI.NodeIdU)
-	computation_result = Optic.traverse UsI.internal_address_in_node (change_identifier m) node
+	computation_result = Optic.traverse UsI.internal_address_in_link_in_node (change_identifier m) node
 	convert_error :: Accu.Accumulated Text -> Pos.Positioned (Accu.Accumulated Text)
 	convert_error = Pos.Positioned (Pos.get_position (UsI.nodeWitSource node))
 	in Bifunctor.first convert_error computation_result
@@ -149,7 +149,7 @@ down ::
 	UsI.StructureAsTree Text Text
 down = id 
 	>>> Optic.fn_up UsI.idu_in_tree reference_down
-	>>> Optic.fn_up UsI.internal_address_in_tree reference_down
+	>>> Optic.fn_up UsI.internal_address_in_link_in_tree reference_down
 
 layer :: Optic.PartialIso' (Pos.Positioned (Accu.Accumulated Text)) 
 	(UsI.StructureAsTree Text Text) 

@@ -53,11 +53,11 @@ type AllPages i = Array (Page i)
 
 type PagePath = [String]
 
-data SubPageTarget id_u =
+data SubPageTarget =
 	SubPageTarget { sptPageKey :: PageKey }
 	deriving (Eq)
 
-type LinkInternalTarget (i :: Type) = Either (SubPageTarget i) i
+type LinkInternalTarget (i :: Type) = Either SubPageTarget i
 
 type Link (i :: Type) = UI.Link (LinkInternalTarget i)
 type Inline (i :: Type) = UI.Inline (LinkInternalTarget i)
@@ -121,11 +121,9 @@ title_of_page = pageContent >>> Tree.rootLabel >>> title_of_section
 -- optics :
 
 of_Structure_SubPageTarget ::
-	Optic.Traversal
-		(SubPageTarget i) (SubPageTarget i)
-		(Structure i) (Structure i)
+	Optic.Traversal SubPageTarget SubPageTarget (Structure i) (Structure i)
 of_Structure_SubPageTarget =
-	Category2.identity >**>^ Optic.prism_Left >**>^ UI.internal_address_in_tree
+	Category2.identity >**>^ Optic.prism_Left >**>^ UI.internal_address_in_link_in_tree
 
 content_in_Page :: Optic.Lens' (Structure i) (Page i)
 content_in_Page = Optic.lens_from_get_set pageContent (\ c p -> p { pageContent = c })
@@ -300,7 +298,7 @@ parse ::
 parse =
 	let
 		rightify :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Structure UI.NodeIdU
-		rightify = Optic.fn_up UI.internal_address_in_tree Right
+		rightify = Optic.fn_up UI.internal_address_in_link_in_tree Right
 		in rightify >>> compile_site
 
 layer ::
