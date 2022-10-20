@@ -12,7 +12,6 @@ import Fana.Prelude
 
 import qualified Fana.Data.HasSingle as Fana
 import qualified Fana.Data.HasSingle as HasSingle
-import qualified Fana.Haskell.DescribingClass as Class
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -45,14 +44,9 @@ type StructureAsTreeRaw = Data.StructureAsTree Data.NodeIdU Data.NodeIdU
 layer_move_additional_info :: Fana.HasSingle a => Optic.Iso' (Tree (a e)) (Tree (a (), e))
 layer_move_additional_info = Optic.lift_iso HasSingle.iso_separate
 
-layer_meta_text_escapee ::
-	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text))
-		StructureAsTreeRaw StructureAsTreeRaw
+layer_meta_text_escapee :: Optic.Iso' (Page.Site i) (Page.Site i)
 layer_meta_text_escapee =
-	let
-		iso_escapee :: Optic.Iso' StructureAsTreeRaw StructureAsTreeRaw
-		iso_escapee = Optic.lift_iso_by_function (Optic.fn_up Data.texts_in_Tree) Mtt.layer_escapee
-		in Class.convert_from_describing_class_4 iso_escapee
+	Optic.lift_iso_by_function (Optic.fn_up Page.text_content_in_site) Mtt.layer_escapee
 
 layer_document :: Optic.Iso' (Page.Site Data.NodeIdU) Document
 layer_document = Optic.Iso Data.docSite Data.Document
@@ -69,8 +63,8 @@ layer sep_props =
 	>**>^ layer_move_additional_info
 	>**>^ PageBorder.layer
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned UserIds.layer
-	>**>^ layer_meta_text_escapee
 	>**>^ Page.layer
+	>**>^ layer_meta_text_escapee
 	>**>^ layer_document
 
 layer_test :: Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text Document

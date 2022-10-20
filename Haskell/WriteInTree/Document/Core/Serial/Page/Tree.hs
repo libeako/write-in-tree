@@ -10,7 +10,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	PageKey, Site (..),
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
-	title_of_section, title_of_page, is_inline_a_page_break, page_addresses_in_site,
+	title_of_section, title_of_page, is_inline_a_page_break, page_addresses_in_site, text_content_in_site,
 	
 	melt_pages_to_single, compile_site, layer
 )
@@ -147,9 +147,13 @@ trunk_node_in_site =
 	Category2.identity >**>^
 	trunk_node_in_Page >**>^ Optic.from_Traversable >**>^ pages_in_site
 
-
 page_addresses_in_site :: Optic.Traversal' (Maybe PageAddress) (Site i)
 page_addresses_in_site = UI.page_addresses_in_Node >**>^ trunk_node_in_site
+
+text_content_in_site :: Optic.Traversal' Text (Site i)
+text_content_in_site =
+	Category2.identity >**>^
+	UI.texts_in_Tree  >**>^ content_in_Page >**>^ Optic.from_Traversable >**>^ pages_in_site
 
 
 -- compilation
