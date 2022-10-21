@@ -27,7 +27,6 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructu
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
-import qualified WriteInTree.Document.Core.Serial.UserIdentifiers as UserIds
 import qualified WriteInTree.Document.SepProps.Data as SepProps
 
 
@@ -62,7 +61,6 @@ layer sep_props =
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
 	>**>^ layer_move_additional_info
 	>**>^ PageBorder.layer
-	>**>^ Optic.piso_convert_error Pos.maybefy_positioned UserIds.layer
 	>**>^ Page.layer
 	>**>^ layer_meta_text_escapee
 	>**>^ layer_document

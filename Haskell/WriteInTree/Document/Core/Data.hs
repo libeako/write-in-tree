@@ -2,10 +2,9 @@
 module WriteInTree.Document.Core.Data where
 
 
-import Fana.Data.Identified (Identified)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import Prelude (String, Int)
+import Prelude (String)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem (inElem_labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), inLabel_page_address)
 
@@ -23,7 +22,7 @@ type Text = Base.String
 
 
 -- | at this stage of the application this type is used instead of the user-given string alone.
-type NodeIdU = Identified Int Text
+type NodeIdU = Text
 
 -- | Can be internal or external.
 data Link ia =

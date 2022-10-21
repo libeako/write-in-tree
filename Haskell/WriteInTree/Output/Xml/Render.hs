@@ -15,7 +15,6 @@ import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Tree as Tree
 import qualified Fana.Data.Function as Fn
-import qualified Fana.Data.Identified as Identified
 import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
@@ -262,7 +261,7 @@ link_to_address site =
 		Data.LIn node_id -> 
 			case node_id of
 				Left (PData.SubPageTarget key) -> page_file_name (PData.get_page_of_Site_at site key)
-				Right idu -> page_file_name_from_id (Identified.cargo idu)
+				Right idu -> page_file_name_from_id idu
 		Data.LEx a -> a
 
 node_address_for_navigation_bar :: PData.Site Data.NodeIdU -> PData.Page Data.NodeIdU -> String
