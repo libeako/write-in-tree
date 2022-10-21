@@ -30,3 +30,4 @@ page_addresses_in_document :: Optic.Traversal' (Maybe PageAddress) (Data i)
 page_addresses_in_document =
 	Category2.identity >**>^
 	Core.page_addresses_in_doc >**>^ core_in_document
+

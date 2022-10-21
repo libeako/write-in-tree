@@ -34,6 +34,7 @@ import qualified Data.Map as Map
 import qualified Data.Tree as Tree
 import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Data.Tree.OfBase as Tree
+import qualified Fana.Haskell.DescribingClass as Fana
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -152,6 +153,17 @@ text_content_in_site :: Optic.Traversal' Text (Site i)
 text_content_in_site =
 	Category2.identity >**>^
 	UI.texts_in_Tree  >**>^ content_in_Page >**>^ Optic.from_Traversable >**>^ pages_in_site
+
+target_in_not_subpage_link_in_node :: Optic.Traversal' i (Node i)
+target_in_not_subpage_link_in_node =
+	Category2.identity >**>^
+	Optic.prism_Right >**>^ UI.internal_address_in_link_in_node
+
+id_for_human_in_node :: Optic.FnUp' i (Node i)
+id_for_human_in_node =
+	Optic.sequence_fn_up
+		(Fana.convert_from_describing_class_4 UI.idu_in_Node)
+		(Fana.convert_from_describing_class_4 target_in_not_subpage_link_in_node)
 
 
 -- compilation
