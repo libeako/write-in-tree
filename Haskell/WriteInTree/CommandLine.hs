@@ -15,6 +15,7 @@ data Command =
 	| CShowDefaultDocProps -- ^ shows default document properties
 	| CConvert Bool FilePath FilePath
 	| CFillPageAddresses FilePath FilePath FilePath
+	| CChangeIdsToMachine FilePath FilePath
 
 matevar_text__input_path :: String
 matevar_text__input_path = "INPUT-DOCUMENT-[FOLDER]"
@@ -75,8 +76,8 @@ parser_command_translate =
 			" into " <>
 			metavar_text__output_filter <>
 			"."
-	in
-		Parse.info options (Parse.progDesc description_text) *>>> Parse.command "translate" 
+		in
+			Parse.info options (Parse.progDesc description_text) *>>> Parse.command "translate" 
 
 parser_command_convert :: Parse.Mod Parse.CommandFields Command
 parser_command_convert = 
@@ -88,9 +89,9 @@ parser_command_convert =
 				(Parse.strOption option_input_path)
 				(Parse.strOption option_output_path)
 		description_text = "Convert document " <> matevar_text__input_path <> " to other format or version."
-	in
-		Parse.info options (Parse.progDesc description_text) 
-		*>>> Parse.command "convert" 
+		in
+			Parse.info options (Parse.progDesc description_text)
+			*>>> Parse.command "convert"
 
 parser_command_fill_page_addresses :: Parse.Mod Parse.CommandFields Command
 parser_command_fill_page_addresses = 
@@ -102,9 +103,23 @@ parser_command_fill_page_addresses =
 				(Parse.strOption option_input_path)
 				(Parse.strOption option_output_path)
 		description_text = "Fills page addresses in document from" <> metavar_text__page_addresses
-	in
-		Parse.info options (Parse.progDesc description_text) 
-		*>>> Parse.command "fill-page-addresses"
+		in
+			Parse.info options (Parse.progDesc description_text) 
+			*>>> Parse.command "fill-page-addresses"
+
+parser_command_change_ids_to_machine :: Parse.Mod Parse.CommandFields Command
+parser_command_change_ids_to_machine = 
+	let
+		options :: Parse.Parser Command
+		options = 
+			Base.liftA2 CChangeIdsToMachine
+				(Parse.strOption option_input_path)
+				(Parse.strOption option_output_path)
+		description_text = "Change identifiers from human to machine version"
+		in
+			Parse.info options (Parse.progDesc description_text) 
+			*>>> Parse.command "change-ids-to-machine"
+
 
 parser_command_show_default_doc_props :: Parse.Mod Parse.CommandFields Command
 parser_command_show_default_doc_props = 
@@ -120,6 +135,7 @@ parser_commands = Parse.hsubparser
 		<> parser_command_convert
 		<> parser_command_fill_page_addresses
 		<> parser_command_show_default_doc_props
+		<> parser_command_change_ids_to_machine
 	)
 
 parse_new :: IO (Command)

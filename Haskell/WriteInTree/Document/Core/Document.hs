@@ -25,5 +25,8 @@ site_in_doc = Optic.lens_from_get_set docSite (\ s (Document _) -> Document s)
 
 page_addresses_in_doc :: Optic.Traversal' (Maybe PageAddress) (Document i)
 page_addresses_in_doc =
-		Category2.identity >**>^
-		Page.page_addresses_in_site >**>^ site_in_doc
+	Category2.identity
+	>**>^ Page.page_addresses_in_site >**>^ site_in_doc
+
+node_in_doc :: Optic.Traversal' (Page.Node i) (Document i)
+node_in_doc = Category2.identity >**>^ Page.node_in_site >**>^ site_in_doc

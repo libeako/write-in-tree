@@ -37,7 +37,7 @@ common common
     , containers >=0.5 && <0.6
     , data-default-class >=0.1 && <0.2
     , directory <=1.4
-    , fana ==0.0.0.182
+    , fana ==0.0.0.183
     , filepath <=1.4
     , mtl >=2.2 && <2.3
     , optparse-applicative >=0.14 && <0.17
@@ -52,6 +52,7 @@ common common
       Technical.Xml
       Technical.Xml.Data
       Technical.Xml.Render
+      WriteInTree.ChangeIdsToMachine
       WriteInTree.CommandLine
       WriteInTree.Compile
       WriteInTree.Convert

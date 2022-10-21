@@ -11,6 +11,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
 	title_of_section, title_of_page, is_inline_a_page_break, page_addresses_in_site, text_content_in_site,
+	node_in_site, id_for_human_in_node, node_idu_to_machine,
 	
 	melt_pages_to_single, compile_site, layer
 )
@@ -30,8 +31,10 @@ import qualified Control.Monad.State.Lazy as State
 import qualified Data.Array as Array
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
+import qualified Data.Maybe as Base
 import qualified Data.Map as Map
 import qualified Data.Tree as Tree
+import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Haskell.DescribingClass as Fana
@@ -118,6 +121,14 @@ title_of_section = Optic.to_list UI.texts_in_Node >>> Fold.concat
 title_of_page :: Page idts -> String
 title_of_page = pageContent >>> Tree.rootLabel >>> title_of_section
 
+node_idu_to_machine' :: Base.Ord i => Site i -> i -> Text
+node_idu_to_machine' site =
+	flip Map.lookup (siteUserAddressMap site) >>> Base.fromJust >>>
+	cltPage >>> ((siteAllPages site) !) >>> pageAddress >>> unwrapPageAddress
+
+node_idu_to_machine :: Site UI.NodeIdU -> Fn.Endo UI.NodeIdU
+node_idu_to_machine site i = map (const (node_idu_to_machine' site i)) i
+
 
 -- optics :
 
@@ -165,6 +176,13 @@ id_for_human_in_node =
 		(Fana.convert_from_describing_class_4 UI.idu_in_Node)
 		(Fana.convert_from_describing_class_4 target_in_not_subpage_link_in_node)
 
+node_in_site :: Optic.Traversal' (Node i) (Site i)
+node_in_site =
+	Category2.identity
+	 >**>^ UI.node_in_tree
+	 >**>^ content_in_Page
+	 >**>^ Optic.from_Traversable
+	 >**>^ pages_in_site
 
 -- compilation
 
