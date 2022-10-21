@@ -5,13 +5,12 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	CrossLinkTarget (..),
 	LinkInternalTarget (..),
 	Link, Inline, Paragraph, Node, Structure,
-	UserAddressMap,
 	Page (..),
 	PageKey, Site (..),
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
 	title_of_section, title_of_page, is_inline_a_page_break, page_addresses_in_site, text_content_in_site,
-	node_in_site, id_for_human_in_node, node_idu_to_machine,
+	node_in_site, id_for_human_in_node,
 	
 	melt_pages_to_single, compile_site, layer
 )
@@ -31,10 +30,8 @@ import qualified Control.Monad.State.Lazy as State
 import qualified Data.Array as Array
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
-import qualified Data.Maybe as Base
 import qualified Data.Map as Map
 import qualified Data.Tree as Tree
-import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Haskell.DescribingClass as Fana
@@ -83,13 +80,10 @@ data Page (i :: Type) = Page
 {-| Link address to page but not to sub-page. -}
 data CrossLinkTarget = CrossLinkTarget { cltPage :: PageKey } deriving (Eq)
 	
-type UserAddressMap i = Map.Map i CrossLinkTarget
-
 data Site (i :: Type) = Site
 	{
 	sitePageRelations :: Tree PageKey,
-	siteAllPages :: AllPages i,
-	siteUserAddressMap :: UserAddressMap i
+	siteAllPages :: AllPages i
 	}
 	deriving (Eq)
 
@@ -103,8 +97,8 @@ get_main_page_of_Site site =
 get_CrossLinkTarget_page :: Site i -> CrossLinkTarget -> Page i
 get_CrossLinkTarget_page site = cltPage >>> get_page_of_Site_at site
 
-make_Site :: forall i . Tree PageKey -> AllPages i-> UserAddressMap i -> Site i
-make_Site page_relations all_pages ua_map = Site page_relations all_pages ua_map
+make_Site :: forall i . Tree PageKey -> AllPages i -> Site i
+make_Site page_relations all_pages = Site page_relations all_pages
 
 is_link_a_page_break :: Link id_u -> Bool
 is_link_a_page_break =
@@ -120,14 +114,6 @@ title_of_section = Optic.to_list UI.texts_in_Node >>> Fold.concat
 
 title_of_page :: Page idts -> String
 title_of_page = pageContent >>> Tree.rootLabel >>> title_of_section
-
-node_idu_to_machine' :: Base.Ord i => Site i -> i -> Text
-node_idu_to_machine' site =
-	flip Map.lookup (siteUserAddressMap site) >>> Base.fromJust >>>
-	cltPage >>> ((siteAllPages site) !) >>> pageAddress >>> unwrapPageAddress
-
-node_idu_to_machine :: Site UI.NodeIdU -> Fn.Endo UI.NodeIdU
-node_idu_to_machine site i = map (const (node_idu_to_machine' site i)) i
 
 
 -- optics :
@@ -150,7 +136,7 @@ pages_in_site :: Optic.Lens' (AllPages i) (Site i)
 pages_in_site =
 	Optic.lens_from_get_set
 		siteAllPages
-		(\ aps (Site relations _ meaningful_ids) -> Site relations aps meaningful_ids)
+		(\ aps (Site relations _) -> Site relations aps)
 
 trunk_node_in_site :: Optic.Traversal' (Node i) (Site i)
 trunk_node_in_site =
@@ -264,7 +250,6 @@ divide_to_pages_from_page whole_structure =
 
 compile_site ::
 	forall i .
-	Base.Ord i =>
 	PageContent i -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site i)
 compile_site input_structure = 
 	let
@@ -287,10 +272,8 @@ compile_site input_structure =
 						Just address -> Right (Page address page_content)
 		all_pages :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (AllPages i)
 		all_pages = traverse make_page all_pages_content
-		user_address_map :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (UserAddressMap i)
-		user_address_map = all_pages >>= gather_InternalLinkTargets_in_Pages
 		relations = map fst pages_tree
-		in liftA2 (make_Site relations) all_pages user_address_map
+		in map (make_Site relations) all_pages
 
 melt_pages_to_single :: forall i . Site i -> Structure i -> UI.StructureAsTree i i
 melt_pages_to_single site (Tree.Node trunk children) =

@@ -52,7 +52,6 @@ common common
       Technical.Xml
       Technical.Xml.Data
       Technical.Xml.Render
-      WriteInTree.ChangeIdsToMachine
       WriteInTree.CommandLine
       WriteInTree.Compile
       WriteInTree.Convert

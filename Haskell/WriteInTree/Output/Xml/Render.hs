@@ -13,16 +13,13 @@ import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddres
 
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
-import qualified Data.Maybe as Base
-import qualified Data.Map as Map
 import qualified Data.Tree as Tree
-import qualified Prelude as Base
-import qualified System.FilePath as Fp
-
 import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.Identified as Identified
 import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Optic.Concrete.Prelude as Optic
+import qualified Prelude as Base
+import qualified System.FilePath as Fp
 
 import qualified Technical.Html as Html
 import qualified Technical.Xml.Data as Xml
@@ -117,7 +114,7 @@ render_link =
 		wrap_with_link_to :: String -> Fn.Endo Xml.ContentL
 		wrap_with_link_to target = pure >>> Html.with_link_to target >>> Xml.element_as_content
 		get_address :: PData.Link Data.NodeIdU -> PData.Site Data.NodeIdU -> String
-		get_address link site = link_to_address site (PData.siteUserAddressMap site) link 
+		get_address link site = link_to_address site link 
 	in
 		\case
 			Nothing -> const id
@@ -259,22 +256,13 @@ page_file_name = PData.pageAddress >>> unwrapPageAddress >>> page_file_name_from
 page_file_path :: PData.Page u -> FilePath
 page_file_path page = page_file_name page
 
-link_to_address :: PData.Site Data.NodeIdU -> PData.UserAddressMap Data.NodeIdU -> PData.Link Data.NodeIdU -> String
-link_to_address site address_map = 
+link_to_address :: PData.Site Data.NodeIdU -> PData.Link Data.NodeIdU -> String
+link_to_address site = 
 	\ case
 		Data.LIn node_id -> 
 			case node_id of
 				Left (PData.SubPageTarget key) -> page_file_name (PData.get_page_of_Site_at site key)
-				Right idu ->
-					let
-						error_message = 
-							let idu_text = Identified.cargo idu
-								in 
-									"internal error : key " <> idu_text <>
-									" is not in address map during link resolution"
-						ilt :: PData.CrossLinkTarget
-						ilt = Base.fromMaybe (Base.error error_message) (Map.lookup idu address_map)
-						in page_file_name (PData.get_CrossLinkTarget_page site ilt)
+				Right idu -> page_file_name_from_id (Identified.cargo idu)
 		Data.LEx a -> a
 
 node_address_for_navigation_bar :: PData.Site Data.NodeIdU -> PData.Page Data.NodeIdU -> String
