@@ -268,7 +268,7 @@ link_to_address site address_map =
 				Right idu ->
 					let
 						error_message = 
-							let idu_text = Data.nidun_u (Identified.cargo idu)
+							let idu_text = Identified.cargo idu
 								in 
 									"internal error : key " <> idu_text <>
 									" is not in address map during link resolution"

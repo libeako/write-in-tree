@@ -22,10 +22,8 @@ type Text = Base.String
 -- | we are going to use "a" as name for of type parameter of addition information
 
 
-data NodeIdUCore = NodeIdUCore
-	{ nidun_u :: Text, nidun_path_to_trunk :: [String] }
 -- | at this stage of the application this type is used instead of the user-given string alone.
-type NodeIdU = Identified Int NodeIdUCore
+type NodeIdU = Identified Int Text
 
 -- | Can be internal or external.
 data Link ia =
