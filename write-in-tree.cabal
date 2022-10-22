@@ -72,9 +72,9 @@ common common
       WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit
       WriteInTree.Document.Core.Serial.RichTextTree.Path
       WriteInTree.Document.Core.Serial.RichTextTree.Position
-      WriteInTree.Document.Data
-      WriteInTree.Document.Folder
       WriteInTree.Document.File
+      WriteInTree.Document.Folder
+      WriteInTree.Document.Main
       WriteInTree.Document.SepProps.Command_ShowDefault
       WriteInTree.Document.SepProps.Data
       WriteInTree.Document.SepProps.Parse

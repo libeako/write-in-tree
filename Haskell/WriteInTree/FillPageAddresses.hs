@@ -16,7 +16,7 @@ import qualified Data.List as List
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.File as File
-import qualified WriteInTree.Document.Data as Data
+import qualified WriteInTree.Document.Main as Data
 
 
 type Text = Base.String
@@ -37,7 +37,7 @@ algorithm' new_addresses =
 				let current_address = List.head addresses
 				State.modify List.tail
 				pure (Just (PageAddress current_address))
-		in Optic.traverse Data.page_addresses_in_document step >>> flip State.evalState new_addresses
+		in Optic.traverse Data.page_addresses_in_doc step >>> flip State.evalState new_addresses
 
 algorithm :: Text -> Doc -> Doc
 algorithm = List.lines >>> algorithm'

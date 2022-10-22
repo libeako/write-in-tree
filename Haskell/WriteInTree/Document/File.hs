@@ -8,7 +8,7 @@ where
 
 import Fana.Prelude
 import Prelude (String, IO, FilePath)
-import WriteInTree.Document.Data (Data (..))
+import WriteInTree.Document.Main (Document (..))
 import WriteInTree.Document.Folder (FolderStructure (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..))
 
@@ -17,8 +17,7 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Data as CoreData
-import qualified WriteInTree.Document.Core.Document as CoreData
+import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
 import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
@@ -29,12 +28,12 @@ import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
 
 type Text = Base.String
 
-type WithConcreteDataParams t = t CoreData.NodeIdU (Page.LinkInternalTarget CoreData.NodeIdU)
+type WithConcreteDataParams t = t Data.NodeIdU (Page.LinkInternalTarget Data.NodeIdU)
 
 type A = Label.Elem Text
 
-type DocData = Data CoreData.NodeIdU
-type DocCoreData = CoreData.Document CoreData.NodeIdU
+type DocData = Document Data.NodeIdU
+type DocCoreData = Page.Site Data.NodeIdU
 
 render_sep_props :: DocSepProps -> String
 render_sep_props = SepPropsSimco.to_simco_text
@@ -45,9 +44,9 @@ render_core'' config = Optic.down (CoreSerial.layer config)
 render_all'' :: DocData -> FolderStructure String
 render_all'' d =
 	let
-		config = doc_sep_props d
+		config = docSepProps d
 		config_text = render_sep_props config
-		core_text = render_core'' config (doc_core d)
+		core_text = render_core'' config (docCore d)
 		in FolderStructure config_text core_text
 
 write'' :: FilePath -> DocData -> IO ()
@@ -77,13 +76,13 @@ parse_all'' :: FolderStructure String -> Either Error DocData
 parse_all'' fs = do
 	config <- parse_sep_props (fs_separate_properties fs)
 	core <- parse_core'' config (fs_tree fs)
-	pure (Data config core)
+	pure (Document config core)
 
 parse_all :: FolderStructure String -> Either Error DocData
 parse_all fs = do
 	config <- parse_sep_props (fs_separate_properties fs)
 	core <- parse_core config (fs_tree fs)
-	pure (Data config core)
+	pure (Document config core)
 
 read'' :: FilePath -> IO (Either Error DocData)
 read'' = Folder.read >>> map parse_all''

@@ -19,7 +19,6 @@ import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified Technical.TextTree.MindMap as Tt
 import qualified WriteInTree.Document.Core.Data as Data
-import qualified WriteInTree.Document.Core.Document as Data
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Page.Border as PageBorder
 import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
@@ -27,6 +26,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructu
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
+import qualified WriteInTree.Document.Main as Data
 import qualified WriteInTree.Document.SepProps.Data as SepProps
 
 
@@ -47,12 +47,9 @@ layer_meta_text_escapee :: Optic.Iso' (Page.Site i) (Page.Site i)
 layer_meta_text_escapee =
 	Optic.lift_iso_by_function (Optic.fn_up Page.text_content_in_site) Mtt.layer_escapee
 
-layer_document :: Optic.Iso' (Page.Site Data.NodeIdU) Document
-layer_document = Optic.Iso Data.docSite Data.Document
-
 layer ::
 	SepProps.DocSepProps -> 
-	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text Document
+	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Page.Site Data.NodeIdU)
 layer sep_props = 
 	Category2.identity
 	>**>^ Optic.piso_convert_error convert_string_error Tt.layer 
@@ -63,7 +60,6 @@ layer sep_props =
 	>**>^ PageBorder.layer
 	>**>^ Page.layer
 	>**>^ layer_meta_text_escapee
-	>**>^ layer_document
 
-layer_test :: Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text Document
+layer_test :: Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Page.Site Data.NodeIdU)
 layer_test = layer def
