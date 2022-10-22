@@ -60,7 +60,7 @@ type LinkInternalTarget (i :: Type) = Either SubPageTarget i
 type Link (i :: Type) = UI.Link (LinkInternalTarget i)
 type Inline (i :: Type) = UI.Inline (LinkInternalTarget i)
 type Paragraph (i :: Type) = UI.Paragraph (LinkInternalTarget i)
-type Node (i :: Type) = UI.Node i (LinkInternalTarget i)
+type Node (i :: Type) = UI.Node (LinkInternalTarget i)
 
 type Structure (i :: Type) = Tree.Tree (Node i)
 
@@ -253,7 +253,7 @@ melt_pages_to_single site (Tree.Node trunk children) =
 			let
 				new_trunk_node_inline :: UI.Inline i
 				new_trunk_node_inline = UI.Inline (UI.ilVisual trunk_node_inline) link
-				new_trunk_node :: UI.Node i i
+				new_trunk_node :: UI.Node i
 				new_trunk_node = Optic.fill UI.inNode_content new_trunk_node_inline trunk
 				in Tree.Node new_trunk_node melted_children			
 		in

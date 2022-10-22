@@ -28,7 +28,7 @@ has_page_class :: Label.Elem e -> Bool
 has_page_class = Label.elem_has_class text_page_class
 
 
-type NodeH = Data.Node Text Text
+type NodeH = Data.Node Text
 
 render_from_node :: forall a . a ~ Label.Elem => NodeH -> (a (), Paragraph)
 render_from_node i = (Data.nodeWitSource i, Data.nodeContent i)
@@ -36,7 +36,7 @@ render_from_node i = (Data.nodeWitSource i, Data.nodeContent i)
 parse_into_node :: forall a . a ~ Label.Elem => (a (), Paragraph) -> NodeH
 parse_into_node (a, paragraph) =
 	let
-		new_node :: Data.Node Text Text
+		new_node :: Data.Node Text
 		new_node = Data.Node a paragraph (has_page_class a)
 		in new_node
 
