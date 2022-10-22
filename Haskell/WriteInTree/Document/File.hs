@@ -17,7 +17,6 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
 import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
@@ -28,12 +27,12 @@ import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
 
 type Text = Base.String
 
-type WithConcreteDataParams t = t Data.NodeIdU (Page.LinkInternalTarget Data.NodeIdU)
+type WithConcreteDataParams t = t Text (Page.LinkInternalTarget Text)
 
 type A = Label.Elem Text
 
-type DocData = Document Data.NodeIdU
-type DocCoreData = Page.Site Data.NodeIdU
+type DocData = Document Text
+type DocCoreData = Page.Site Text
 
 render_sep_props :: DocSepProps -> String
 render_sep_props = SepPropsSimco.to_simco_text

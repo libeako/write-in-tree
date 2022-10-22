@@ -300,21 +300,21 @@ melt_pages_to_single site (Tree.Node trunk children) =
 									melt_pages_to_single site (pageContent (get_page_of_Site_at site sub_page_key))
 								Right a -> make_result_with_link (Just (UI.LIn a))
 
-render :: Site UI.NodeIdU -> UI.StructureAsTree UI.NodeIdU UI.NodeIdU
+render :: Site Text -> UI.StructureAsTree Text Text
 render site =
 	melt_pages_to_single site
 		(pageContent (get_main_page_of_Site site))
 
 parse ::
-	UI.StructureAsTree UI.NodeIdU UI.NodeIdU ->
-	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site UI.NodeIdU)
+	UI.StructureAsTree Text Text ->
+	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site Text)
 parse =
 	let
-		rightify :: UI.StructureAsTree UI.NodeIdU UI.NodeIdU -> Structure UI.NodeIdU
+		rightify :: UI.StructureAsTree Text Text -> Structure Text
 		rightify = Optic.fn_up UI.internal_address_in_link_in_tree Right
 		in rightify >>> compile_site
 
 layer ::
 	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text))
-		(UI.StructureAsTree UI.NodeIdU UI.NodeIdU) (Site UI.NodeIdU)
+		(UI.StructureAsTree Text Text) (Site Text)
 layer = Optic.PartialIso render parse

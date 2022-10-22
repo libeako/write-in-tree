@@ -35,10 +35,10 @@ type Text = Base.String
 convert_string_error :: Fana.Showable Text s => s -> Pos.PositionedMb (Accu.Accumulated Text)
 convert_string_error = Fana.show >>> Pos.PositionedMb Nothing
 
-type StructureAsTree = Data.StructureAsTree Data.NodeIdU (Page.LinkInternalTarget Data.NodeIdU)
-type Document = Data.Document Data.NodeIdU
+type StructureAsTree = Data.StructureAsTree Text (Page.LinkInternalTarget Text)
+type Document = Data.Document Text
 
-type StructureAsTreeRaw = Data.StructureAsTree Data.NodeIdU Data.NodeIdU
+type StructureAsTreeRaw = Data.StructureAsTree Text Text
 
 layer_move_additional_info :: Fana.HasSingle a => Optic.Iso' (Tree (a e)) (Tree (a (), e))
 layer_move_additional_info = Optic.lift_iso HasSingle.iso_separate
@@ -49,7 +49,7 @@ layer_meta_text_escapee =
 
 layer ::
 	SepProps.DocSepProps -> 
-	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Page.Site Data.NodeIdU)
+	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Page.Site Text)
 layer sep_props = 
 	Category2.identity
 	>**>^ Optic.piso_convert_error convert_string_error Tt.layer 
@@ -61,5 +61,5 @@ layer sep_props =
 	>**>^ Page.layer
 	>**>^ layer_meta_text_escapee
 
-layer_test :: Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Page.Site Data.NodeIdU)
+layer_test :: Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Page.Site Text)
 layer_test = layer def

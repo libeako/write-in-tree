@@ -31,7 +31,7 @@ import qualified WriteInTree.Output.Sentence as Sentence
 
 
 type Text = Base.String
-type Page = PData.Page Data.NodeIdU
+type Page = PData.Page Text
 
 -- | text prefix for html class names - to prevent name collision with
 text_class_prefix :: Text
@@ -85,7 +85,7 @@ html_classes_of_whether_page_is_trunk :: Bool -> [Text]
 html_classes_of_whether_page_is_trunk page_is_trunk =
 	if page_is_trunk then [text_class_trunk_page] else []
 
-wrap_by_classes :: [Text] -> PData.Node Data.NodeIdU -> Fn.Endo Xml.ElementL
+wrap_by_classes :: [Text] -> PData.Node Text -> Fn.Endo Xml.ElementL
 wrap_by_classes additional_classes n = let
 	classes_from_node :: [Text]
 	classes_from_node = Label.ofElem_class_values (Data.nodeWitSource n)
@@ -107,22 +107,22 @@ wrap_by_header_content =
 render_inline_visual :: Text -> Xml.ContentL
 render_inline_visual t = Xml.text t
 
-render_link :: Maybe (PData.Link Data.NodeIdU) -> PData.Site Data.NodeIdU -> Fn.Endo Xml.ContentL
+render_link :: Maybe (PData.Link Text) -> PData.Site Text -> Fn.Endo Xml.ContentL
 render_link =
 	let
 		wrap_with_link_to :: String -> Fn.Endo Xml.ContentL
 		wrap_with_link_to target = pure >>> Html.with_link_to target >>> Xml.element_as_content
-		get_address :: PData.Link Data.NodeIdU -> PData.Site Data.NodeIdU -> String
+		get_address :: PData.Link Text -> PData.Site Text -> String
 		get_address link site = link_to_address site link 
 	in
 		\case
 			Nothing -> const id
 			Just l -> get_address l >>> wrap_with_link_to
 
-render_inline :: PData.Inline Data.NodeIdU -> PData.Site Data.NodeIdU -> Xml.ContentL
+render_inline :: PData.Inline Text -> PData.Site Text -> Xml.ContentL
 render_inline il = flip (render_link (Data.ilLink il)) (render_inline_visual (Data.ilVisual il))
 
-render_possibly_sentence :: PData.Site Data.NodeIdU -> PData.Inline Data.NodeIdU -> Xml.ContentL
+render_possibly_sentence :: PData.Site Text -> PData.Inline Text -> Xml.ContentL
 render_possibly_sentence site inline =
 	case inline of
 		Data.Inline t Nothing ->
@@ -131,7 +131,7 @@ render_possibly_sentence site inline =
 
 render_paragraph :: 
 	Bool -> Bool -> 
-	PData.Paragraph Data.NodeIdU -> PData.Site Data.NodeIdU -> Xml.ElementL
+	PData.Paragraph Text -> PData.Site Text -> Xml.ElementL
 render_paragraph is_page_break sentencing p site = 
 	let
 		content :: [Xml.ContentL]
@@ -140,7 +140,7 @@ render_paragraph is_page_break sentencing p site =
 				then [(flip render_inline site) p]
 				else
 					let
-						all_sections :: [PData.Inline Data.NodeIdU]
+						all_sections :: [PData.Inline Text]
 						all_sections = Sentence.sentences p
 						render_possibly_sentence' = 
 							flip render_inline site >>> List.singleton >>> Html.classify_into [text_class_sentence] >>> Xml.element_as_content
@@ -150,7 +150,7 @@ render_paragraph is_page_break sentencing p site =
 	in (Xml.Head "p" [] (Xml.Labels Nothing classes), content)
 
 render_section :: 
-	Bool -> Bool -> PData.Site Data.NodeIdU -> PData.Structure Data.NodeIdU -> Xml.ElementL
+	Bool -> Bool -> PData.Site Text -> PData.Structure Text -> Xml.ElementL
 render_section sentencing is_page_root site node_tree =
 	let
 		sub_content :: [Xml.ElementL]
@@ -158,11 +158,11 @@ render_section sentencing is_page_root site node_tree =
 		from_sub_content :: [Xml.ElementL] -> Xml.ElementL
 		from_sub_content =
 			let
-				trunk_node :: PData.Node Data.NodeIdU
+				trunk_node :: PData.Node Text
 				trunk_node = Tree.rootLabel node_tree
 				has_class_code :: Bool
 				has_class_code =
-					let 
+					let
 						current_classes = (Data.nodeWitSource >>> Label.ofElem_class_values) trunk_node
 						exceptional_classes = text_classes_non_sentencing
 						in Fold.any (flip Fold.elem exceptional_classes) current_classes
@@ -178,10 +178,10 @@ render_section sentencing is_page_root site node_tree =
 					wrap_by_section >>> wrap_by_classes [] trunk_node
 		in from_sub_content sub_content
 
-render_navigation_bar_per_element :: 
-	PData.Site Data.NodeIdU -> 
-	Bool -> 
-	PData.Page Data.NodeIdU -> 
+render_navigation_bar_per_element ::
+	PData.Site Text ->
+	Bool ->
+	PData.Page Text ->
 	Xml.Content Xml.Labels
 render_navigation_bar_per_element site not_this_page page =
 	let
@@ -199,9 +199,9 @@ render_navigation_bar_per_element site not_this_page page =
 		in add_classes content
 
 render_navigation_bar ::
-	PData.Site Data.NodeIdU ->
-	PData.Page Data.NodeIdU ->
-	[PData.Page Data.NodeIdU] ->
+	PData.Site Text ->
+	PData.Page Text ->
+	[PData.Page Text] ->
 	Xml.Element Xml.Labels
 render_navigation_bar site trunk_page path_to_site_trunk = 
 	let
@@ -214,7 +214,7 @@ render_navigation_bar site trunk_page path_to_site_trunk =
 			(Xml.Head "p" [] (Xml.Labels Nothing [text_class_nav_core]), List.reverse list)
 	in Xml.tree (Xml.Head "nav" [] (Xml.Labels Nothing navigation_classes)) [navigation_content_single_line]
 
-render_page_body_content :: Bool -> PData.Site Data.NodeIdU -> ([Page], Page) -> [Xml.ContentL]
+render_page_body_content :: Bool -> PData.Site Text -> ([Page], Page) -> [Xml.ContentL]
 render_page_body_content sentencing site (path_to_trunk, page) =
 	let
 		node_tree = PData.pageContent page
@@ -233,7 +233,7 @@ render_page_body_content sentencing site (path_to_trunk, page) =
 				in Html.horizontal_line (Xml.Labels Nothing classes_names)
 		in map Xml.element_as_content (navigation_bar : nav_separator : content)
 
-render_page :: Bool -> PData.Site Data.NodeIdU -> ([Page], Page) -> Xml.ElementL
+render_page :: Bool -> PData.Site Text -> ([Page], Page) -> Xml.ElementL
 render_page sentencing site (path_to_trunk, page) = 
 	let
 		classes :: [Text]
@@ -242,7 +242,7 @@ render_page sentencing site (path_to_trunk, page) =
 			Html.page classes (Html.header (PData.title_of_page page) "style.css")
 				(render_page_body_content sentencing site (path_to_trunk, page))
 
-render_page_to_text :: Bool -> PData.Site Data.NodeIdU -> ([Page], Page) -> String
+render_page_to_text :: Bool -> PData.Site Text -> ([Page], Page) -> String
 render_page_to_text sentencing site (path_to_trunk, page) =
 	Html.page_text (render_page sentencing site (path_to_trunk, page))
 
@@ -255,7 +255,7 @@ page_file_name = PData.pageAddress >>> unwrapPageAddress >>> page_file_name_from
 page_file_path :: PData.Page u -> FilePath
 page_file_path page = page_file_name page
 
-link_to_address :: PData.Site Data.NodeIdU -> PData.Link Data.NodeIdU -> String
+link_to_address :: PData.Site Text -> PData.Link Text -> String
 link_to_address site = 
 	\ case
 		Data.LIn node_id -> 
@@ -264,10 +264,10 @@ link_to_address site =
 				Right idu -> page_file_name_from_id idu
 		Data.LEx a -> a
 
-node_address_for_navigation_bar :: PData.Site Data.NodeIdU -> PData.Page Data.NodeIdU -> String
+node_address_for_navigation_bar :: PData.Site Text -> PData.Page Text -> String
 node_address_for_navigation_bar site = page_file_path
 
-compile_a_page :: Bool -> PData.Site Data.NodeIdU -> FilePath -> ([Page], Page) -> T.FileCreation
+compile_a_page :: Bool -> PData.Site Text -> FilePath -> ([Page], Page) -> T.FileCreation
 compile_a_page sentencing site output_folder_path (path_to_trunk, page) =
 	let 
 		page_f_path = page_file_path page
@@ -277,7 +277,7 @@ compile_a_page sentencing site output_folder_path (path_to_trunk, page) =
 			render_page_to_text sentencing site (path_to_trunk, page)
 			)
 
-to_technical :: Bool -> FilePath -> PData.Site Data.NodeIdU -> T.FileOps
+to_technical :: Bool -> FilePath -> PData.Site Text -> T.FileOps
 to_technical sentencing output_folder_path site =
 	let
 		pages = PData.sitePageRelations site

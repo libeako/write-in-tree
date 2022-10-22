@@ -14,7 +14,6 @@ import qualified Fana.Data.HeteroPair as HePair
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
 import qualified WriteInTree.Document.File as DocRead
 import qualified WriteInTree.Document.Main as DocData
@@ -31,7 +30,7 @@ process_website_compilation_result =
 	let error_message e = Accu.extract ("Compile error: " <> Fana.show e)
 		in Bifunctor.bimap error_message (HePair.after "")
 
-compile_website :: Bool -> FilePath -> Either DocRead.Error (Page.Site Data.NodeIdU) -> Ot.Output
+compile_website :: Bool -> FilePath -> Either DocRead.Error (Page.Site Text) -> Ot.Output
 compile_website sentencing output_folder = 
 	map (Ott.to_technical sentencing output_folder) >>> process_website_compilation_result
 

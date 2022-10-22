@@ -18,11 +18,6 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize a
 
 type Text = Base.String
 
--- | we are going to use "a" as name for of type parameter of addition information
-
-
--- | at this stage of the application this type is used instead of the user-given string alone.
-type NodeIdU = Text
 
 -- | Can be internal or external.
 data Link ia =
