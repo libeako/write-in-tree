@@ -3,7 +3,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure
 	PageAddress (..),
 	ClassesMap,
 	Any (..),
-	Labels (..), LabelsT, no_Labels,
+	Labels (..), no_Labels,
 	inLabel_page_address, ofLabels_classes, 
 	labels_has_class, add_new_classes_to_Labels,
 	index_classes,
@@ -60,29 +60,24 @@ data PageAddress =
 	deriving Eq
 
 -- | user given labels of a node.
-data Labels id = Labels
+data Labels = Labels
 	{ address_of_Labels :: Maybe PageAddress
 	, classes_of_Labels :: Maybe ClassesMap
 	}
-	deriving (Eq, Functor, Foldable, Traversable)
-type LabelsT = Labels Text
+	deriving (Eq)
 
-no_Labels :: Labels id
+no_Labels :: Labels
 no_Labels = Labels Nothing Nothing
 
-instance Default (Labels id) where def = no_Labels
+instance Default Labels where def = no_Labels
 
-inLabel_page_address ::
-	Optic.Lens
-		(Maybe PageAddress) (Maybe PageAddress)
-		(Labels i) (Labels i)
+inLabel_page_address :: Optic.Lens (Maybe PageAddress) (Maybe PageAddress) Labels Labels
 inLabel_page_address = Optic.lens_from_get_set address_of_Labels (\ p w -> w { address_of_Labels = p })
 
-
-ofLabels_classes :: Optic.Lens' (Maybe ClassesMap) (Labels id)
+ofLabels_classes :: Optic.Lens' (Maybe ClassesMap) Labels
 ofLabels_classes = Optic.lens_from_get_set classes_of_Labels (\ e c -> c { classes_of_Labels = e })
 
-add_new_classes_to_Labels :: [Text] -> Fn.Endo (Labels id)
+add_new_classes_to_Labels :: [Text] -> Fn.Endo Labels
 add_new_classes_to_Labels additional = let
 	new_imc :: Fn.Endo (Maybe ClassesMap)
 	new_imc = let
@@ -91,5 +86,5 @@ add_new_classes_to_Labels additional = let
 		in if List.null additional then id else real_addition
 	in Optic.fn_up ofLabels_classes new_imc
 
-labels_has_class :: Text -> Labels id -> Bool
+labels_has_class :: Text -> Labels -> Bool
 labels_has_class class_text = classes_of_Labels >>> Base.maybe False (contains class_text)

@@ -40,7 +40,7 @@ type ElemPT = ElemP Text
 
 data Elem id e = Elem
 	{ ofElem_position :: Pos.Position
-	, ofElem_labels :: Structure.Labels id
+	, ofElem_labels :: Structure.Labels
 	, ofElem_core :: e
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
@@ -60,7 +60,7 @@ ofElem_class_values = id
 	>>> map TravKey.keys
 	>>> Fold.concat
 
-inElem_labels :: Optic.Lens (Structure.Labels id_1) (Structure.Labels id_2) (Elem id_1 e) (Elem id_2 e)
+inElem_labels :: Optic.Lens Structure.Labels Structure.Labels (Elem id_1 e) (Elem id_2 e)
 inElem_labels = Optic.lens_from_get_set ofElem_labels (\ p w -> w { ofElem_labels = p })
 
 ofElem_classes :: Optic.AffineTraversal' Structure.ClassesMap (Elem id e)
@@ -82,7 +82,7 @@ elem_dp x = Path.ElemHP
 	, Path.inElemHPCore = Tt.Elem (ofElem_core x)
 	}
 -- | convert an element from picture to data format.
-elem_pd :: Structure.Labels id -> ElemP e -> Elem id e
+elem_pd :: Structure.Labels -> ElemP e -> Elem id e
 elem_pd labels p =
 	Elem
 	{ofElem_position = Path.inElemHPPos p
