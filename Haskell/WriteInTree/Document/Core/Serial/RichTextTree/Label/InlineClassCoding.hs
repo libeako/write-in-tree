@@ -26,7 +26,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit a
 
 type Char = Base.Char
 type Text = [Char]
-type ElemTT = Elem Text Text
+type ElemT = Elem Text
 
 
 move_class_out_from_container :: forall e c . ClassName -> Optic.AffineTraversal' (Maybe e) c -> c -> (Maybe ClassName, c)
@@ -37,7 +37,7 @@ move_class_out_from_container class_name at c = let
 		else (Nothing, c)
 	in Base.either (const (Nothing, c)) when_there (Optic.match at c)
 
-move_class_out_from_elem :: ClassName -> Elem Text e -> (Maybe ClassName, Elem Text e)
+move_class_out_from_elem :: ClassName -> Elem e -> (Maybe ClassName, Elem e)
 move_class_out_from_elem class_name =
 	let
 		traversal =
@@ -48,27 +48,27 @@ move_class_out_from_elem class_name =
 			>**>^ inElem_labels
 		in move_class_out_from_container class_name traversal
 
-move_class_out_from_elem_st :: ClassName -> Mtl.State (Elem Text e) (Maybe ClassName)
+move_class_out_from_elem_st :: ClassName -> Mtl.State (Elem e) (Maybe ClassName)
 move_class_out_from_elem_st = move_class_out_from_elem >>> map Identity >>> Mtl.StateT
 
-move_classes_out_from_elem_st :: forall e . Configuration -> Mtl.State (Elem Text e) [Maybe ClassName]
+move_classes_out_from_elem_st :: forall e . Configuration -> Mtl.State (Elem e) [Maybe ClassName]
 move_classes_out_from_elem_st = traverse (ilc_name >>> move_class_out_from_elem_st)
 
-move_classes_out_from_elem :: forall e . Configuration -> Elem Text e -> ([ClassName], Elem Text e)
+move_classes_out_from_elem :: forall e . Configuration -> Elem e -> ([ClassName], Elem e)
 move_classes_out_from_elem = id
 	>>> move_classes_out_from_elem_st 
 	>>> Mtl.runState
 	>>> map (Bifunctor.first Base.catMaybes)
 
-move_classes_out_from_elem' :: Configuration -> Elem Text Text -> Elem Text TextSplit.H
+move_classes_out_from_elem' :: Configuration -> Elem Text -> Elem TextSplit.H
 move_classes_out_from_elem' config =
 	move_classes_out_from_elem config >>>
 	(\ (classes, elem) -> map (Pair.after classes) elem)
 
-over_Elem' :: Configuration -> Optic.Iso' (Elem Text TextSplit.H) (Elem Text Text)
+over_Elem' :: Configuration -> Optic.Iso' (Elem TextSplit.H) (Elem Text)
 over_Elem' config =
 	let
-		parse :: Elem Text TextSplit.H -> Elem Text Text
+		parse :: Elem TextSplit.H -> Elem Text
 		parse elem =
 			case ofElem_core elem of
 				(cs, text) ->
@@ -76,5 +76,5 @@ over_Elem' config =
 						(Structure.add_new_classes_to_Labels cs) (map snd elem)
 		in Optic.Iso (move_classes_out_from_elem' config) parse
 
-layer :: Configuration -> Optic.Iso' ElemTT ElemTT
+layer :: Configuration -> Optic.Iso' ElemT ElemT
 layer config = Optic.lift_iso (TextSplit.layer config) >**> over_Elem' config

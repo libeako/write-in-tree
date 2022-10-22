@@ -38,51 +38,51 @@ type Source = ElemP ()
 type ElemPT = ElemP Text
 
 
-data Elem id e = Elem
+data Elem e = Elem
 	{ ofElem_position :: Pos.Position
 	, ofElem_labels :: Structure.Labels
 	, ofElem_core :: e
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 
-instance Fana.HasSingle (Elem id) where elem = ofElem_core
+instance Fana.HasSingle Elem where elem = ofElem_core
 
-ofElem_pos :: Optic.Lens' Pos.Position (Elem id e)
+ofElem_pos :: Optic.Lens' Pos.Position (Elem e)
 ofElem_pos = Optic.lens_from_get_set ofElem_position (\ e c -> c { ofElem_position = e })
 
-ofElem_address :: Elem i e -> Maybe Text
+ofElem_address :: Elem e -> Maybe Text
 ofElem_address = ofElem_labels >>> Structure.address_of_Labels >>> map unwrapPageAddress
 
-ofElem_class_values :: Elem id e -> [Text]
+ofElem_class_values :: Elem e -> [Text]
 ofElem_class_values = id 
 	>>> ofElem_labels 
 	>>> Structure.classes_of_Labels
 	>>> map TravKey.keys
 	>>> Fold.concat
 
-inElem_labels :: Optic.Lens Structure.Labels Structure.Labels (Elem id_1 e) (Elem id_2 e)
+inElem_labels :: Optic.Lens Structure.Labels Structure.Labels (Elem e) (Elem e)
 inElem_labels = Optic.lens_from_get_set ofElem_labels (\ p w -> w { ofElem_labels = p })
 
-ofElem_classes :: Optic.AffineTraversal' Structure.ClassesMap (Elem id e)
+ofElem_classes :: Optic.AffineTraversal' Structure.ClassesMap (Elem e)
 ofElem_classes = Category2.identity >**>^ Optic.prism_Maybe >**>^ Structure.ofLabels_classes >**>^ inElem_labels
 
-elem_has_class :: Text -> Elem id e -> Bool
+elem_has_class :: Text -> Elem e -> Bool
 elem_has_class class_text = ofElem_labels >>> Structure.labels_has_class class_text
 
 
-instance Pos.HasPosition (Elem id e) where get_position = ofElem_position
+instance Pos.HasPosition (Elem e) where get_position = ofElem_position
 
-default_Elem_context :: e -> Elem id e
+default_Elem_context :: e -> Elem e
 default_Elem_context e = Elem def def e
 
 -- | convert an element from data to picture format.
-elem_dp :: Elem id e -> ElemP e
+elem_dp :: Elem e -> ElemP e
 elem_dp x = Path.ElemHP
 	{ Path.inElemHPPos = ofElem_position x
 	, Path.inElemHPCore = Tt.Elem (ofElem_core x)
 	}
 -- | convert an element from picture to data format.
-elem_pd :: Structure.Labels -> ElemP e -> Elem id e
+elem_pd :: Structure.Labels -> ElemP e -> Elem e
 elem_pd labels p =
 	Elem
 	{ofElem_position = Path.inElemHPPos p

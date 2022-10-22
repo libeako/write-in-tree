@@ -57,12 +57,12 @@ type Text = [Char]
 type ElemLRT = Path.ElemHRT
 type ElemP = Path.ElemHP
 type ElemPT = ElemP Text
-type ElemTT = Elem Text Text
+type ElemT = Elem Text
 type Classes = Structure.ClassesMap
 
 data IdRepetitionSearchInput =
 	IdRepetitionSearchInput
-	{ irsiGetter :: forall i e . Base.Show i => Elem i e -> Maybe Text
+	{ irsiGetter :: forall e . Elem e -> Maybe Text
 	, irsiName :: Text
 	}
 
@@ -75,10 +75,10 @@ id_repetition_search_inputs =
 		id_repetition_search_input__machine
 	]
 
-any_repetition_in_id :: (Elem Text Text -> Maybe Text) -> Tree ElemTT -> [ElemTT]
+any_repetition_in_id :: (ElemT -> Maybe Text) -> Tree ElemT -> [ElemT]
 any_repetition_in_id id_getter = 
 	let
-		select :: [[ElemTT]] -> [ElemTT]
+		select :: [[ElemT]] -> [ElemT]
 		select = 
 			\ case
 				[] -> []
@@ -94,7 +94,7 @@ any_repetition_in_id id_getter =
 			>>> List.filter (List.take 2 >>> List.length >>> (Base.> 1)) >>> select 
 	
 
-check_uniquness_of_id :: IdRepetitionSearchInput -> Tree ElemTT -> Maybe (Accu.Accumulated Text)
+check_uniquness_of_id :: IdRepetitionSearchInput -> Tree ElemT -> Maybe (Accu.Accumulated Text)
 check_uniquness_of_id id_type tree = 
 	case any_repetition_in_id (irsiGetter id_type) tree of
 		[] -> Nothing
@@ -102,7 +102,7 @@ check_uniquness_of_id id_type tree =
 			let
 				per_line :: Accu.Accumulated Text -> Accu.Accumulated Text
 				per_line content = "--- " <> content <> "\n"
-				node_writer :: ElemTT -> Accu.Accumulated Text
+				node_writer :: ElemT -> Accu.Accumulated Text
 				node_writer = ofElem_position >>> Pos.show_position >>> per_line
 				message :: Accu.Accumulated Text
 				message =
@@ -117,10 +117,10 @@ check_uniquness_of_id id_type tree =
 						in Fold.foldl' (<>) text_intro (map node_writer list)
 				in Just message
 
-check_uniquness_of_ids :: Tree ElemTT -> Maybe (Accu.Accumulated Text)
+check_uniquness_of_ids :: Tree ElemT -> Maybe (Accu.Accumulated Text)
 check_uniquness_of_ids =
 	let
-		uniquness_checks :: [Tree ElemTT -> Maybe (Accu.Accumulated Text)]
+		uniquness_checks :: [Tree ElemT -> Maybe (Accu.Accumulated Text)]
 		uniquness_checks = map check_uniquness_of_id id_repetition_search_inputs
 		extract_single :: [Maybe e] -> Maybe e
 		extract_single = Base.catMaybes >>> List.first
@@ -240,7 +240,7 @@ parse_all_from_siblings ::
 parse_all_from_siblings =
 	liftA2 (,) parse_address_from_siblings parse_classes_from_siblings
 
-render_tree :: Tree ElemTT -> Tree ElemLRT
+render_tree :: Tree ElemT -> Tree ElemLRT
 render_tree (Node trunk children) =
 	let
 		labels = ofElem_labels trunk
@@ -252,7 +252,7 @@ render_tree (Node trunk children) =
 			Node (Tt.Elem (HasSingle.elem trunk))
 				(render_all_into_siblings (address, classes) (map render_tree children))
 
-parse_tree_r :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemTT)
+parse_tree_r :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
 parse_tree_r (Node trunk all_children) =
 	let
 		current_parse_result ::
@@ -263,7 +263,7 @@ parse_tree_r (Node trunk all_children) =
 			(Base.runStateT parse_all_from_siblings all_children)
 		continue_parse_result ::
 			((Maybe PageAddress, Classes), [Tree ElemPT]) ->
-			Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemTT)
+			Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
 		continue_parse_result ((page_address, classes), normal_children) =
 			let
 				position = Path.inElemHPPos trunk
@@ -274,7 +274,7 @@ parse_tree_r (Node trunk all_children) =
 						(traverse parse_tree_r normal_children)
 		in current_parse_result >>= continue_parse_result
 
-parse_tree :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemTT)
+parse_tree :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
 parse_tree =
 	let
 		from_tree tree =
@@ -288,13 +288,13 @@ parse_tree =
 
 layer_new_simple ::
 	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
-		(Tree ElemLRT) (Tree ElemPT) (Tree ElemTT) (Tree ElemTT)
+		(Tree ElemLRT) (Tree ElemPT) (Tree ElemT) (Tree ElemT)
 layer_new_simple = Optic.PartialIso render_tree parse_tree
 
 
 layer :: Configuration ->
 	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
-		(Tree ElemLRT) (Tree ElemPT) (Tree ElemTT) (Tree ElemTT)
+		(Tree ElemLRT) (Tree ElemPT) (Tree ElemT) (Tree ElemT)
 layer config =
 	Cat2.identity
 	>**> layer_new_simple

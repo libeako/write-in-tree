@@ -36,16 +36,13 @@ type Paragraph ia = Inline ia
 data Node (id_u :: Type) ia =
 	Node
 	{
-		nodeWitSource :: Label.Elem id_u (),
+		nodeWitSource :: Label.Elem (),
 		nodeContent :: Paragraph ia,
 		nodeIsSeparatePage :: Bool
 	}
 	deriving (Eq)
 
-inNode_source :: 
-	Optic.Lens 
-		(Label.Elem id_u_1 ()) (Label.Elem id_u_2 ()) 
-		(Node id_u_1 ia) (Node id_u_2 ia)
+inNode_source :: Optic.Lens (Label.Elem ()) (Label.Elem ()) (Node id_u_1 ia) (Node id_u_2 ia)
 inNode_source = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSource = p })
 
 
@@ -107,13 +104,13 @@ texts_in_Node =
 
 wit_source_in_Node ::
 	Optic.Lens
-		(Label.Elem idts1 ()) (Label.Elem idts2 ())
+		(Label.Elem ()) (Label.Elem ())
 		(Node idts1 ia) (Node idts2 ia)
 wit_source_in_Node = Optic.lens_from_get_set nodeWitSource (\ e c -> c { nodeWitSource = e })
 
 source_in_Node ::
 	Optic.Lens
-		(Label.Elem idts_1 ()) (Label.Elem idts_2 ()) 
+		(Label.Elem ()) (Label.Elem ()) 
 		(Node idts_1 li) (Node idts_2 li)
 source_in_Node = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSource = p })
 

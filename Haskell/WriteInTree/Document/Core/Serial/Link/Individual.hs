@@ -25,7 +25,6 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
-type A = Label.Elem Text -- additional info wrapper
 
 data MetaNodeName = MnLink deriving (Base.Enum, Base.Bounded)
 
@@ -74,7 +73,7 @@ parse (Node trunk children) =
 		then Just (parse_core' children)
 		else Nothing
 
-parse' :: Tree (A Text) -> Maybe (Either ParseError (Data.Link Text))
+parse' :: Tree (Label.Elem Text) -> Maybe (Either ParseError (Data.Link Text))
 parse' tree =
 	map (BiFr.first (Pos.position_error (Tree.rootLabel tree)))
 		(parse (map Label.ofElem_core tree))
@@ -89,8 +88,8 @@ render d =
 		in Node (Ntt.render_exceptional meta_node_name)
 			(map (flip Node []) [render_DestinationType dt, addr])
 
-wrap_into_default_context :: x -> A x
+wrap_into_default_context :: x -> Label.Elem x
 wrap_into_default_context = (Label.default_Elem_context () $>)
 
-render' :: Data.Link Text -> Tree (A Text)
+render' :: Data.Link Text -> Tree (Label.Elem Text)
 render' = render >>> map wrap_into_default_context
