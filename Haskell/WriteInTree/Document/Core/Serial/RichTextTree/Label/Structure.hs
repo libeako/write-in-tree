@@ -4,7 +4,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure
 	ClassesMap,
 	Any (..),
 	Labels (..), LabelsT, no_Labels,
-	inLabels_id, inLabel_id_source_mb, inLabel_page_address, ofLabels_classes, 
+	inLabel_page_address, ofLabels_classes, 
 	labels_has_class, add_new_classes_to_Labels,
 	index_classes,
 	contains,
@@ -61,26 +61,16 @@ data PageAddress =
 
 -- | user given labels of a node.
 data Labels id = Labels
-	{ id_of_Labels :: Maybe id
-	, address_of_Labels :: Maybe PageAddress
+	{ address_of_Labels :: Maybe PageAddress
 	, classes_of_Labels :: Maybe ClassesMap
 	}
 	deriving (Eq, Functor, Foldable, Traversable)
 type LabelsT = Labels Text
 
 no_Labels :: Labels id
-no_Labels = Labels Nothing Nothing Nothing
+no_Labels = Labels Nothing Nothing
 
 instance Default (Labels id) where def = no_Labels
-
-inLabels_id :: Optic.Traversal e1 e2 (Labels e1) (Labels e2)
-inLabels_id = Optic.from_Traversable
-
-inLabel_id_source_mb :: 
-	Optic.Lens
-		(Maybe id_1) (Maybe id_2)
-		(Labels id_1) (Labels id_2)
-inLabel_id_source_mb = Optic.lens_from_get_set id_of_Labels (\ p w -> w { id_of_Labels = p })
 
 inLabel_page_address ::
 	Optic.Lens

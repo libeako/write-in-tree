@@ -11,7 +11,6 @@ import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddres
 import qualified Data.Tree as Tree
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified Fana.Data.HeteroPair as Pair
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 
@@ -48,22 +47,6 @@ inNode_source ::
 		(Label.Elem id_u_1 ()) (Label.Elem id_u_2 ()) 
 		(Node id_u_1 ia) (Node id_u_2 ia)
 inNode_source = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSource = p })
-
-inNode_idu :: Optic.Traversal e1 e2 (Node e1 ia) (Node e2 ia)
-inNode_idu = Label.inElem_idu >**>^ inNode_source
-
-inNode_idu_source_mb :: 
-	Optic.Lens
-		(Maybe id_u_1) (Maybe id_u_2)
-		(Node id_u_1 ia) (Node id_u_2 ia)
-inNode_idu_source_mb = Label.inLabel_id_source_mb >**>^ Label.inElem_labels >**>^ inNode_source 
-
-
-uid_of_node :: Node id_u li -> Maybe id_u
-uid_of_node = nodeWitSource >>> Label.ofElem_labels >>> Label.id_of_Labels
-
-attach_its_uid_to_node :: Node id_u ia -> Maybe (id_u, Node id_u ia)
-attach_its_uid_to_node n = map (Pair.before n) (uid_of_node n)
 
 
 type StructureAsTree (id_u :: Type) ia = Tree.Tree (Node id_u ia)
@@ -144,9 +127,6 @@ inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent =
 separate_page_in_Node :: Optic.Lens' Bool (Node idts li)
 separate_page_in_Node = Optic.lens_from_get_set nodeIsSeparatePage (\ p w -> w { nodeIsSeparatePage = p })
 
-idu_in_Node :: Optic.Traversal (id_u_1) (id_u_2) (Node id_u_1 ia) (Node id_u_2 ia)
-idu_in_Node = Category2.identity >**>^ Label.inElem_idu >**>^ inNode_source
-
 internal_address_in_link_in_node ::
 	forall ia1 ia2 id_u .
 	Optic.Traversal ia1 ia2 (Node id_u ia1) (Node id_u ia2)
@@ -166,12 +146,6 @@ node_in_tree = Optic.from_Traversable
 
 inlines_in_Structure :: Optic.Traversal' (Inline ia) (StructureAsTree id_u ia)
 inlines_in_Structure = Category2.identity >**>^ inNode_content >**>^ node_in_tree
-
-idu_in_tree ::
-	Optic.Traversal
-		(id_u_1) (id_u_2)
-		(StructureAsTree id_u_1 ia) (StructureAsTree id_u_2 ia)
-idu_in_tree = idu_in_Node >**>^ node_in_tree
 
 internal_address_in_link_in_tree ::
 	forall ia1 ia2 id_u .

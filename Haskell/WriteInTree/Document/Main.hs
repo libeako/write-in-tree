@@ -1,13 +1,12 @@
 module WriteInTree.Document.Main
 (
 	Document (..),
-	core_in_document, page_addresses_in_doc, not_sub_page_address_in_Document,
+	core_in_document, page_addresses_in_doc,
 )
 where
 
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import WriteInTree.Document.Core.Data
 import WriteInTree.Document.Core.Serial.Page.Tree (Site)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps)
@@ -35,8 +34,3 @@ page_addresses_in_doc =
 
 node_in_doc :: Optic.Traversal' (Page.Node i) (Document i)
 node_in_doc = Category2.identity >**>^ Page.node_in_site >**>^ core_in_document
-
-not_sub_page_address_in_Document :: Optic.FnUp' Text (Document Text)
-not_sub_page_address_in_Document =
-	Category2.identity
-	 >**>^ Page.id_for_human_in_node >**>^ node_in_doc

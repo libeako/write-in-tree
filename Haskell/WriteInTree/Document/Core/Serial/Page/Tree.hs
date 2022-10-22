@@ -10,7 +10,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
 	title_of_section, title_of_page, is_inline_a_page_break, page_addresses_in_site, text_content_in_site,
-	node_in_site, id_for_human_in_node,
+	node_in_site,
 	
 	melt_pages_to_single, compile_site, layer
 )
@@ -30,11 +30,8 @@ import qualified Control.Monad.State.Lazy as State
 import qualified Data.Array as Array
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
-import qualified Data.Map as Map
 import qualified Data.Tree as Tree
-import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Data.Tree.OfBase as Tree
-import qualified Fana.Haskell.DescribingClass as Fana
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -156,12 +153,6 @@ target_in_not_subpage_link_in_node =
 	Category2.identity >**>^
 	Optic.prism_Right >**>^ UI.internal_address_in_link_in_node
 
-id_for_human_in_node :: Optic.FnUp' i (Node i)
-id_for_human_in_node =
-	Optic.sequence_fn_up
-		(Fana.convert_from_describing_class_4 UI.idu_in_Node)
-		(Fana.convert_from_describing_class_4 target_in_not_subpage_link_in_node)
-
 node_in_site :: Optic.Traversal' (Node i) (Site i)
 node_in_site =
 	Category2.identity
@@ -172,27 +163,6 @@ node_in_site =
 
 -- compilation
 
--- gather addresses by user
-
-gather_InternalLinkTargets_in_Page ::
-	forall i .
-	(PageKey, Page i) -> Either (Pos.PositionedMb (Accu.Accumulated Text)) [(i, CrossLinkTarget)]
-gather_InternalLinkTargets_in_Page (page_key, page) =
-	let
-		structure = pageContent page
-		trunk_node :: Node i
-		trunk_node = Tree.rootLabel structure
-		meaningful_name_mb :: Maybe i
-		meaningful_name_mb = UI.uid_of_node trunk_node
-		in (Fold.toList >>> Right) (map (Pair.before (CrossLinkTarget page_key)) meaningful_name_mb)
-
-gather_InternalLinkTargets_in_Pages ::
-	Base.Ord i =>
-	Array (Page i) ->
-	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Map.Map i (CrossLinkTarget))
-gather_InternalLinkTargets_in_Pages pages = 
-	 (map (Fold.fold >>> Map.fromList) (traverse gather_InternalLinkTargets_in_Page (Array.assocs pages)))
-
 -- divide to pages
 
 -- | creates an output clone of the node 
@@ -202,9 +172,7 @@ page_node_as_link page_key trunk_node =
 	let
 		changer :: Node i -> Node i
 		changer =
-			id
-			>>> Optic.fill UI.inNode_idu_source_mb Nothing
-			>>> Optic.fill UI.links_in_Node 
+			Optic.fill UI.links_in_Node 
 				(Just (UI.LIn (Left (SubPageTarget page_key))))
 		in changer trunk_node
 

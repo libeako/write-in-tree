@@ -1,13 +1,10 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 (
 	Structure.add_new_classes_to_Labels,
-	Structure.inLabel_id_source_mb,
-	Structure.id_of_Labels,
-	fromElem_id_au_content,
 	ofElem_pos,
 	ofElem_class_values,
-	ofElem_id_u_content, ofElem_address,
-	inElem_idu, inElem_labels,
+	ofElem_address,
+	inElem_labels,
 	ofElem_classes,
 	elem_has_class,
 	default_Elem_context,
@@ -27,7 +24,6 @@ import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Categories.AffineTraverse as Optic
 import qualified Fana.Optic.Concrete.Categories.Lens as Optic
 import qualified Fana.Optic.Concrete.Categories.Prism as Optic
-import qualified Fana.Optic.Concrete.Categories.Traversal as Optic
 import qualified Prelude as Base
 import qualified Technical.TextTree.Data as Tt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Structure
@@ -54,14 +50,8 @@ instance Fana.HasSingle (Elem id) where elem = ofElem_core
 ofElem_pos :: Optic.Lens' Pos.Position (Elem id e)
 ofElem_pos = Optic.lens_from_get_set ofElem_position (\ e c -> c { ofElem_position = e })
 
-ofElem_id_u_content :: Elem i e -> Maybe i
-ofElem_id_u_content = ofElem_labels >>> Structure.id_of_Labels
-
 ofElem_address :: Elem i e -> Maybe Text
 ofElem_address = ofElem_labels >>> Structure.address_of_Labels >>> map unwrapPageAddress
-
-fromElem_id_au_content :: Elem id e -> Maybe id
-fromElem_id_au_content = ofElem_id_u_content
 
 ofElem_class_values :: Elem id e -> [Text]
 ofElem_class_values = id 
@@ -72,9 +62,6 @@ ofElem_class_values = id
 
 inElem_labels :: Optic.Lens (Structure.Labels id_1) (Structure.Labels id_2) (Elem id_1 e) (Elem id_2 e)
 inElem_labels = Optic.lens_from_get_set ofElem_labels (\ p w -> w { ofElem_labels = p })
-
-inElem_idu :: Optic.Traversal (id_1) (id_2) (Elem id_1 e) (Elem id_2 e)
-inElem_idu = Structure.inLabels_id >**>^ inElem_labels
 
 ofElem_classes :: Optic.AffineTraversal' Structure.ClassesMap (Elem id e)
 ofElem_classes = Category2.identity >**>^ Optic.prism_Maybe >**>^ Structure.ofLabels_classes >**>^ inElem_labels
