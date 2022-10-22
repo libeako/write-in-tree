@@ -35,10 +35,10 @@ type Text = Base.String
 convert_string_error :: Fana.Showable Text s => s -> Pos.PositionedMb (Accu.Accumulated Text)
 convert_string_error = Fana.show >>> Pos.PositionedMb Nothing
 
-type StructureAsTree = Data.StructureAsTree Text (Page.LinkInternalTarget Text)
+type StructureAsTree = Data.StructureAsTree (Page.LinkInternalTarget Text)
 type Document = Data.Document Text
 
-type StructureAsTreeRaw = Data.StructureAsTree Text Text
+type StructureAsTreeRaw = Data.StructureAsTree Text
 
 layer_move_additional_info :: Fana.HasSingle a => Optic.Iso' (Tree (a e)) (Tree (a (), e))
 layer_move_additional_info = Optic.lift_iso HasSingle.iso_separate

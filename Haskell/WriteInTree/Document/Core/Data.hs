@@ -46,7 +46,7 @@ inNode_source :: Optic.Lens (Label.Elem ()) (Label.Elem ()) (Node ia) (Node ia)
 inNode_source = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSource = p })
 
 
-type StructureAsTree (id_u :: Type) ia = Tree.Tree (Node ia)
+type StructureAsTree ia = Tree.Tree (Node ia)
 
 
 -- optics :
@@ -125,19 +125,16 @@ internal_address_in_link_in_node =
 page_addresses_in_Node :: Optic.Traversal' (Maybe PageAddress) (Node ia)
 page_addresses_in_Node = Category2.identity >**>^ inLabel_page_address >**>^ inElem_labels >**>^ inNode_source
 
-node_in_tree ::
-	Optic.Traversal
-		(Node ia1) (Node ia2)
-		(StructureAsTree id_u_1 ia1) (StructureAsTree id_u_2 ia2)
+node_in_tree :: Optic.Traversal (Node ia1) (Node ia2) (StructureAsTree ia1) (StructureAsTree ia2)
 node_in_tree = Optic.from_Traversable
 
-inlines_in_Structure :: Optic.Traversal' (Inline ia) (StructureAsTree id_u ia)
+inlines_in_Structure :: Optic.Traversal' (Inline ia) (StructureAsTree ia)
 inlines_in_Structure = Category2.identity >**>^ inNode_content >**>^ node_in_tree
 
 internal_address_in_link_in_tree ::
-	forall ia1 ia2 id_u .
-	Optic.Traversal ia1 ia2 (StructureAsTree id_u ia1) (StructureAsTree id_u ia2)
+	forall ia1 ia2 .
+	Optic.Traversal ia1 ia2 (StructureAsTree ia1) (StructureAsTree ia2)
 internal_address_in_link_in_tree = internal_address_in_link_in_node >**>^ node_in_tree
 
-texts_in_Tree :: forall id_u ia . Optic.Traversal' Text (StructureAsTree id_u ia)
+texts_in_Tree :: forall ia . Optic.Traversal' Text (StructureAsTree ia)
 texts_in_Tree = Category2.identity >**>^ texts_in_Node >**>^ node_in_tree

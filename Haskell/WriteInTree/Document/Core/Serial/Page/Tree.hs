@@ -243,12 +243,12 @@ compile_site input_structure =
 		relations = map fst pages_tree
 		in map (make_Site relations) all_pages
 
-melt_pages_to_single :: forall i . Site i -> Structure i -> UI.StructureAsTree i i
+melt_pages_to_single :: forall i . Site i -> Structure i -> UI.StructureAsTree i
 melt_pages_to_single site (Tree.Node trunk children) =
 	let
 		melted_children = map (melt_pages_to_single site) children
 		trunk_node_inline = UI.nodeContent trunk
-		make_result_with_link :: Maybe (UI.Link i) -> UI.StructureAsTree i i
+		make_result_with_link :: Maybe (UI.Link i) -> UI.StructureAsTree i
 		make_result_with_link link =
 			let
 				new_trunk_node_inline :: UI.Inline i
@@ -268,21 +268,21 @@ melt_pages_to_single site (Tree.Node trunk children) =
 									melt_pages_to_single site (pageContent (get_page_of_Site_at site sub_page_key))
 								Right a -> make_result_with_link (Just (UI.LIn a))
 
-render :: Site Text -> UI.StructureAsTree Text Text
+render :: Site Text -> UI.StructureAsTree Text
 render site =
 	melt_pages_to_single site
 		(pageContent (get_main_page_of_Site site))
 
 parse ::
-	UI.StructureAsTree Text Text ->
+	UI.StructureAsTree Text ->
 	Either (Pos.PositionedMb (Accu.Accumulated Text)) (Site Text)
 parse =
 	let
-		rightify :: UI.StructureAsTree Text Text -> Structure Text
+		rightify :: UI.StructureAsTree Text -> Structure Text
 		rightify = Optic.fn_up UI.internal_address_in_link_in_tree Right
 		in rightify >>> compile_site
 
 layer ::
 	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text))
-		(UI.StructureAsTree Text Text) (Site Text)
+		(UI.StructureAsTree Text) (Site Text)
 layer = Optic.PartialIso render parse
