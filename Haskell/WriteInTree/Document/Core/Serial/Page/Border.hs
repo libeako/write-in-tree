@@ -7,8 +7,6 @@ where
 import Data.Tree (Tree)
 import Fana.Prelude
 
-import qualified Data.Char as Base
-import qualified Data.Foldable as Fold
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
@@ -42,18 +40,3 @@ parse_into_node (a, paragraph) =
 
 layer :: a ~ Label.Elem => Optic.Iso' (Tree (a (), Paragraph)) (Tree NodeH)
 layer = (Optic.lift_iso (Optic.Iso render_from_node parse_into_node))
-
-
--- other stuff:
-
-translate_page_name_char :: Base.Char -> Base.Char
-translate_page_name_char c = if Base.isAlphaNum c then c else '-'
-
-translate_page_name :: Text -> Text
-translate_page_name = map translate_page_name_char
-
-pages :: Tree NodeH -> [NodeH]
-pages = toList >>> Base.filter Data.nodeIsSeparatePage
-
-address_of_page :: NodeH -> Text
-address_of_page = Optic.to_list Data.texts_in_Node >>> Fold.fold >>> translate_page_name
