@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.Page.Border
 (
-	layer,
+	NodeH, layer,
 )
 where
 
@@ -35,8 +35,8 @@ parse_into_node :: forall a . a ~ Label.Elem => (a (), Paragraph) -> NodeH
 parse_into_node (a, paragraph) =
 	let
 		new_node :: Data.Node Text
-		new_node = Data.Node a paragraph (has_page_class a)
+		new_node = Data.Node a paragraph (Data.status_from_is_page_trunk (has_page_class a))
 		in new_node
 
 layer :: a ~ Label.Elem => Optic.Iso' (Tree (a (), Paragraph)) (Tree NodeH)
-layer = (Optic.lift_iso (Optic.Iso render_from_node parse_into_node))
+layer = Optic.lift_iso (Optic.Iso render_from_node parse_into_node)

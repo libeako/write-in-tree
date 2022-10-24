@@ -68,7 +68,8 @@ type PageContent i = Structure i
 type KeyedPage i = (PageKey, Page i)
 type KeyedPageContent i = (PageKey, PageContent i)
 
-data Page (i :: Type) = Page
+data Page (i :: Type) =
+	Page
 	{ pageAddress :: PageAddress
 	, pageContent :: Structure i
 	}
@@ -76,8 +77,9 @@ data Page (i :: Type) = Page
 
 {-| Link address to page but not to sub-page. -}
 data CrossLinkTarget = CrossLinkTarget { cltPage :: PageKey } deriving (Eq)
-	
-data Site (i :: Type) = Site
+
+data Site (i :: Type) =
+	Site
 	{
 	sitePageRelations :: Tree PageKey,
 	siteAllPages :: AllPages i
@@ -183,7 +185,7 @@ divide_to_pages may_treat_as_page_trunk whole_structure =
 		trunk_node :: Node i
 		trunk_node = Tree.rootLabel whole_structure
 		in
-			if may_treat_as_page_trunk && UI.nodeIsSeparatePage trunk_node
+			if may_treat_as_page_trunk && (UI.node_is_page_trunk trunk_node)
 				then 
 					let
 						make_the_tree :: Tree (KeyedPageContent i) -> (PageContent i, [Tree (KeyedPageContent i)])

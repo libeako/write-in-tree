@@ -33,17 +33,30 @@ data Inline ia =
 
 type Paragraph ia = Inline ia
 
+data IsPageTrunkStatus =
+	IsPageTrunk | IsNotPageTrunk
+	deriving (Eq)
+
+status_from_is_page_trunk :: Bool -> IsPageTrunkStatus
+status_from_is_page_trunk =
+	\case
+		True -> IsPageTrunk
+		False -> IsNotPageTrunk
+
 data Node ia =
 	Node
 	{
 		nodeWitSource :: Label.Elem (),
 		nodeContent :: Paragraph ia,
-		nodeIsSeparatePage :: Bool
+		nodePageTrunkStatus :: IsPageTrunkStatus
 	}
 	deriving (Eq)
 
 inNode_source :: Optic.Lens (Label.Elem ()) (Label.Elem ()) (Node ia) (Node ia)
 inNode_source = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSource = p })
+
+node_is_page_trunk :: Node i -> Bool
+node_is_page_trunk node = nodePageTrunkStatus node == IsPageTrunk
 
 
 type StructureAsTree ia = Tree.Tree (Node ia)
@@ -112,8 +125,8 @@ inNode_content ::
 	Optic.Lens (Paragraph ia1) (Paragraph ia2) (Node ia1) (Node ia2)
 inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })
 
-separate_page_in_Node :: Optic.Lens' Bool (Node li)
-separate_page_in_Node = Optic.lens_from_get_set nodeIsSeparatePage (\ p w -> w { nodeIsSeparatePage = p })
+separate_page_in_Node :: Optic.Lens' IsPageTrunkStatus (Node li)
+separate_page_in_Node = Optic.lens_from_get_set nodePageTrunkStatus (\ p w -> w { nodePageTrunkStatus = p })
 
 internal_address_in_link_in_node ::
 	forall ia1 ia2 . Optic.Traversal ia1 ia2 (Node ia1) (Node ia2)
