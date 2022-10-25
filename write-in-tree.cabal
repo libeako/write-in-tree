@@ -6,8 +6,6 @@ license-file:   _license_.txt
 build-type:     Simple
 
 common common
-  source-repository-package
-    subdir: dependees/fan
   hs-source-dirs:
     Haskell
   default-extensions: 
@@ -66,6 +64,7 @@ common common
       WriteInTree.Document.Core.Serial.Page.Count
       WriteInTree.Document.Core.Serial.Page.Data
       WriteInTree.Document.Core.Serial.Page.Main
+      WriteInTree.Document.Core.Serial.Page.SiteStructureDiscovery
       WriteInTree.Document.Core.Serial.Page.Tree
       WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure
       WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix

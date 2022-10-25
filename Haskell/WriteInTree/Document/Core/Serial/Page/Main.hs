@@ -25,10 +25,12 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified WriteInTree.Document.Core.Data as Basic
 import qualified WriteInTree.Document.Core.Serial.Page.BreakStructure as BS
 import qualified WriteInTree.Document.Core.Serial.Page.Count as Count
+import qualified WriteInTree.Document.Core.Serial.Page.SiteStructureDiscovery as SS
 
 
-layer' :: Optic.Iso' (Tree (Basic.Node i)) (BS.Page Count.Ordinal (Basic.Node i))
+layer' :: Optic.Iso' (Tree (Basic.Node i)) (SiteStructure (BS.Page PageKey (Basic.Node i)))
 layer' =
 	Category2.identity
 	>**>^ BS.layer
 	>**>^ Count.layer
+	>**>^ SS.layer
