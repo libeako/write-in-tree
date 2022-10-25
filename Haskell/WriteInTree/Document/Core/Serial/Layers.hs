@@ -21,7 +21,7 @@ import qualified Technical.TextTree.MindMap as Tt
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Page.Border as PageBorder
-import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
+import qualified WriteInTree.Document.Core.Serial.Page.Main as Page
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path

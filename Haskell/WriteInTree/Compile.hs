@@ -14,7 +14,7 @@ import qualified Fana.Data.HeteroPair as HePair
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
+import qualified WriteInTree.Document.Core.Serial.Page.Main as Page
 import qualified WriteInTree.Document.File as DocRead
 import qualified WriteInTree.Document.Main as DocData
 import qualified WriteInTree.Output.Technical as Ot

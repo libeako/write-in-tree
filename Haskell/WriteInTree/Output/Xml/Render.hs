@@ -8,7 +8,7 @@ import Data.Bool (not)
 import Data.Tree (Tree)
 import Fana.Prelude
 import Prelude (String, FilePath)
-import WriteInTree.Document.Core.Serial.Page.Tree (PageKey)
+import WriteInTree.Document.Core.Serial.Page.Main (PageKey)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 
 import qualified Data.Foldable as Fold
@@ -25,7 +25,7 @@ import qualified Technical.Xml.Data as Xml
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix as Class
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
-import qualified WriteInTree.Document.Core.Serial.Page.Tree as PData
+import qualified WriteInTree.Document.Core.Serial.Page.Main as PData
 import qualified WriteInTree.Output.Technical as T
 import qualified WriteInTree.Output.Sentence as Sentence
 

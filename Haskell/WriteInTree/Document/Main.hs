@@ -7,13 +7,13 @@ where
 
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.Page.Tree (Site)
+import WriteInTree.Document.Core.Serial.Page.Main (Site)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps)
 
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
+import qualified WriteInTree.Document.Core.Serial.Page.Main as Page
 
 
 data Document i =

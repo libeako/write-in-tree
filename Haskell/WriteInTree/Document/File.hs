@@ -18,7 +18,7 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
-import qualified WriteInTree.Document.Core.Serial.Page.Tree as Page
+import qualified WriteInTree.Document.Core.Serial.Page.Main as Page
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified WriteInTree.Document.Folder as Folder
