@@ -1,17 +1,22 @@
 module WriteInTree.Document.Core.Serial.Page.BreakStructure
 (
 	Page (..), additional_info_in_page,
-	PageContent (..), children_in_page_content,
+	PageContent (..),
+	Child, 
+	children_in_page_content, child_in_page_content,
+	forget_in_additional_info_in_page,
 	Page', PageContent',
 	layer,
 )
 where
 
 import Data.Tree (Tree)
+import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import WriteInTree.Document.Core.Data (IsPageTrunkStatus (..))
 
 import qualified Data.Tree as Tree
+import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified WriteInTree.Document.Core.Data as Data
 
@@ -36,6 +41,11 @@ additional_info_in_page = Optic.lens_from_get_set pageAdditionalInfo (\ a (Page 
 children_in_page_content ::
 	Optic.Lens ([Child a1 e]) ([Child a2 e]) (PageContent a1 e) (PageContent a2 e)
 children_in_page_content = Optic.lens_from_get_set pcChildren (\ c (PageContent t _) -> PageContent t c)
+
+child_in_page_content ::
+	Optic.Traversal (Child a1 e) (Child a2 e) (PageContent a1 e) (PageContent a2 e)
+child_in_page_content =
+	Category2.identity >**>^ Optic.from_Traversable >**>^ children_in_page_content
 
 
 type Forget e c m l = (m -> l) -> c m e -> c l e

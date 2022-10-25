@@ -63,6 +63,7 @@ common common
       WriteInTree.Document.Core.Serial.Link.InTree
       WriteInTree.Document.Core.Serial.Page.Border
       WriteInTree.Document.Core.Serial.Page.BreakStructure
+      WriteInTree.Document.Core.Serial.Page.Count
       WriteInTree.Document.Core.Serial.Page.Tree
       WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure
       WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix

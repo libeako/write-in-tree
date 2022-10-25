@@ -16,7 +16,7 @@ module WriteInTree.Document.Core.Serial.Page.Tree
 )
 where
 
-import Prelude (String, Int, (+))
+import Prelude (String, (+))
 
 import Control.Monad.State.Lazy (State, evalState)
 import Data.Ord (max)
@@ -37,13 +37,14 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as UI
+import qualified WriteInTree.Document.Core.Serial.Page.Count as Count
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem as LabelElem
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
-type PageKey = Int
+type PageKey = Count.Ordinal
 page_key_start :: PageKey
 page_key_start = 1
 type Array = Array.Array PageKey
