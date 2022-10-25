@@ -5,7 +5,7 @@ module WriteInTree.Document.Core.Serial.Page.Main
 	LinkInternalTarget (..),
 	Link, Inline, Paragraph, Node, Structure,
 	Page (..),
-	PageKey, Site (..),
+	PageKey, SiteStructure (..), Site (..),
 	get_page_of_Site_at, get_CrossLinkTarget_page,
 
 	title_of_section, title_of_page, is_inline_a_page_break, page_addresses_in_site, text_content_in_site,

@@ -7,7 +7,7 @@ module WriteInTree.Document.Core.Serial.Page.Data
 	Link, Inline, Paragraph, Node, Structure,
 	Page (..), PageContent (..),
 	PageKey, KeyedPageContent,
-	Array, AllPages, Site (..),
+	Array, AllPages, SiteStructure (..), Site (..),
 	get_page_of_Site_at, get_main_page_of_Site, get_CrossLinkTarget_page,
 
 	title_of_section, title_of_page, is_inline_a_page_break, page_addresses_in_site, text_content_in_site,
@@ -65,40 +65,42 @@ data Page (i :: Type) =
 {-| Link address to page but not to sub-page. -}
 data CrossLinkTarget = CrossLinkTarget { cltPage :: PageKey } deriving (Eq)
 
-data Site (i :: Type) =
-	Site
+data SiteStructure p =
+	SiteStructure
 	{
 	sitePageRelations :: Tree PageKey,
-	siteAllPages :: AllPages i
+	siteAllPages :: Array p
 	}
 	deriving (Eq)
 
-get_page_of_Site_at :: Site i -> PageKey -> Page i
+type Site i = SiteStructure (Page i)
+
+get_page_of_Site_at :: SiteStructure p -> PageKey -> p
 get_page_of_Site_at site key = siteAllPages site ! key
 
-get_main_page_of_Site :: Site i -> Page i
+get_main_page_of_Site :: SiteStructure p -> p
 get_main_page_of_Site site =
 	get_page_of_Site_at site (Tree.rootLabel (sitePageRelations site))
 
 get_CrossLinkTarget_page :: Site i -> CrossLinkTarget -> Page i
 get_CrossLinkTarget_page site = cltPage >>> get_page_of_Site_at site
 
-make_Site :: forall i . Tree PageKey -> AllPages i -> Site i
-make_Site page_relations all_pages = Site page_relations all_pages
+make_Site :: Tree PageKey -> Array p -> SiteStructure p
+make_Site page_relations all_pages = SiteStructure page_relations all_pages
 
-is_link_a_page_break :: Link id_u -> Bool
+is_link_a_page_break :: Link i -> Bool
 is_link_a_page_break =
 	\case
 		UI.LIn lit -> either (const True) (const False) lit
 		UI.LEx _ -> False
 
-is_inline_a_page_break :: Inline id_u -> Bool
+is_inline_a_page_break :: Inline i -> Bool
 is_inline_a_page_break = UI.ilLink >>> maybe False is_link_a_page_break
 
-title_of_section :: Node idts -> String
+title_of_section :: Node i -> String
 title_of_section = Optic.to_list UI.texts_in_Node >>> Fold.concat
 
-title_of_page :: Page idts -> String
+title_of_page :: Page i -> String
 title_of_page = pageContent >>> Tree.rootLabel >>> title_of_section
 
 
@@ -118,11 +120,11 @@ trunk_node_in_Page = Tree.trunk_in_tree >**>^ content_in_Page
 trunk_node_of_page :: Page i -> Node i
 trunk_node_of_page = pageContent >>> Tree.rootLabel
 
-pages_in_site :: Optic.Lens' (AllPages i) (Site i)
+pages_in_site :: Optic.Lens (Array p1) (Array p2) (SiteStructure p1) (SiteStructure p2)
 pages_in_site =
 	Optic.lens_from_get_set
 		siteAllPages
-		(\ aps (Site relations _) -> Site relations aps)
+		(\ aps (SiteStructure relations _) -> SiteStructure relations aps)
 
 trunk_node_in_site :: Optic.Traversal' (Node i) (Site i)
 trunk_node_in_site =

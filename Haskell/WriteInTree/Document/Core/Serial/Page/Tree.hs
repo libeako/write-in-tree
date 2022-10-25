@@ -111,7 +111,7 @@ compile_site input_structure =
 		all_pages :: Either (Pos.PositionedMb (Accu.Accumulated Text)) (AllPages i)
 		all_pages = traverse make_page all_pages_content
 		relations = map fst pages_tree
-		in map (Site relations) all_pages
+		in map (SiteStructure relations) all_pages
 
 melt_pages_to_single :: forall i . Site i -> Structure i -> UI.StructureAsTree i
 melt_pages_to_single site (Tree.Node trunk children) =
