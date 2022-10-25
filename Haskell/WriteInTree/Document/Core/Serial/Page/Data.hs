@@ -15,7 +15,7 @@ module WriteInTree.Document.Core.Serial.Page.Data
 )
 where
 
-import Prelude (String)
+import Prelude (String, Int)
 
 import Data.Tree (Tree)
 import Data.Array ((!))
@@ -31,11 +31,10 @@ import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as UI
-import qualified WriteInTree.Document.Core.Serial.Page.Count as Count
 
 
 type Text = Base.String
-type PageKey = Count.Ordinal
+type PageKey = Int
 type Array = Array.Array PageKey
 type AllPages i = Array (Page i)
 

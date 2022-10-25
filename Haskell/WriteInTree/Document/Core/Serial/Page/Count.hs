@@ -7,12 +7,13 @@ where
 import Control.Monad.State.Lazy (State, get, modify, evalState)
 import Data.Bitraversable (bitraverse)
 import Fana.Prelude
-import Prelude (Int, (+))
+import Prelude ((+))
 
 import qualified Fana.Optic.Concrete.Prelude as Optic
+import qualified WriteInTree.Document.Core.Serial.Page.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Page.BreakStructure as BS
 
-type Ordinal = Int
+type Ordinal = Data.PageKey
 
 type Page a e = BS.Page a e
 type PageContent a e = BS.PageContent a e
