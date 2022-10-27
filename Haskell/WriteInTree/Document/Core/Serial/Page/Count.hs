@@ -35,5 +35,5 @@ count_in_child = bitraverse count_in_page count_in_page_content
 count_all :: Page () e -> Page Ordinal e
 count_all = count_in_page >>> flip evalState 1
 
-layer :: Optic.Iso (Page () e1) (Page () e2) (Page Ordinal e1) (Page Ordinal e2)
+layer :: Optic.Iso (Page () e1) (Page () e2) (Page () e1) (Page Ordinal e2)
 layer = Optic.Iso (BS.forget_in_additional_info_in_page (const ())) count_all

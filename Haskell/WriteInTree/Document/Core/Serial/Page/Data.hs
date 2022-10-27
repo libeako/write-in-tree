@@ -71,7 +71,7 @@ data SiteStructure p =
 	sitePageRelations :: Tree PageKey,
 	siteAllPages :: Array p
 	}
-	deriving (Eq)
+	deriving (Eq, Functor, Foldable, Traversable)
 
 type Site i = SiteStructure (Page i)
 

@@ -31,7 +31,7 @@ discover_page_forest_of_child :: BS.Child a e -> Forest (BS.Page a e)
 discover_page_forest_of_child = either (discover_page_tree >>> (: [])) discover_page_forest
 
 
-render :: Data.SiteStructure (BS.Page Key e) -> BS.Page Key e
+render :: Data.SiteStructure (BS.Page () e) -> BS.Page () e
 render (Data.SiteStructure page_relations page_array) =
 	page_array ! (Tree.rootLabel page_relations)
 
@@ -52,6 +52,6 @@ parse trunk =
 
 layer ::
 	Optic.Iso
-		(BS.Page Key e1) (BS.Page Key e2)
-		(Data.SiteStructure (BS.Page Key e1)) (Data.SiteStructure (BS.Page Key e2))
+		(BS.Page () e1) (BS.Page Key e2)
+		(Data.SiteStructure (BS.Page () e1)) (Data.SiteStructure (BS.Page Key e2))
 layer = Optic.Iso render parse

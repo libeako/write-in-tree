@@ -89,5 +89,8 @@ break get_node_status (Tree.Node trunk children) =
 page_anyway :: Child' e -> Page' e
 page_anyway = either id (Page ())
 
-layer :: Optic.Iso' (Tree (Data.Node i)) (Page' (Data.Node i))
+layer ::
+	Optic.Iso
+		(Tree (Data.Node i1)) (Tree (Data.Node i2))
+		(Page' (Data.Node i1)) (Page' (Data.Node i2))
 layer = Optic.Iso melt_page (break Data.nodePageTrunkStatus >>> page_anyway)

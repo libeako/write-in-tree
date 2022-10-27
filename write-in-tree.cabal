@@ -59,6 +59,7 @@ common common
       WriteInTree.Document.Core.Serial.Layers
       WriteInTree.Document.Core.Serial.Link.Individual
       WriteInTree.Document.Core.Serial.Link.InTree
+      WriteInTree.Document.Core.Serial.Page.Address
       WriteInTree.Document.Core.Serial.Page.Border
       WriteInTree.Document.Core.Serial.Page.BreakStructure
       WriteInTree.Document.Core.Serial.Page.Count
