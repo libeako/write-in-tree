@@ -4,7 +4,6 @@ module WriteInTree.Document.Core.Serial.Page.BreakStructure
 	PageContent (..),
 	Child, 
 	children_in_page_content, child_in_page_content,
-	forget_in_additional_info_in_page,
 	Page', PageContent',
 	layer,
 )
@@ -48,35 +47,9 @@ child_in_page_content =
 	Category2.identity >**>^ Optic.from_Traversable >**>^ children_in_page_content
 
 
-type Forget e c m l = (m -> l) -> c m e -> c l e
-
-forget_in_additional_info_in_page :: Forget e Page m l
-forget_in_additional_info_in_page f (Page a c) =
-	Page (f a) (forget_in_additional_info_in_page_content f c)
-
-forget_in_additional_info_in_page_content :: Forget e PageContent m l
-forget_in_additional_info_in_page_content =
-	forget_in_additional_info_in_child >>> map >>> Optic.fn_up children_in_page_content
-
-forget_in_additional_info_in_child :: Forget e Child m l
-forget_in_additional_info_in_child f =
-	bimap
-		(forget_in_additional_info_in_page f)
-		(forget_in_additional_info_in_page_content f)
-
-
 type Page' = Page ()
 type PageContent' = PageContent ()
 type Child' e = Child () e
-
-melt_child :: Child' e -> Tree e
-melt_child = either melt_page melt_page_content
-
-melt_page_content :: PageContent' e -> Tree e
-melt_page_content (PageContent trunk children) = Tree.Node trunk (map melt_child children)
-
-melt_page :: Page' e -> Tree e
-melt_page (Page _ content) = melt_page_content content
 
 break :: (e -> IsPageTrunkStatus) -> Tree e -> Child' e
 break get_node_status (Tree.Node trunk children) =
@@ -89,8 +62,9 @@ break get_node_status (Tree.Node trunk children) =
 page_anyway :: Child' e -> Page' e
 page_anyway = either id (Page ())
 
+
 layer ::
 	Optic.Iso
 		(Tree (Data.Node i1)) (Tree (Data.Node i2))
-		(Page' (Data.Node i1)) (Page' (Data.Node i2))
-layer = Optic.Iso melt_page (break Data.nodePageTrunkStatus >>> page_anyway)
+		(Tree (Data.Node i1)) (Page' (Data.Node i2))
+layer = Optic.Iso id (break Data.nodePageTrunkStatus >>> page_anyway)

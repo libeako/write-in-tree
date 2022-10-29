@@ -43,9 +43,9 @@ finalize_page page = map (\ a -> (a, page)) (get_address_of_page page)
 
 layer ::
 	Optic.PartialIso ParseError
-		(PData.SiteStructure (BS.Page () (Data.Node i1)))
+		(Data.StructureAsTree i1)
 		(PData.SiteStructure (BS.Page a (Data.Node i2)))
-		(PData.SiteStructure (PageAddress, BS.Page () (Data.Node i1)))
+		(Data.StructureAsTree i1)
 		(PData.SiteStructure (PageAddress, BS.Page a (Data.Node i2)))
-layer = Optic.PartialIso (map snd) (traverse finalize_page)
+layer = Optic.PartialIso id (traverse finalize_page)
 		

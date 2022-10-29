@@ -102,10 +102,10 @@ internal_address_in_Inline =
 	>**>^ Optic.prism_Maybe
 	>**>^ link_in_Inline
 
-links_in_Node ::
+link_in_Node ::
 	forall ia1 ia2 .
-	Optic.Traversal (Maybe (Link ia1)) (Maybe (Link ia2)) (Node ia1) (Node ia2)
-links_in_Node = Category2.identity >**>^ link_in_Inline @ia1 @ia2 >**>^ inNode_content
+	Optic.Lens (Maybe (Link ia1)) (Maybe (Link ia2)) (Node ia1) (Node ia2)
+link_in_Node = Category2.identity >**>^ link_in_Inline @ia1 @ia2 >**>^ inNode_content
 
 texts_in_Node :: forall ia . Optic.Traversal' Text (Node ia)
 texts_in_Node =

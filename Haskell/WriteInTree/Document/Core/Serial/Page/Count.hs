@@ -10,10 +10,11 @@ import Fana.Prelude
 import Prelude ((+))
 
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified WriteInTree.Document.Core.Serial.Page.Data as Data
+import qualified WriteInTree.Document.Core.Data as Data
+import qualified WriteInTree.Document.Core.Serial.Page.Data as PData
 import qualified WriteInTree.Document.Core.Serial.Page.BreakStructure as BS
 
-type Ordinal = Data.PageKey
+type Ordinal = PData.PageKey
 
 type Page a e = BS.Page a e
 type PageContent a e = BS.PageContent a e
@@ -35,5 +36,8 @@ count_in_child = bitraverse count_in_page count_in_page_content
 count_all :: Page () e -> Page Ordinal e
 count_all = count_in_page >>> flip evalState 1
 
-layer :: Optic.Iso (Page () e1) (Page () e2) (Page () e1) (Page Ordinal e2)
-layer = Optic.Iso (BS.forget_in_additional_info_in_page (const ())) count_all
+layer ::
+	Optic.Iso
+		(Data.StructureAsTree i) (Page () e2)
+		(Data.StructureAsTree i) (Page Ordinal e2)
+layer = Optic.Iso id count_all

@@ -4,16 +4,17 @@ module WriteInTree.Document.Core.Serial.Page.SiteStructureDiscovery
 )
 where
 
-import Data.Array (array, (!))
+import Data.Array (array)
 import Data.Tree (Tree, Forest)
 import Fana.Prelude
 
 import qualified Data.List as List
 import qualified Data.Tree as Tree
 import qualified Fana.Optic.Concrete.Prelude as Optic
+import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Page.BreakStructure as BS
 import qualified WriteInTree.Document.Core.Serial.Page.Count as Count
-import qualified WriteInTree.Document.Core.Serial.Page.Data as Data
+import qualified WriteInTree.Document.Core.Serial.Page.Data as PData
 
 
 type PageKey = Count.Ordinal
@@ -30,12 +31,7 @@ discover_page_forest = BS.pcChildren >>> map discover_page_forest_of_child >>> f
 discover_page_forest_of_child :: BS.Child a e -> Forest (BS.Page a e)
 discover_page_forest_of_child = either (discover_page_tree >>> (: [])) discover_page_forest
 
-
-render :: Data.SiteStructure (BS.Page () e) -> BS.Page () e
-render (Data.SiteStructure page_relations page_array) =
-	page_array ! (Tree.rootLabel page_relations)
-
-parse :: BS.Page Key e -> Data.SiteStructure (BS.Page Key e)
+parse :: BS.Page Key e -> PData.SiteStructure (BS.Page Key e)
 parse trunk =
 	let
 		page_tree = discover_page_tree trunk
@@ -46,12 +42,12 @@ parse trunk =
 				pair_list = map (\ p -> (BS.pageAdditionalInfo p, p)) (toList page_tree)
 				in array (page_key_start, List.length pair_list) pair_list
 		in
-			Data.SiteStructure
+			PData.SiteStructure
 				(map BS.pageAdditionalInfo page_tree)
 				page_array
 
 layer ::
 	Optic.Iso
-		(BS.Page () e1) (BS.Page Key e2)
-		(Data.SiteStructure (BS.Page () e1)) (Data.SiteStructure (BS.Page Key e2))
-layer = Optic.Iso render parse
+		(Data.StructureAsTree i) (BS.Page Key e2)
+		(Data.StructureAsTree i) (PData.SiteStructure (BS.Page Key e2))
+layer = Optic.Iso id parse
