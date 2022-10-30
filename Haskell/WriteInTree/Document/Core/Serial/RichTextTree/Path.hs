@@ -5,7 +5,6 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Path
 )
 where
 
-import Data.Default.Class
 import Data.Tree (Tree)
 import Fana.Prelude
 
@@ -34,7 +33,6 @@ data ElemHP e =
 type ElemHPT = ElemHP Text
 
 instance Pos.HasPosition (ElemHP e) where get_position = inElemHPPos
-instance Default e => Default (ElemHP e) where def = ElemHP def def
 instance Fana.HasSingle ElemHP where elem = inElemHPCore >>> Tt.elemValue
 
 parse :: Tree ElemLT -> Tree ElemHPT

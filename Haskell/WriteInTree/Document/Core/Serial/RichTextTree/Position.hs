@@ -37,7 +37,8 @@ class HasPosition p where get_position :: p -> Position
 
 instance HasPosition Position where get_position = id
 
-data Positioned e = Positioned
+data Positioned e =
+	Positioned
 	{ position :: Position
 		-- ^ the position in reverse order [towards trunk].
 	, positionedValue :: e
