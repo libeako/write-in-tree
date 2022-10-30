@@ -24,6 +24,7 @@ import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configuration)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned)
 
 import qualified Control.Monad.State.Lazy as Base
 import qualified Data.Bifunctor as BiFr
@@ -55,7 +56,7 @@ import qualified Technical.TextTree.Data as Tt
 type Char = Base.Char
 type Text = [Char]
 type ElemLRT = Path.ElemHRT
-type ElemP = Path.ElemHP
+type ElemP = Positioned
 type ElemPT = ElemP Text
 type ElemT = Elem Text
 type Classes = Structure.ClassesMap
@@ -266,7 +267,7 @@ parse_tree_r (Node trunk all_children) =
 			Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
 		continue_parse_result ((page_address, classes), normal_children) =
 			let
-				position = Path.inElemHPPos trunk
+				position = Pos.position trunk
 				classes_mb = if Fana.is_coll_empty classes then Nothing else (Just classes)
 				labels = Structure.Labels page_address classes_mb
 				in

@@ -16,6 +16,7 @@ where
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (Positioned))
 
 import qualified Data.Foldable as Fold
 import qualified Fana.Data.HasSingle as Fana
@@ -25,15 +26,13 @@ import qualified Fana.Optic.Concrete.Categories.AffineTraverse as Optic
 import qualified Fana.Optic.Concrete.Categories.Lens as Optic
 import qualified Fana.Optic.Concrete.Categories.Prism as Optic
 import qualified Prelude as Base
-import qualified Technical.TextTree.Data as Tt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Structure
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Char = Base.Char
 type Text = [Char]
-type ElemP = Path.ElemHP
+type ElemP = Positioned
 type Source = ElemP ()
 type ElemPT = ElemP Text
 
@@ -54,7 +53,8 @@ ofElem_address :: Elem e -> Maybe Text
 ofElem_address = ofElem_labels >>> Structure.address_of_Labels >>> map unwrapPageAddress
 
 ofElem_class_values :: Elem e -> [Text]
-ofElem_class_values = id 
+ofElem_class_values =
+	id 
 	>>> ofElem_labels 
 	>>> Structure.classes_of_Labels
 	>>> map TravKey.keys
@@ -77,15 +77,13 @@ default_Elem_context e = Elem def def e
 
 -- | convert an element from data to picture format.
 elem_dp :: Elem e -> ElemP e
-elem_dp x = Path.ElemHP
-	{ Path.inElemHPPos = ofElem_position x
-	, Path.inElemHPCore = Tt.Elem (ofElem_core x)
-	}
+elem_dp x = Positioned (ofElem_position x) (ofElem_core x)
+
 -- | convert an element from picture to data format.
 elem_pd :: Structure.Labels -> ElemP e -> Elem e
 elem_pd labels p =
 	Elem
-	{ofElem_position = Path.inElemHPPos p
+	{ofElem_position = Pos.position p
 	, ofElem_labels = labels
-	, ofElem_core = Tt.elemValue (Path.inElemHPCore p)
+	, ofElem_core = Pos.positionedValue p
 	}
