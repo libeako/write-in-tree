@@ -38,19 +38,17 @@ data Any = IntermId Text | IntermClass ClassesMap
 
 
 index_classes :: [Text] -> Either (Accu.Accumulated Text) ClassesMap
-index_classes = let
-	error_message :: Text -> Accu.Accumulated Text
-	error_message text = "multiple instances of class \"" <> Accu.single text <> "\""
-	in map (Pair.before ()) >>> MapI.from_list_of_uniques >>> Bifunctor.first (fst >>> error_message)
+index_classes =
+	let
+		error_message :: Text -> Accu.Accumulated Text
+		error_message text = "multiple instances of class \"" <> Accu.single text <> "\""
+		in map (Pair.before ()) >>> MapI.from_list_of_uniques >>> Bifunctor.first (fst >>> error_message)
 
-add_new :: [Text] -> ClassesMap -> ClassesMap
-add_new incoming_classes old_classes = let
-	updated_classes :: ClassesMap
-	updated_classes = let
-		add_class :: Text -> Fn.Endo ClassesMap
-		add_class c = LensAt.ensure_existence_at c ()
-		in Fold.foldr' add_class old_classes incoming_classes
-	in updated_classes
+add_new :: Text -> Fn.Endo ClassesMap
+add_new c = LensAt.ensure_existence_at c ()
+
+add_news :: [Text] -> Fn.Endo ClassesMap
+add_news ncs ocs = Fold.foldr' add_new ocs ncs
 
 contains :: Text -> ClassesMap -> Bool
 contains class_text = LensAt.get_at class_text >>> Base.isJust
@@ -78,13 +76,14 @@ ofLabels_classes :: Optic.Lens' (Maybe ClassesMap) Labels
 ofLabels_classes = Optic.lens_from_get_set classes_of_Labels (\ e c -> c { classes_of_Labels = e })
 
 add_new_classes_to_Labels :: [Text] -> Fn.Endo Labels
-add_new_classes_to_Labels additional = let
-	new_imc :: Fn.Endo (Maybe ClassesMap)
-	new_imc = let
-		real_addition :: Fn.Endo (Maybe ClassesMap)
-		real_addition = Base.fromMaybe def >>> (add_new additional) >>> Just
-		in if List.null additional then id else real_addition
-	in Optic.fn_up ofLabels_classes new_imc
+add_new_classes_to_Labels additional =
+	let
+		new_imc :: Fn.Endo (Maybe ClassesMap)
+		new_imc = let
+			real_addition :: Fn.Endo (Maybe ClassesMap)
+			real_addition = Base.fromMaybe def >>> (add_news additional) >>> Just
+			in if List.null additional then id else real_addition
+		in Optic.fn_up ofLabels_classes new_imc
 
 labels_has_class :: Text -> Labels -> Bool
 labels_has_class class_text = classes_of_Labels >>> Base.maybe False (contains class_text)

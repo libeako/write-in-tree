@@ -16,9 +16,10 @@ import qualified Prelude as Base
 
 type Text = Base.String
 
-data Elem v = Elem 
-	{ elemValue :: v 
-	} 
+data Elem v =
+	Elem
+	{ elemValue :: v
+	}
 	deriving (Eq, Base.Show, Base.Functor, Base.Foldable, Base.Traversable)
 type ElemT = Elem Text
 

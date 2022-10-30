@@ -25,7 +25,8 @@ type ElemL e = Tt.Elem e
 type ElemLT = ElemL Text
 type ElemHR e = Tt.Elem e
 type ElemHRT = ElemHR Text
-data ElemHP e = ElemHP
+data ElemHP e =
+	ElemHP
 	{ inElemHPPos :: Pos.Position
 	, inElemHPCore :: Tt.Elem e
 	}
