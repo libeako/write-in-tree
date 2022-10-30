@@ -133,8 +133,10 @@ meta_name_address = "address"
 meta_name_class :: Text
 meta_name_class = "class"
 
-wrap :: forall a e . (Functor a, Default (a e)) => e -> a e
-wrap = ((def :: a e) $>)
+wrap_default :: forall a e . (Functor a, Default (a e)) => e -> a e
+wrap_default = ((def :: a e) $>)
+
+type Wrap a e = e -> a e
 
 render_address_tree :: PageAddress -> Tree Text
 render_address_tree address =
@@ -153,11 +155,8 @@ parse_address_tree_as_exceptional tree@(Node trunk children) =
 		then Left (parse_address ((map >>> map) HasSingle.elem children))
 		else Right tree
 
-render_address_into_siblings ::
-	forall a .
-	(Functor a, Default (a Text)) =>
-	Maybe PageAddress -> Fn.Endo (Forest (a Text))
-render_address_into_siblings =
+render_address_into_siblings :: Wrap a Text -> Maybe PageAddress -> Fn.Endo (Forest (a Text))
+render_address_into_siblings wrap =
 	\case
 		Nothing -> id
 		Just address -> (map wrap (render_address_tree address) :)
@@ -175,11 +174,8 @@ parse_classes_tree_as_exceptional tree@(Node trunk children) =
 		then Left (Right (map (rootLabel >>> HasSingle.elem) children))
 		else Right tree
 
-render_classes_into_siblings ::
-	forall a .
-	(Functor a, Default (a Text)) =>
-	Classes -> Fn.Endo (Forest (a Text))
-render_classes_into_siblings classes =
+render_classes_into_siblings :: Wrap a Text -> Classes -> Fn.Endo (Forest (a Text))
+render_classes_into_siblings wrap classes =
 	let
 		class_list :: [Text]
 		class_list = TravKey.keys classes
@@ -225,13 +221,10 @@ parse_classes_from_siblings =
 				in map (Pair.before normal_children) (classes_result >>= merge_classes)
 		in Base.StateT raw
 
-render_all_into_siblings ::
-	forall a .
-	(Functor a, Default (a Text)) =>
-	(Maybe PageAddress, Classes) -> Fn.Endo (Forest (a Text))
-render_all_into_siblings (address, classes) =
-	render_classes_into_siblings classes >>>
-	render_address_into_siblings address
+render_all_into_siblings :: Wrap a Text -> (Maybe PageAddress, Classes) -> Fn.Endo (Forest (a Text))
+render_all_into_siblings wrap (address, classes) =
+	render_classes_into_siblings wrap classes >>>
+	render_address_into_siblings wrap address
 
 parse_all_from_siblings ::
 	forall a .
@@ -250,7 +243,7 @@ render_tree (Node trunk children) =
 		classes = maybe Fana.empty_coll id (Structure.classes_of_Labels labels)
 		in
 			Node (Tt.Elem (HasSingle.elem trunk))
-				(render_all_into_siblings (address, classes) (map render_tree children))
+				(render_all_into_siblings Tt.Elem (address, classes) (map render_tree children))
 
 parse_tree_r :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
 parse_tree_r (Node trunk all_children) =

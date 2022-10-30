@@ -20,7 +20,7 @@ data Elem v =
 	Elem
 	{ elemValue :: v
 	}
-	deriving (Eq, Base.Show, Base.Functor, Base.Foldable, Base.Traversable)
+	deriving (Eq, Base.Show)
 type ElemT = Elem Text
 
 instance Default v => Default (Elem v) where def = Elem def
