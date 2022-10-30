@@ -18,15 +18,14 @@ import qualified Technical.TextTree.Data as Tt
 
 type Text = Base.String
 
-type ElemL = Tt.Elem Text
+type ElemL = Tt.Elem
 type ElemHP = Positioned Text
 
 parse :: Tree ElemL -> Tree ElemHP
 parse =
 	id
-	>>> map Tt.elemValue
 	>>> Tree.with_path_to_trunk
 	>>> map (Bifunctor.first (map Tree.rootLabel) >>> uncurry Positioned)
 
-layer :: Optic.Iso (Tree ElemL) (Tree ElemL) (Tree (Tt.Elem Text)) (Tree ElemHP)
+layer :: Optic.Iso (Tree ElemL) (Tree ElemL) (Tree Tt.Elem) (Tree ElemHP)
 layer = Optic.Iso id parse

@@ -54,7 +54,7 @@ import qualified Technical.TextTree.Data as Tt
 
 type Char = Base.Char
 type Text = [Char]
-type ElemLRT = Tt.Elem Text
+type ElemLR = Tt.Elem
 type ElemP = Positioned
 type ElemPT = ElemP Text
 type ElemT = Elem Text
@@ -155,11 +155,11 @@ parse_address_tree_as_exceptional tree@(Node trunk children) =
 		then Left (parse_address ((map >>> map) HasSingle.elem children))
 		else Right tree
 
-render_address_into_siblings :: Wrap a Text -> Maybe PageAddress -> Fn.Endo (Forest (a Text))
-render_address_into_siblings wrap =
+render_address_into_siblings :: Maybe PageAddress -> Fn.Endo (Forest Text)
+render_address_into_siblings =
 	\case
 		Nothing -> id
-		Just address -> (map wrap (render_address_tree address) :)
+		Just address -> (render_address_tree address :)
 
 render_class_tree :: [Text] -> Tree Text
 render_class_tree classes =
@@ -174,15 +174,15 @@ parse_classes_tree_as_exceptional tree@(Node trunk children) =
 		then Left (Right (map (rootLabel >>> HasSingle.elem) children))
 		else Right tree
 
-render_classes_into_siblings :: Wrap a Text -> Classes -> Fn.Endo (Forest (a Text))
-render_classes_into_siblings wrap classes =
+render_classes_into_siblings :: Classes -> Fn.Endo (Forest Text)
+render_classes_into_siblings classes =
 	let
 		class_list :: [Text]
 		class_list = TravKey.keys classes
 		in
 			case class_list of
 				[] -> id
-				_ -> (map wrap (render_class_tree class_list) :)
+				_ -> (render_class_tree class_list :)
 
 parse_address_from_siblings ::
 	forall a .
@@ -221,10 +221,10 @@ parse_classes_from_siblings =
 				in map (Pair.before normal_children) (classes_result >>= merge_classes)
 		in Base.StateT raw
 
-render_all_into_siblings :: Wrap a Text -> (Maybe PageAddress, Classes) -> Fn.Endo (Forest (a Text))
-render_all_into_siblings wrap (address, classes) =
-	render_classes_into_siblings wrap classes >>>
-	render_address_into_siblings wrap address
+render_all_into_siblings :: (Maybe PageAddress, Classes) -> Fn.Endo (Forest Text)
+render_all_into_siblings (address, classes) =
+	render_classes_into_siblings classes >>>
+	render_address_into_siblings address
 
 parse_all_from_siblings ::
 	forall a .
@@ -233,7 +233,7 @@ parse_all_from_siblings ::
 parse_all_from_siblings =
 	liftA2 (,) parse_address_from_siblings parse_classes_from_siblings
 
-render_tree :: Tree ElemT -> Tree ElemLRT
+render_tree :: Tree ElemT -> Tree ElemLR
 render_tree (Node trunk children) =
 	let
 		labels = ofElem_labels trunk
@@ -242,8 +242,8 @@ render_tree (Node trunk children) =
 		classes :: Classes
 		classes = maybe Fana.empty_coll id (Structure.classes_of_Labels labels)
 		in
-			Node (Tt.Elem (HasSingle.elem trunk))
-				(render_all_into_siblings Tt.Elem (address, classes) (map render_tree children))
+			Node (HasSingle.elem trunk)
+				(render_all_into_siblings (address, classes) (map render_tree children))
 
 parse_tree_r :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
 parse_tree_r (Node trunk all_children) =
@@ -281,13 +281,13 @@ parse_tree =
 
 layer_new_simple ::
 	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
-		(Tree ElemLRT) (Tree ElemPT) (Tree ElemT) (Tree ElemT)
+		(Tree ElemLR) (Tree ElemPT) (Tree ElemT) (Tree ElemT)
 layer_new_simple = Optic.PartialIso render_tree parse_tree
 
 
 layer :: Configuration ->
 	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
-		(Tree ElemLRT) (Tree ElemPT) (Tree ElemT) (Tree ElemT)
+		(Tree ElemLR) (Tree ElemPT) (Tree ElemT) (Tree ElemT)
 layer config =
 	Cat2.identity
 	>**> layer_new_simple
