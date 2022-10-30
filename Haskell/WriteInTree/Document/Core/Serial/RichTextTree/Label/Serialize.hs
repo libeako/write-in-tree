@@ -48,14 +48,13 @@ import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.InlineClassCoding as Inline
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Structure
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified Technical.TextTree.Data as Tt
 
 
 type Char = Base.Char
 type Text = [Char]
-type ElemLRT = Path.ElemHRT
+type ElemLRT = Tt.Elem Text
 type ElemP = Positioned
 type ElemPT = ElemP Text
 type ElemT = Elem Text

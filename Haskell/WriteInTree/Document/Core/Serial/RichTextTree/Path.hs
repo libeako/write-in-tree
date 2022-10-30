@@ -1,6 +1,5 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Path
 (
-	ElemHR, ElemHRT, ElemHP (..), ElemHPT,
 	layer,
 )
 where
@@ -19,15 +18,15 @@ import qualified Technical.TextTree.Data as Tt
 
 type Text = Base.String
 
-type ElemL e = Tt.Elem e
-type ElemLT = ElemL Text
-type ElemHR e = Tt.Elem e
-type ElemHRT = ElemHR Text
-type ElemHP e = Positioned e
-type ElemHPT = ElemHP Text
+type ElemL = Tt.Elem Text
+type ElemHP = Positioned Text
 
-parse :: Tree ElemLT -> Tree ElemHPT
-parse = map Tt.elemValue >>> Tree.with_path_to_trunk >>> map (Bifunctor.first (map Tree.rootLabel) >>> uncurry Positioned)
+parse :: Tree ElemL -> Tree ElemHP
+parse =
+	id
+	>>> map Tt.elemValue
+	>>> Tree.with_path_to_trunk
+	>>> map (Bifunctor.first (map Tree.rootLabel) >>> uncurry Positioned)
 
-layer :: Optic.Iso (Tree ElemLT) (Tree ElemLT) (Tree ElemHRT) (Tree ElemHPT)
+layer :: Optic.Iso (Tree ElemL) (Tree ElemL) (Tree (Tt.Elem Text)) (Tree ElemHP)
 layer = Optic.Iso id parse
