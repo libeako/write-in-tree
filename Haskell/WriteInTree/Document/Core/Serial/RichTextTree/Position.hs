@@ -14,6 +14,7 @@ import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Maybe as Base
+import qualified Fana.Data.HasSingle as Fana
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
@@ -44,6 +45,7 @@ data Positioned e = Positioned
 	deriving (Functor, Foldable, Traversable)
 
 instance HasPosition (Positioned e) where get_position = position
+instance Fana.HasSingle Positioned where elem = positionedValue
 
 position_error :: HasPosition a => a -> e -> Positioned e
 position_error = get_position >>> Positioned
