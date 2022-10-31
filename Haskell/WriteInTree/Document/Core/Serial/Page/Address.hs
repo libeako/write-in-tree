@@ -32,7 +32,7 @@ type ParseFailable = Either ParseError
 
 get_address_from_wit_source :: LabelElem.Elem e -> ParseFailable PageAddress
 get_address_from_wit_source e =
-	BiFr.first (Pos.position_error_mb e)
+	BiFr.first (Pos.position_error_mb (LabelElem.ofElem_core e))
 		(validate_address ((LabelElem.ofElem_labels >>> Label.address_of_Labels) e))
 
 get_address_of_page :: BS.Page a (Data.Node i) -> ParseFailable PageAddress

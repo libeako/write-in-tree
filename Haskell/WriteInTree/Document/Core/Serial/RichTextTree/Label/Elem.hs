@@ -7,16 +7,14 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 	inElem_labels,
 	ofElem_classes,
 	elem_has_class,
-	default_Elem_context,
 	Elem (..),
-	elem_pd, elem_dp,
 )
 where
 
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (Position, Positioned (..), get_position)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Position, Positioned (..))
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 
 import qualified Data.Foldable as Fold
@@ -68,21 +66,3 @@ ofElem_classes = Cat2.identity >**>^ Optic.prism_Maybe >**>^ Structure.ofLabels_
 
 elem_has_class :: Text -> Elem e -> Bool
 elem_has_class class_text = ofElem_labels >>> Structure.labels_has_class class_text
-
-
-instance Pos.HasPosition (Elem e) where get_position = ofElem_core >>> get_position
-
-default_Elem_context :: e -> Elem e
-default_Elem_context e = Elem def (Positioned def e)
-
--- | convert an element from data to picture format.
-elem_dp :: Elem e -> Positioned e
-elem_dp = ofElem_core
-
--- | convert an element from picture to data format.
-elem_pd :: Structure.Labels -> Positioned e -> Elem e
-elem_pd labels p =
-	Elem
-	{ ofElem_labels = labels
-	, ofElem_core = p
-	}
