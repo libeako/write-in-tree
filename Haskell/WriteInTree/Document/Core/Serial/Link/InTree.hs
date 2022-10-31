@@ -6,6 +6,7 @@ where
 
 import Data.Tree (Tree (..), Forest)
 import Fana.Prelude
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (positionedValue)
 
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -29,7 +30,7 @@ render (Node trunk children) =
 		children_rendered :: [Tree (Label.Elem Text)]
 		children_rendered = map render children
 		in
-			case Data.ilLink (Label.ofElem_core trunk) of
+			case (Label.ofElem_core >>> positionedValue >>> Data.ilLink) trunk of
 				Nothing -> Node trunk_rendered children_rendered
 				Just link -> Node trunk_rendered (Individual.render' link : children_rendered)
 

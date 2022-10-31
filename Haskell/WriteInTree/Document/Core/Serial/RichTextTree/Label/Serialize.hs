@@ -24,7 +24,7 @@ import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configuration)
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (Positioned), get_position)
 
 import qualified Control.Monad.State.Lazy as Base
 import qualified Data.Bifunctor as BiFr
@@ -103,7 +103,7 @@ check_uniquness_of_id id_type tree =
 				per_line :: Accu.Accumulated Text -> Accu.Accumulated Text
 				per_line content = "--- " <> content <> "\n"
 				node_writer :: ElemT -> Accu.Accumulated Text
-				node_writer = ofElem_position >>> Pos.show_position >>> per_line
+				node_writer = get_position >>> Pos.show_position >>> per_line
 				message :: Accu.Accumulated Text
 				message =
 					let
@@ -259,11 +259,11 @@ parse_tree_r (Node trunk all_children) =
 			Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
 		continue_parse_result ((page_address, classes), normal_children) =
 			let
-				position = Pos.position trunk
+				position = Pos.get_position trunk
 				classes_mb = if Fana.is_coll_empty classes then Nothing else (Just classes)
 				labels = Structure.Labels page_address classes_mb
 				in
-					map (Node (Elem position labels (HasSingle.elem trunk)))
+					map (Node (Elem labels (Positioned position (HasSingle.elem trunk))))
 						(traverse parse_tree_r normal_children)
 		in current_parse_result >>= continue_parse_result
 

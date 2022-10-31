@@ -76,7 +76,7 @@ parse (Node trunk children) =
 parse' :: Tree (Label.Elem Text) -> Maybe (Either ParseError (Data.Link Text))
 parse' tree =
 	map (BiFr.first (Pos.position_error (Tree.rootLabel tree)))
-		(parse (map Label.ofElem_core tree))
+		(parse (map (Label.ofElem_core >>> Pos.positionedValue) tree))
 
 render :: Data.Link Text -> Tree Text
 render d =

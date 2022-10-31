@@ -11,6 +11,7 @@ import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (ClassName, Configuration)
 import WriteInTree.Document.SepProps.Data (InlineClass (..))
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (positionedValue)
 
 import qualified Control.Monad.State.Strict as Mtl
 import qualified Data.Bifunctor as Bifunctor
@@ -70,7 +71,7 @@ over_Elem' config =
 	let
 		parse :: Elem TextSplit.H -> Elem Text
 		parse elem =
-			case ofElem_core elem of
+			case positionedValue (ofElem_core elem) of
 				(cs, text) ->
 					Optic.fn_up inElem_labels
 						(Structure.add_new_classes_to_Labels cs) (map snd elem)

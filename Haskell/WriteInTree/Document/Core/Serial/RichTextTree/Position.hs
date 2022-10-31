@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Position
 (
-	Position,
+	Position, inPositioned_position,
 	HasPosition (..), Positioned (..), PositionedMb (..),
 	position_error_in_piso,
 	position_error, without_position, maybefy_positioned, position_error_mb, fill_position,
@@ -43,7 +43,11 @@ data Positioned e =
 		-- ^ the position in reverse order [towards trunk].
 	, positionedValue :: e
 	}
-	deriving (Functor, Foldable, Traversable)
+	deriving (Eq, Functor, Foldable, Traversable)
+
+
+inPositioned_position :: Optic.Lens' Position (Positioned e)
+inPositioned_position = Optic.lens_from_get_set position (\ p w -> w { position = p })
 
 instance HasPosition (Positioned e) where get_position = position
 instance Fana.HasSingle Positioned where elem = positionedValue
