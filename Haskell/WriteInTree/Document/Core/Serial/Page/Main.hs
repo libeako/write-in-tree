@@ -18,11 +18,14 @@ where
 import Data.Tree (Tree)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import WriteInTree.Document.Core.Serial.Page.Data
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified WriteInTree.Document.Core.Data as Basic
 import qualified WriteInTree.Document.Core.Serial.Page.Address as Address
+import qualified WriteInTree.Document.Core.Serial.Page.Border as Border
 import qualified WriteInTree.Document.Core.Serial.Page.BreakStructure as BS
 import qualified WriteInTree.Document.Core.Serial.Page.Count as Count
 import qualified WriteInTree.Document.Core.Serial.Page.Cut as Cut
@@ -33,11 +36,12 @@ type ParseError = Address.ParseError
 
 
 layer ::
-	Optic.PartialIso ParseError
-		(Tree (Basic.Node i1)) (Tree (Basic.Node i2))
-		(Site i1) (Site i2)
+	Optic.PartialIso' ParseError
+		(Tree (Labels, Positioned (Basic.Paragraph Text))) 
+		(Site Text)
 layer =
 	Category2.identity
+	>**>^ Border.layer
 	>**>^ BS.layer
 	>**>^ Count.layer
 	>**>^ SS.layer

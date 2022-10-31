@@ -16,7 +16,6 @@ import qualified Prelude as Base
 import qualified Technical.TextTree.MindMap as Tt
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
-import qualified WriteInTree.Document.Core.Serial.Page.Border as PageBorder
 import qualified WriteInTree.Document.Core.Serial.Page.Main as Page
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
@@ -49,7 +48,6 @@ layer sep_props =
 	>**>^ Path.layer
 	>**>^ Label.layer (SepProps.prop_inline_classes sep_props)
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
-	>**>^ PageBorder.layer
 	>**>^ Page.layer
 	>**>^ layer_meta_text_escapee
 
