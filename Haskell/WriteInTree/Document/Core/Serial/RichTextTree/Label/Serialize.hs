@@ -6,7 +6,6 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize
 	ofElem_pos,
 	ofElem_class_values,
 	ofElem_classes,
-	elem_has_class,
 	Labeled (..),
 )
 where
