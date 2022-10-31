@@ -8,12 +8,12 @@ module WriteInTree.Document.Core.Serial.Link.Individual
 where
 
 
-import Data.Functor (($>))
 import Data.Tree (Tree (..))
 import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 
 import qualified Data.Bifunctor as BiFr
+import qualified Fana.Data.HeteroPair as Pair
 import qualified Data.Tree as Tree
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -21,7 +21,7 @@ import qualified Fana.Serial.Bidir.Instances.Enum as Serial
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Ntt
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem as Label
+import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Labeled as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
@@ -74,10 +74,10 @@ parse (Node trunk children) =
 		then Just (parse_core' children)
 		else Nothing
 
-parse' :: Tree (Label.Elem Text) -> Maybe (Either ParseError (Data.Link Text))
+parse' :: Tree (Label.Labeled Text) -> Maybe (Either ParseError (Data.Link Text))
 parse' tree =
-	map (BiFr.first (Pos.position_error (Label.ofElem_core (Tree.rootLabel tree))))
-		(parse (map (Label.ofElem_core >>> Pos.positionedValue) tree))
+	map (BiFr.first (Pos.position_error (snd (Tree.rootLabel tree))))
+		(parse (map (snd >>> Pos.positionedValue) tree))
 
 render :: Data.Link Text -> Tree Text
 render d =
@@ -89,8 +89,8 @@ render d =
 		in Node (Ntt.render_exceptional meta_node_name)
 			(map (flip Node []) [render_DestinationType dt, addr])
 
-wrap_into_default_context :: x -> Label.Elem x
-wrap_into_default_context = (Label.Elem def (Positioned def ()) $>)
+wrap_into_default_context :: x -> Label.Labeled x
+wrap_into_default_context = Positioned def >>> Pair.after def
 
-render' :: Data.Link Text -> Tree (Label.Elem Text)
+render' :: Data.Link Text -> Tree (Label.Labeled Text)
 render' = render >>> map wrap_into_default_context

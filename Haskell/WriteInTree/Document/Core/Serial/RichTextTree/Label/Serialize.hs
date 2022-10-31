@@ -5,10 +5,9 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize
 	layer,
 	ofElem_pos,
 	ofElem_class_values,
-	inElem_labels,
 	ofElem_classes,
 	elem_has_class,
-	Elem (..),
+	Labeled (..),
 )
 where
 
@@ -21,7 +20,7 @@ import Fana.Data.HasSingle (HasSingle)
 import Fana.Haskell.DescribingClass
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Labeled
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configuration)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (Positioned), get_position)
@@ -57,12 +56,12 @@ type Text = [Char]
 type ElemLR = Tt.Elem
 type ElemP = Positioned
 type ElemPT = ElemP Text
-type ElemT = Elem Text
+type ElemT = Labeled Text
 type Classes = Structure.ClassesMap
 
 data IdRepetitionSearchInput =
 	IdRepetitionSearchInput
-	{ irsiGetter :: forall e . Elem e -> Maybe Text
+	{ irsiGetter :: forall e . Labeled e -> Maybe Text
 	, irsiName :: Text
 	}
 
@@ -103,7 +102,7 @@ check_uniquness_of_id id_type tree =
 				per_line :: Accu.Accumulated Text -> Accu.Accumulated Text
 				per_line content = "--- " <> content <> "\n"
 				node_writer :: ElemT -> Accu.Accumulated Text
-				node_writer = ofElem_core >>> get_position >>> Pos.show_position >>> per_line
+				node_writer = snd >>> get_position >>> Pos.show_position >>> per_line
 				message :: Accu.Accumulated Text
 				message =
 					let
@@ -236,13 +235,13 @@ parse_all_from_siblings =
 render_tree :: Tree ElemT -> Tree ElemLR
 render_tree (Node trunk children) =
 	let
-		labels = ofElem_labels trunk
+		labels = fst trunk
 		address :: Maybe PageAddress
 		address = Structure.address_of_Labels labels
 		classes :: Classes
 		classes = maybe Fana.empty_coll id (Structure.classes_of_Labels labels)
 		in
-			Node (HasSingle.elem trunk)
+			Node ((HasSingle.elem >>> HasSingle.elem) trunk)
 				(render_all_into_siblings (address, classes) (map render_tree children))
 
 parse_tree_r :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
@@ -263,7 +262,7 @@ parse_tree_r (Node trunk all_children) =
 				classes_mb = if Fana.is_coll_empty classes then Nothing else (Just classes)
 				labels = Structure.Labels page_address classes_mb
 				in
-					map (Node (Elem labels (Positioned position (HasSingle.elem trunk))))
+					map (Node (labels, (Positioned position (HasSingle.elem trunk))))
 						(traverse parse_tree_r normal_children)
 		in current_parse_result >>= continue_parse_result
 
@@ -271,7 +270,7 @@ parse_tree :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (
 parse_tree =
 	let
 		from_tree tree =
-			BiFr.first (Pos.position_error_mb (ofElem_core (Tree.rootLabel tree)))
+			BiFr.first (Pos.position_error_mb (snd (Tree.rootLabel tree)))
 			(
 				case check_uniquness_of_ids tree of
 					Just e -> Left e

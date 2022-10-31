@@ -8,7 +8,7 @@ import Data.Functor.Identity (Identity (..))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Labeled
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (ClassName, Configuration)
 import WriteInTree.Document.SepProps.Data (InlineClass (..))
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (positionedValue)
@@ -27,7 +27,7 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit a
 
 type Char = Base.Char
 type Text = [Char]
-type ElemT = Elem Text
+type LabeledT = Labeled Text
 
 
 move_class_out_from_container :: forall e c . ClassName -> Optic.AffineTraversal' (Maybe e) c -> c -> (Maybe ClassName, c)
@@ -38,7 +38,7 @@ move_class_out_from_container class_name at c = let
 		else (Nothing, c)
 	in Base.either (const (Nothing, c)) when_there (Optic.match at c)
 
-move_class_out_from_elem :: ClassName -> Elem e -> (Maybe ClassName, Elem e)
+move_class_out_from_elem :: ClassName -> Labeled e -> (Maybe ClassName, Labeled e)
 move_class_out_from_elem class_name =
 	let
 		traversal =
@@ -46,36 +46,37 @@ move_class_out_from_elem class_name =
 			>**>^ Map.lens_at class_name 
 			>**>^ Optic.prism_Maybe 
 			>**>^ Structure.ofLabels_classes
-			>**>^ inElem_labels
+			>**>^ Optic.lens_1
 		in move_class_out_from_container class_name traversal
 
-move_class_out_from_elem_st :: ClassName -> Mtl.State (Elem e) (Maybe ClassName)
+move_class_out_from_elem_st :: ClassName -> Mtl.State (Labeled e) (Maybe ClassName)
 move_class_out_from_elem_st = move_class_out_from_elem >>> map Identity >>> Mtl.StateT
 
-move_classes_out_from_elem_st :: forall e . Configuration -> Mtl.State (Elem e) [Maybe ClassName]
+move_classes_out_from_elem_st :: forall e . Configuration -> Mtl.State (Labeled e) [Maybe ClassName]
 move_classes_out_from_elem_st = traverse (ilc_name >>> move_class_out_from_elem_st)
 
-move_classes_out_from_elem :: forall e . Configuration -> Elem e -> ([ClassName], Elem e)
-move_classes_out_from_elem = id
+move_classes_out_from_elem :: forall e . Configuration -> Labeled e -> ([ClassName], Labeled e)
+move_classes_out_from_elem = 
+	id
 	>>> move_classes_out_from_elem_st 
 	>>> Mtl.runState
 	>>> map (Bifunctor.first Base.catMaybes)
 
-move_classes_out_from_elem' :: Configuration -> Elem Text -> Elem TextSplit.H
+move_classes_out_from_elem' :: Configuration -> Labeled Text -> Labeled TextSplit.H
 move_classes_out_from_elem' config =
 	move_classes_out_from_elem config >>>
-	(\ (classes, elem) -> map (Pair.after classes) elem)
+	(\ (classes, elem) -> (map >>> map) (Pair.after classes) elem)
 
-over_Elem' :: Configuration -> Optic.Iso' (Elem TextSplit.H) (Elem Text)
-over_Elem' config =
+over_Labeled' :: Configuration -> Optic.Iso' (Labeled TextSplit.H) (Labeled Text)
+over_Labeled' config =
 	let
-		parse :: Elem TextSplit.H -> Elem Text
+		parse :: Labeled TextSplit.H -> Labeled Text
 		parse elem =
-			case positionedValue (ofElem_core elem) of
+			case positionedValue (snd elem) of
 				(cs, text) ->
-					Optic.fn_up inElem_labels
-						(Structure.add_new_classes_to_Labels cs) (map snd elem)
+					Optic.fn_up Optic.lens_1
+						(Structure.add_new_classes_to_Labels cs) ((map >>> map) snd elem)
 		in Optic.Iso (move_classes_out_from_elem' config) parse
 
-layer :: Configuration -> Optic.Iso' ElemT ElemT
-layer config = Optic.lift_iso (TextSplit.layer config) >**> over_Elem' config
+layer :: Configuration -> Optic.Iso' LabeledT LabeledT
+layer config = (Optic.lift_iso >>> Optic.lift_iso) (TextSplit.layer config) >**> over_Labeled' config

@@ -5,7 +5,6 @@ module WriteInTree.Document.Core.Data where
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Elem (inElem_labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), inLabel_page_address)
 
 import qualified Data.Tree as Tree
@@ -46,13 +45,13 @@ status_from_is_page_trunk =
 data Node ia =
 	Node
 	{
-		nodeWitSource :: Label.Elem (),
+		nodeWitSource :: Label.Labeled (),
 		nodeContent :: Paragraph ia,
 		nodePageTrunkStatus :: IsPageTrunkStatus
 	}
 	deriving (Eq)
 
-inNode_source :: Optic.Lens (Label.Elem ()) (Label.Elem ()) (Node ia) (Node ia)
+inNode_source :: Optic.Lens (Label.Labeled ()) (Label.Labeled ()) (Node ia) (Node ia)
 inNode_source = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSource = p })
 
 node_is_page_trunk :: Node i -> Bool
@@ -114,10 +113,10 @@ texts_in_Node =
 	>**>^ inNode_content
 
 wit_source_in_Node ::
-	Optic.Lens (Label.Elem ()) (Label.Elem ()) (Node ia) (Node ia)
+	Optic.Lens (Label.Labeled ()) (Label.Labeled ()) (Node ia) (Node ia)
 wit_source_in_Node = Optic.lens_from_get_set nodeWitSource (\ e c -> c { nodeWitSource = e })
 
-source_in_Node :: Optic.Lens (Label.Elem ()) (Label.Elem ()) (Node li) (Node li)
+source_in_Node :: Optic.Lens (Label.Labeled ()) (Label.Labeled ()) (Node li) (Node li)
 source_in_Node = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSource = p })
 
 inNode_content ::
@@ -136,7 +135,7 @@ internal_address_in_link_in_node =
 	>**>^ inNode_content
 
 page_addresses_in_Node :: Optic.Traversal' (Maybe PageAddress) (Node ia)
-page_addresses_in_Node = Category2.identity >**>^ inLabel_page_address >**>^ inElem_labels >**>^ inNode_source
+page_addresses_in_Node = Category2.identity >**>^ inLabel_page_address >**>^ Optic.lens_1 >**>^ inNode_source
 
 node_in_tree :: Optic.Traversal (Node ia1) (Node ia2) (StructureAsTree ia1) (StructureAsTree ia2)
 node_in_tree = Optic.from_Traversable

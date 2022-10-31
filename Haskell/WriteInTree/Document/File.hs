@@ -29,7 +29,7 @@ type Text = Base.String
 
 type WithConcreteDataParams t = t Text (Page.LinkInternalTarget Text)
 
-type A = Label.Elem Text
+type A = Label.Labeled Text
 
 type DocData = Document Text
 type DocCoreData = Page.Site Text

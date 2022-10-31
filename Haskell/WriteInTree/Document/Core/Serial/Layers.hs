@@ -9,9 +9,9 @@ where
 import Data.Tree (Tree)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 
-import qualified Fana.Data.HasSingle as Fana
-import qualified Fana.Data.HasSingle as HasSingle
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -40,8 +40,22 @@ type Document = Data.Document Text
 
 type StructureAsTreeRaw = Data.StructureAsTree Text
 
-layer_move_additional_info :: Fana.HasSingle a => Optic.Iso' (Tree (a e)) (Tree (a (), e))
-layer_move_additional_info = Optic.lift_iso HasSingle.iso_separate
+layer_move_additional_info :: Optic.Iso' (Tree (Labels, Positioned e)) (Tree ((Labels, Positioned ()), e))
+layer_move_additional_info = 
+	let
+		layer_inner :: 
+			forall e1 e2 . 
+				Optic.Iso 
+					(Labels, Positioned e1) (Labels, Positioned e2) 
+					((Labels, Positioned ()), e1) ((Labels, Positioned ()), e2)
+		layer_inner = 
+			let
+				render :: ((Labels, Positioned ()), e1) -> (Labels, Positioned e1)
+				render ((l, Positioned p _), e) = (l, Positioned p e)
+				parse :: (Labels, Positioned e2) -> ((Labels, Positioned ()), e2)
+				parse (l, Positioned p e) = ((l, Positioned p ()), e)
+				in Optic.Iso render parse
+		in Optic.lift_iso layer_inner
 
 layer_meta_text_escapee :: Optic.Iso' (Page.Site i) (Page.Site i)
 layer_meta_text_escapee =
