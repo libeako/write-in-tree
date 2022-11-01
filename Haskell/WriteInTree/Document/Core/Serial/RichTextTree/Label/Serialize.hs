@@ -3,9 +3,6 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize
 	Structure.add_new_classes_to_Labels,
 	Configuration,
 	layer,
-	ofElem_pos,
-	ofElem_class_values,
-	ofElem_classes,
 	Labeled (..),
 )
 where
@@ -20,7 +17,7 @@ import Fana.Haskell.DescribingClass
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Labeled
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), address_of_Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configuration)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (Positioned), get_position)
 
@@ -65,7 +62,8 @@ data IdRepetitionSearchInput =
 	}
 
 id_repetition_search_input__machine :: IdRepetitionSearchInput
-id_repetition_search_input__machine = IdRepetitionSearchInput ofElem_address "machine"
+id_repetition_search_input__machine = 
+	IdRepetitionSearchInput (fst >>> address_of_Labels >>> map unwrapPageAddress) "machine"
 
 id_repetition_search_inputs :: [IdRepetitionSearchInput]
 id_repetition_search_inputs =

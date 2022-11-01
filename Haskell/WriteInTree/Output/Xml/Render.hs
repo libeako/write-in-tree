@@ -9,7 +9,7 @@ import Data.Tree (Tree)
 import Fana.Prelude
 import Prelude (String, FilePath)
 import WriteInTree.Document.Core.Serial.Page.Main (PageKey)
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), ofLabels_class_values)
 
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
@@ -24,7 +24,6 @@ import qualified Technical.Html as Html
 import qualified Technical.Xml.Data as Xml
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix as Class
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.Page.Main as PData
 import qualified WriteInTree.Output.Technical as T
 import qualified WriteInTree.Output.Sentence as Sentence
@@ -86,11 +85,12 @@ html_classes_of_whether_page_is_trunk page_is_trunk =
 	if page_is_trunk then [text_class_trunk_page] else []
 
 wrap_by_classes :: [Text] -> PData.Node Text -> Fn.Endo Xml.ElementL
-wrap_by_classes additional_classes n = let
-	classes_from_node :: [Text]
-	classes_from_node = Label.ofElem_class_values (Data.nodeWitSource n)
-	all_classes = classes_from_node <> additional_classes
-	in Optic.fn_up Xml.lens_classes_of_Element (all_classes <>)
+wrap_by_classes additional_classes n = 
+	let
+		classes_from_node :: [Text]
+		classes_from_node = ofLabels_class_values (fst (Data.nodeWitSource n))
+		all_classes = classes_from_node <> additional_classes
+		in Optic.fn_up Xml.lens_classes_of_Element (all_classes <>)
 
 wrap_subcontent_by_div :: [Xml.ElementL] -> Xml.ElementL
 wrap_subcontent_by_div = Xml.tree (Xml.Head "div" [] (Xml.Labels Nothing [text_class_wit_content]))
@@ -163,7 +163,7 @@ render_section sentencing is_page_root site node_tree =
 				has_class_code :: Bool
 				has_class_code =
 					let
-						current_classes = (Data.nodeWitSource >>> Label.ofElem_class_values) trunk_node
+						current_classes = (Data.nodeWitSource >>> fst >>> ofLabels_class_values) trunk_node
 						exceptional_classes = text_classes_non_sentencing
 						in Fold.any (flip Fold.elem exceptional_classes) current_classes
 				revised_sentencing = sentencing && not has_class_code

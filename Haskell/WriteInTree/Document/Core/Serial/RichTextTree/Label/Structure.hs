@@ -6,7 +6,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure
 	Labels (..), no_Labels,
 	inLabel_page_address, ofLabels_classes, 
 	labels_has_class, add_new_classes_to_Labels,
-	index_classes,
+	index_classes, ofLabels_class_values,
 	contains,
 	add_new,
 )
@@ -19,12 +19,13 @@ import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Maybe as Base
-import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
+import qualified Fana.Data.Key.Traversable as TravKey
 import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Data.Key.LensToMaybeElement as LensAt
 import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
+import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 
@@ -87,3 +88,10 @@ add_new_classes_to_Labels additional =
 
 labels_has_class :: Text -> Labels -> Bool
 labels_has_class class_text = classes_of_Labels >>> Base.maybe False (contains class_text)
+
+ofLabels_class_values :: Labels -> [Text]
+ofLabels_class_values =
+	id
+	>>> classes_of_Labels
+	>>> map TravKey.keys
+	>>> Fold.concat
