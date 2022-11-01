@@ -1,17 +1,17 @@
--- | The file containing the design intentions of the user, that is the document.
+-- | Basic layers of the design intentions of the user, that is the document.
 module WriteInTree.Document.Core.Data where
 
 
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), inLabel_page_address)
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), inLabel_page_address, Labels)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Position)
 
 import qualified Data.Tree as Tree
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 
 
 type Text = Base.String
@@ -44,24 +44,33 @@ status_from_is_page_trunk =
 
 data Node ia =
 	Node
-	{
-		nodeWitSource :: Label.Labeled (),
-		nodeContent :: Paragraph ia,
-		nodePageTrunkStatus :: IsPageTrunkStatus
+	{ nodePosition :: Position
+	, nodeLabels :: Labels
+	, nodeContent :: Paragraph ia
+	, nodePageTrunkStatus :: IsPageTrunkStatus
 	}
 	deriving (Eq)
-
-inNode_source :: Optic.Lens (Label.Labeled ()) (Label.Labeled ()) (Node ia) (Node ia)
-inNode_source = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSource = p })
-
-node_is_page_trunk :: Node i -> Bool
-node_is_page_trunk node = nodePageTrunkStatus node == IsPageTrunk
-
 
 type StructureAsTree ia = Tree.Tree (Node ia)
 
 
 -- optics :
+
+inNode_position :: Optic.Lens' Position (Node ia)
+inNode_position = Optic.lens_from_get_set nodePosition (\ p w -> w { nodePosition = p })
+
+inNode_labels :: Optic.Lens' Labels (Node ia)
+inNode_labels = Optic.lens_from_get_set nodeLabels (\ p w -> w { nodeLabels = p })
+
+inNode_content :: Optic.Lens (Paragraph ia1) (Paragraph ia2) (Node ia1) (Node ia2)
+inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })
+
+inNode_separate_page :: Optic.Lens' IsPageTrunkStatus (Node li)
+inNode_separate_page = Optic.lens_from_get_set nodePageTrunkStatus (\ p w -> w { nodePageTrunkStatus = p })
+
+node_is_page_trunk :: Node i -> Bool
+node_is_page_trunk node = nodePageTrunkStatus node == IsPageTrunk
+
 
 ofLink_internals :: 
 	Optic.Iso 
@@ -112,21 +121,6 @@ texts_in_Node =
 	>**>^ visual_in_Inline
 	>**>^ inNode_content
 
-wit_source_in_Node ::
-	Optic.Lens (Label.Labeled ()) (Label.Labeled ()) (Node ia) (Node ia)
-wit_source_in_Node = Optic.lens_from_get_set nodeWitSource (\ e c -> c { nodeWitSource = e })
-
-source_in_Node :: Optic.Lens (Label.Labeled ()) (Label.Labeled ()) (Node li) (Node li)
-source_in_Node = Optic.lens_from_get_set nodeWitSource (\ p w -> w { nodeWitSource = p })
-
-inNode_content ::
-	forall ia1 ia2 .
-	Optic.Lens (Paragraph ia1) (Paragraph ia2) (Node ia1) (Node ia2)
-inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })
-
-separate_page_in_Node :: Optic.Lens' IsPageTrunkStatus (Node li)
-separate_page_in_Node = Optic.lens_from_get_set nodePageTrunkStatus (\ p w -> w { nodePageTrunkStatus = p })
-
 internal_address_in_link_in_node ::
 	forall ia1 ia2 . Optic.Traversal ia1 ia2 (Node ia1) (Node ia2)
 internal_address_in_link_in_node =
@@ -135,7 +129,7 @@ internal_address_in_link_in_node =
 	>**>^ inNode_content
 
 page_addresses_in_Node :: Optic.Traversal' (Maybe PageAddress) (Node ia)
-page_addresses_in_Node = Category2.identity >**>^ inLabel_page_address >**>^ Optic.lens_1 >**>^ inNode_source
+page_addresses_in_Node = Category2.identity >**>^ inLabel_page_address >**>^ inNode_labels
 
 node_in_tree :: Optic.Traversal (Node ia1) (Node ia2) (StructureAsTree ia1) (StructureAsTree ia2)
 node_in_tree = Optic.from_Traversable

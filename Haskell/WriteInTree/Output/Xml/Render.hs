@@ -8,6 +8,7 @@ import Data.Bool (not)
 import Data.Tree (Tree)
 import Fana.Prelude
 import Prelude (String, FilePath)
+import WriteInTree.Document.Core.Data (nodeLabels)
 import WriteInTree.Document.Core.Serial.Page.Main (PageKey)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), ofLabels_class_values)
 
@@ -88,7 +89,7 @@ wrap_by_classes :: [Text] -> PData.Node Text -> Fn.Endo Xml.ElementL
 wrap_by_classes additional_classes n = 
 	let
 		classes_from_node :: [Text]
-		classes_from_node = ofLabels_class_values (fst (Data.nodeWitSource n))
+		classes_from_node = ofLabels_class_values (nodeLabels n)
 		all_classes = classes_from_node <> additional_classes
 		in Optic.fn_up Xml.lens_classes_of_Element (all_classes <>)
 
@@ -163,7 +164,7 @@ render_section sentencing is_page_root site node_tree =
 				has_class_code :: Bool
 				has_class_code =
 					let
-						current_classes = (Data.nodeWitSource >>> fst >>> ofLabels_class_values) trunk_node
+						current_classes = (nodeLabels >>> ofLabels_class_values) trunk_node
 						exceptional_classes = text_classes_non_sentencing
 						in Fold.any (flip Fold.elem exceptional_classes) current_classes
 				revised_sentencing = sentencing && not has_class_code
