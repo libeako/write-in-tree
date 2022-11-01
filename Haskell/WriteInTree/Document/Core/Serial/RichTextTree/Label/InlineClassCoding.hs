@@ -8,10 +8,10 @@ import Data.Functor.Identity (Identity (..))
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Labeled
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (ClassName, Configuration)
 import WriteInTree.Document.SepProps.Data (InlineClass (..))
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (positionedValue)
 
 import qualified Control.Monad.State.Strict as Mtl
 import qualified Data.Bifunctor as Bifunctor
@@ -27,7 +27,8 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit a
 
 type Char = Base.Char
 type Text = [Char]
-type LabeledT = Labeled Text
+type LabeledPositioned e = (Labels, Positioned e)
+type LabeledT = LabeledPositioned Text
 
 
 move_class_out_from_container :: forall e c . ClassName -> Optic.AffineTraversal' (Maybe e) c -> c -> (Maybe ClassName, c)
@@ -38,7 +39,7 @@ move_class_out_from_container class_name at c = let
 		else (Nothing, c)
 	in Base.either (const (Nothing, c)) when_there (Optic.match at c)
 
-move_class_out_from_elem :: ClassName -> Labeled e -> (Maybe ClassName, Labeled e)
+move_class_out_from_elem :: ClassName -> LabeledPositioned e -> (Maybe ClassName, LabeledPositioned e)
 move_class_out_from_elem class_name =
 	let
 		traversal =
@@ -49,28 +50,28 @@ move_class_out_from_elem class_name =
 			>**>^ Optic.lens_1
 		in move_class_out_from_container class_name traversal
 
-move_class_out_from_elem_st :: ClassName -> Mtl.State (Labeled e) (Maybe ClassName)
+move_class_out_from_elem_st :: ClassName -> Mtl.State (LabeledPositioned e) (Maybe ClassName)
 move_class_out_from_elem_st = move_class_out_from_elem >>> map Identity >>> Mtl.StateT
 
-move_classes_out_from_elem_st :: forall e . Configuration -> Mtl.State (Labeled e) [Maybe ClassName]
+move_classes_out_from_elem_st :: forall e . Configuration -> Mtl.State (LabeledPositioned e) [Maybe ClassName]
 move_classes_out_from_elem_st = traverse (ilc_name >>> move_class_out_from_elem_st)
 
-move_classes_out_from_elem :: forall e . Configuration -> Labeled e -> ([ClassName], Labeled e)
+move_classes_out_from_elem :: forall e . Configuration -> LabeledPositioned e -> ([ClassName], LabeledPositioned e)
 move_classes_out_from_elem = 
 	id
 	>>> move_classes_out_from_elem_st 
 	>>> Mtl.runState
 	>>> map (Bifunctor.first Base.catMaybes)
 
-move_classes_out_from_elem' :: Configuration -> Labeled Text -> Labeled TextSplit.H
+move_classes_out_from_elem' :: Configuration -> LabeledPositioned Text -> LabeledPositioned TextSplit.H
 move_classes_out_from_elem' config =
 	move_classes_out_from_elem config >>>
 	(\ (classes, elem) -> (map >>> map) (Pair.after classes) elem)
 
-over_Labeled' :: Configuration -> Optic.Iso' (Labeled TextSplit.H) (Labeled Text)
+over_Labeled' :: Configuration -> Optic.Iso' (LabeledPositioned TextSplit.H) (LabeledPositioned Text)
 over_Labeled' config =
 	let
-		parse :: Labeled TextSplit.H -> Labeled Text
+		parse :: LabeledPositioned TextSplit.H -> LabeledPositioned Text
 		parse elem =
 			case positionedValue (snd elem) of
 				(cs, text) ->

@@ -3,7 +3,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize
 	Structure.add_new_classes_to_Labels,
 	Configuration,
 	layer,
-	Labeled (..),
+	LabeledPositioned (..),
 )
 where
 
@@ -16,8 +16,7 @@ import Fana.Data.HasSingle (HasSingle)
 import Fana.Haskell.DescribingClass
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Labeled
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), address_of_Labels)
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), address_of_Labels, Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configuration)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (Positioned), get_position)
 
@@ -52,12 +51,13 @@ type Text = [Char]
 type ElemLR = Tt.Elem
 type ElemP = Positioned
 type ElemPT = ElemP Text
-type ElemT = Labeled Text
+type LabeledPositioned e = (Labels, Positioned e)
+type ElemT = LabeledPositioned Text
 type Classes = Structure.ClassesMap
 
 data IdRepetitionSearchInput =
 	IdRepetitionSearchInput
-	{ irsiGetter :: forall e . Labeled e -> Maybe Text
+	{ irsiGetter :: forall e . LabeledPositioned e -> Maybe Text
 	, irsiName :: Text
 	}
 

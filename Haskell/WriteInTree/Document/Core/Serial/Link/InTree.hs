@@ -6,28 +6,29 @@ where
 
 import Data.Tree (Tree (..), Forest)
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (positionedValue)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Link.Individual as Individual
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
 type Inline = Data.Inline Text
+type LabeledPositioned e = (Labels, Positioned e)
 
 type ParseError = Pos.Positioned (Accu.Accumulated Text)
 
-render :: Tree (Label.Labeled Inline) -> Tree (Label.Labeled Text)
+render :: Tree (LabeledPositioned Inline) -> Tree (LabeledPositioned Text)
 render (Node trunk children) =
 	let
-		trunk_rendered :: Label.Labeled Text
+		trunk_rendered :: LabeledPositioned Text
 		trunk_rendered = (map >>> map) Data.ilVisual trunk
-		children_rendered :: [Tree (Label.Labeled Text)]
+		children_rendered :: [Tree (LabeledPositioned Text)]
 		children_rendered = map render children
 		in
 			case (snd >>> positionedValue >>> Data.ilLink) trunk of
@@ -35,9 +36,9 @@ render (Node trunk children) =
 				Just link -> Node trunk_rendered (Individual.render' link : children_rendered)
 
 type ParseChildrenSituation =
-	(Maybe (Data.Link Text), Forest (Label.Labeled Text) {- <- the rest of the children -})
+	(Maybe (Data.Link Text), Forest (LabeledPositioned Text) {- <- the rest of the children -})
 
-parse_children :: Forest (Label.Labeled Text) -> Either ParseError ParseChildrenSituation
+parse_children :: Forest (LabeledPositioned Text) -> Either ParseError ParseChildrenSituation
 parse_children children =
 	case children of
 		[] -> Right (Nothing, [])
@@ -47,13 +48,13 @@ parse_children children =
 				(map (\ l -> (Just l, rest)))
 				(Individual.parse' first)
 
-parse :: Tree (Label.Labeled Text) -> Either ParseError (Tree (Label.Labeled Inline))
+parse :: Tree (LabeledPositioned Text) -> Either ParseError (Tree (LabeledPositioned Inline))
 parse (Node trunk children) =
 	let
-		from_situation :: ParseChildrenSituation -> Either ParseError (Tree (Label.Labeled Inline))
+		from_situation :: ParseChildrenSituation -> Either ParseError (Tree (LabeledPositioned Inline))
 		from_situation (l, rest_of_children) =
 			map (Node ((map >>> map) (flip Data.Inline l) trunk)) (traverse parse rest_of_children)
 		in parse_children children >>= from_situation
 
-layer :: Optic.PartialIso' ParseError (Tree (Label.Labeled Text)) (Tree (Label.Labeled Inline))
+layer :: Optic.PartialIso' ParseError (Tree (LabeledPositioned Text)) (Tree (LabeledPositioned Inline))
 layer = Optic.PartialIso render parse

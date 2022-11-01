@@ -8,8 +8,10 @@ where
 
 import Fana.Prelude
 import Prelude (String, IO, FilePath)
-import WriteInTree.Document.Main (Document (..))
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 import WriteInTree.Document.Folder (FolderStructure (..))
+import WriteInTree.Document.Main (Document (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..))
 
 import qualified Data.Bifunctor as Bifunctor
@@ -19,7 +21,6 @@ import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
 import qualified WriteInTree.Document.Core.Serial.Page.Main as Page
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 import qualified WriteInTree.Document.Folder as Folder
 import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
@@ -29,7 +30,7 @@ type Text = Base.String
 
 type WithConcreteDataParams t = t Text (Page.LinkInternalTarget Text)
 
-type A = Label.Labeled Text
+type LabeledPositioned = (Labels, Positioned Text)
 
 type DocData = Document Text
 type DocCoreData = Page.Site Text
