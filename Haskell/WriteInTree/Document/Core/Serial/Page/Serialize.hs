@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.Page.Serialize
 (
-	layer,
+	ParseError, layer,
 )
 where
 

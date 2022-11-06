@@ -1,36 +1,33 @@
 module WriteInTree.Document.Main
 (
 	Document (..),
-	core_in_document, page_addresses_in_doc,
+	core_in_document,
 )
 where
 
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import WriteInTree.Document.Core.Serial.Page.Main (Site)
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps)
 
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
+import qualified Prelude as Base
+import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Page.Main as Page
 
+type Text = Base.String
 
-data Document i =
+data Document =
 	Document
 	{ docSepProps :: DocSepProps
-	, docCore :: Site i
+	, docCore :: Site
 	}
 	deriving (Eq)
 
 
-core_in_document :: Optic.Lens (Site i1) (Site i2) (Document i1) (Document i2)
+core_in_document :: Optic.Lens' Site Document
 core_in_document = Optic.lens_from_get_set docCore (\ c (Document sp _) -> Document sp c)
 
-page_addresses_in_doc :: Optic.Traversal' (Maybe PageAddress) (Document i)
-page_addresses_in_doc =
-	Category2.identity
-	>**>^ Page.page_addresses_in_site >**>^ core_in_document
-
-node_in_doc :: Optic.Traversal' (Page.Node i) (Document i)
+node_in_doc :: Optic.Traversal' (Data.Node Text) Document
 node_in_doc = Category2.identity >**>^ Page.node_in_site >**>^ core_in_document

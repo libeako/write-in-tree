@@ -5,33 +5,29 @@ module WriteInTree.Output.Xml.Render
 where
 
 import Data.Bool (not)
-import Data.Tree (Tree)
+import Data.Tree (Tree, rootLabel, subForest)
 import Fana.Prelude
 import Prelude (String, FilePath)
-import WriteInTree.Document.Core.Data (nodeLabels)
-import WriteInTree.Document.Core.Serial.Page.Main (PageKey)
+import WriteInTree.Document.Core.Data
+import WriteInTree.Document.Core.Serial.Page.Main
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), ofLabels_class_values)
 
+import qualified Data.Bifunctor as BiFr
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Tree as Tree
 import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified Prelude as Base
 import qualified System.FilePath as Fp
 
 import qualified Technical.Html as Html
 import qualified Technical.Xml.Data as Xml
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix as Class
-import qualified WriteInTree.Document.Core.Serial.Page.Main as PData
 import qualified WriteInTree.Output.Technical as T
 import qualified WriteInTree.Output.Sentence as Sentence
 
-
-type Text = Base.String
-type Page = PData.Page Text
 
 -- | text prefix for html class names - to prevent name collision with
 text_class_prefix :: Text
@@ -76,16 +72,11 @@ text_class_page_main_part = text_class_prefix <> "page_main_part"
 text_class_nav_separator :: Text
 text_class_nav_separator = text_class_prefix <> "navigation-separator"
 
--- | html class of element that is a link to a sub page
-text_class_page_break :: Text
-text_class_page_break = text_class_prefix <> "page-break"
-
-
 html_classes_of_whether_page_is_trunk :: Bool -> [Text]
 html_classes_of_whether_page_is_trunk page_is_trunk =
 	if page_is_trunk then [text_class_trunk_page] else []
 
-wrap_by_classes :: [Text] -> PData.Node Text -> Fn.Endo Xml.ElementL
+wrap_by_classes :: [Text] -> Node Text -> Fn.Endo Xml.ElementL
 wrap_by_classes additional_classes n = 
 	let
 		classes_from_node :: [Text]
@@ -105,62 +96,44 @@ wrap_by_header_content =
 		Nothing -> id
 		Just header -> wrap_subcontent_by_div >>> pure >>> (header :)
 
-render_inline_visual :: Text -> Xml.ContentL
-render_inline_visual t = Xml.text t
-
-render_link :: Maybe (PData.Link Text) -> PData.Site Text -> Fn.Endo Xml.ContentL
+render_link :: Maybe (Data.Link Text) -> Fn.Endo Xml.ContentL
 render_link =
 	let
 		wrap_with_link_to :: String -> Fn.Endo Xml.ContentL
 		wrap_with_link_to target = pure >>> Html.with_link_to target >>> Xml.element_as_content
-		get_address :: PData.Link Text -> PData.Site Text -> String
-		get_address link site = link_to_address site link 
-	in
-		\case
-			Nothing -> const id
-			Just l -> get_address l >>> wrap_with_link_to
+		get_address :: Link Text -> String
+		get_address link = link_to_address link 
+		in maybe id (get_address >>> wrap_with_link_to)
 
-render_inline :: PData.Inline Text -> PData.Site Text -> Xml.ContentL
-render_inline il = flip (render_link (Data.ilLink il)) (render_inline_visual (Data.ilVisual il))
+render_inline :: Inline Text -> Xml.ContentL
+render_inline il = (render_link (ilLink il)) (Xml.text (ilVisual il))
 
-render_possibly_sentence :: PData.Site Text -> PData.Inline Text -> Xml.ContentL
-render_possibly_sentence site inline =
-	case inline of
-		Data.Inline t Nothing ->
-			Xml.element_as_content ((pure >>> Html.classify_into [text_class_sentence]) (render_inline inline site))
-		_ -> render_inline inline site
-
-render_paragraph :: 
-	Bool -> Bool -> 
-	PData.Paragraph Text -> PData.Site Text -> Xml.ElementL
-render_paragraph is_page_break sentencing p site = 
+render_paragraph :: Bool -> Paragraph Text -> Xml.ElementL
+render_paragraph sentencing p = 
 	let
 		content :: [Xml.ContentL]
 		content = 
 			if not sentencing 
-				then [(flip render_inline site) p]
+				then [render_inline p]
 				else
 					let
-						all_sections :: [PData.Inline Text]
+						all_sections :: [Inline Text]
 						all_sections = Sentence.sentences p
 						render_possibly_sentence' = 
-							flip render_inline site >>> List.singleton >>> Html.classify_into [text_class_sentence] >>> Xml.element_as_content
+							render_inline >>> List.singleton >>> Html.classify_into [text_class_sentence] >>> Xml.element_as_content
 					in map render_possibly_sentence' all_sections
-		classes :: [Text]
-		classes = if is_page_break then [text_class_page_break] else []
-	in (Xml.Head "p" [] (Xml.Labels Nothing classes), content)
+	in (Xml.Head "p" [] (Xml.Labels Nothing []), content)
 
-render_section :: 
-	Bool -> Bool -> PData.Site Text -> PData.Structure Text -> Xml.ElementL
+render_section :: Bool -> Bool -> Site -> StructureAsTree Text -> Xml.ElementL
 render_section sentencing is_page_root site node_tree =
 	let
 		sub_content :: [Xml.ElementL]
-		sub_content = map (render_section sentencing False site) (Tree.subForest node_tree)
+		sub_content = map (render_section sentencing False site) (subForest node_tree)
 		from_sub_content :: [Xml.ElementL] -> Xml.ElementL
 		from_sub_content =
 			let
-				trunk_node :: PData.Node Text
-				trunk_node = Tree.rootLabel node_tree
+				trunk_node :: Node Text
+				trunk_node = rootLabel node_tree
 				has_class_code :: Bool
 				has_class_code =
 					let
@@ -171,25 +144,19 @@ render_section sentencing is_page_root site node_tree =
 				header :: Maybe Xml.ElementL
 				header =
 					if is_page_root then Nothing else
-						Just (render_paragraph is_page_break revised_sentencing (Data.nodeContent trunk_node) site)
-				is_page_break :: Bool
-				is_page_break = PData.is_inline_a_page_break (Data.nodeContent trunk_node)
+						Just (render_paragraph revised_sentencing (Data.nodeContent trunk_node))
 				in
 					wrap_by_header_content header >>>
 					wrap_by_section >>> wrap_by_classes [] trunk_node
 		in from_sub_content sub_content
 
-render_navigation_bar_per_element ::
-	PData.Site Text ->
-	Bool ->
-	PData.Page Text ->
-	Xml.Content Xml.Labels
-render_navigation_bar_per_element site not_this_page page =
+render_navigation_bar_per_element :: Bool -> Page -> Xml.Content Xml.Labels
+render_navigation_bar_per_element not_this_page page =
 	let
-		text = Xml.text (PData.title_of_page page)
-		address = (node_address_for_navigation_bar site) page
+		text = Xml.text (title_of_page page)
+		address = page_file_path page
 		content :: Xml.ContentL
-		content = 
+		content =
 			case not_this_page of
 				True -> Xml.element_as_content (Html.with_link_to address [text])
 				_ -> text
@@ -199,33 +166,31 @@ render_navigation_bar_per_element site not_this_page page =
 		add_classes = (: []) >>> Html.classify_into (classes) >>> Xml.element_as_content
 		in add_classes content
 
-render_navigation_bar ::
-	PData.Site Text ->
-	PData.Page Text ->
-	[PData.Page Text] ->
-	Xml.Element Xml.Labels
-render_navigation_bar site trunk_page path_to_site_trunk = 
+render_navigation_bar :: Page -> [Page] -> Xml.Element Xml.Labels
+render_navigation_bar trunk_page path_to_site_trunk = 
 	let
 		page_is_trunk = List.null path_to_site_trunk
 		list_core = trunk_page : path_to_site_trunk
 		list_is_trunk = False : List.repeat True
-		list = List.zipWith (render_navigation_bar_per_element site) list_is_trunk list_core 
+		list = List.zipWith (render_navigation_bar_per_element) list_is_trunk list_core 
 		navigation_classes = html_classes_of_whether_page_is_trunk page_is_trunk
 		navigation_content_single_line = 
 			(Xml.Head "p" [] (Xml.Labels Nothing [text_class_nav_core]), List.reverse list)
-	in Xml.tree (Xml.Head "nav" [] (Xml.Labels Nothing navigation_classes)) [navigation_content_single_line]
+		in 
+			Xml.tree 
+				(Xml.Head "nav" [] (Xml.Labels Nothing navigation_classes)) 
+				[navigation_content_single_line]
 
-render_page_body_content :: Bool -> PData.Site Text -> ([Page], Page) -> [Xml.ContentL]
+render_page_body_content :: Bool -> Site -> ([Page], Page) -> [Xml.ContentL]
 render_page_body_content sentencing site (path_to_trunk, page) =
 	let
-		node_tree = PData.pageContent page
-		trunk_node = Tree.rootLabel node_tree
+		node_tree = snd page
 		page_is_trunk :: Bool
 		page_is_trunk = List.null path_to_trunk
 		content = 
 			[Html.classify_into [text_class_page_main_part]
 				[Xml.element_as_content (render_section sentencing True site node_tree)]]
-		navigation_bar = render_navigation_bar site page path_to_trunk
+		navigation_bar = render_navigation_bar page path_to_trunk
 		nav_separator =
 			let
 				classes_names :: [Text]
@@ -234,41 +199,35 @@ render_page_body_content sentencing site (path_to_trunk, page) =
 				in Html.horizontal_line (Xml.Labels Nothing classes_names)
 		in map Xml.element_as_content (navigation_bar : nav_separator : content)
 
-render_page :: Bool -> PData.Site Text -> ([Page], Page) -> Xml.ElementL
+render_page :: Bool -> Site -> ([Page], Page) -> Xml.ElementL
 render_page sentencing site (path_to_trunk, page) = 
 	let
 		classes :: [Text]
 		classes = html_classes_of_whether_page_is_trunk (List.null path_to_trunk)
 		in 
-			Html.page classes (Html.header (PData.title_of_page page) "style.css")
+			Html.page classes (Html.header (title_of_page page) "style.css")
 				(render_page_body_content sentencing site (path_to_trunk, page))
 
-render_page_to_text :: Bool -> PData.Site Text -> ([Page], Page) -> String
+render_page_to_text :: Bool -> Site -> ([Page], Page) -> String
 render_page_to_text sentencing site (path_to_trunk, page) =
 	Html.page_text (render_page sentencing site (path_to_trunk, page))
 
-page_file_name_from_id :: Text -> String
-page_file_name_from_id page = Fp.addExtension page "html"
+page_file_name_from_address :: Text -> String
+page_file_name_from_address address = Fp.addExtension address "html"
 
-page_file_name :: PData.Page u -> String
-page_file_name = PData.pageAddress >>> unwrapPageAddress >>> page_file_name_from_id
+page_file_name :: Page -> String
+page_file_name = fst >>> unwrapPageAddress >>> page_file_name_from_address
 
-page_file_path :: PData.Page u -> FilePath
-page_file_path page = page_file_name page
+page_file_path :: Page -> FilePath
+page_file_path = page_file_name
 
-link_to_address :: PData.Site Text -> PData.Link Text -> String
-link_to_address site = 
+link_to_address :: Link Text -> String
+link_to_address = 
 	\ case
-		Data.LIn node_id -> 
-			case node_id of
-				Left (PData.SubPageTarget key) -> page_file_name (PData.get_page_of_Site_at site key)
-				Right idu -> page_file_name_from_id idu
-		Data.LEx a -> a
+		LIn address -> page_file_name_from_address address
+		LEx a -> a
 
-node_address_for_navigation_bar :: PData.Site Text -> PData.Page Text -> String
-node_address_for_navigation_bar site = page_file_path
-
-compile_a_page :: Bool -> PData.Site Text -> FilePath -> ([Page], Page) -> T.FileCreation
+compile_a_page :: Bool -> Site -> FilePath -> ([Page], Page) -> T.FileCreation
 compile_a_page sentencing site output_folder_path (path_to_trunk, page) =
 	let 
 		page_f_path = page_file_path page
@@ -278,22 +237,15 @@ compile_a_page sentencing site output_folder_path (path_to_trunk, page) =
 			render_page_to_text sentencing site (path_to_trunk, page)
 			)
 
-to_technical :: Bool -> FilePath -> PData.Site Text -> T.FileOps
+to_technical :: Bool -> FilePath -> Site -> T.FileOps
 to_technical sentencing output_folder_path site =
 	let
-		pages = PData.sitePageRelations site
-		pages_with_pathes :: Tree ([Tree PageKey], PageKey)
-		pages_with_pathes = Tree.with_path_to_trunk pages
-		main_page = PData.get_page_of_Site_at site (Tree.rootLabel pages)
-		keys_to_pages :: ([Tree PageKey], PageKey) -> ([Page], Page)
-		keys_to_pages (path, key) =
-			(
-				map (Tree.rootLabel >>> PData.get_page_of_Site_at site) path,
-				PData.get_page_of_Site_at site key
-			)
+		pages_with_pathes :: Tree ([Page], Page)
+		pages_with_pathes = map (BiFr.first (map rootLabel)) (Tree.with_path_to_trunk site)
+		main_page = Tree.rootLabel site
 		regular_files =
 			map
-				(keys_to_pages >>> compile_a_page sentencing site output_folder_path)
+				(compile_a_page sentencing site output_folder_path)
 				pages_with_pathes
 		redirect_file =
 			let 

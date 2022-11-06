@@ -6,10 +6,12 @@ where
 
 
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
+import Fana.Math.Algebra.Monoid.Accumulate (Accumulated)
 import Fana.Prelude
+import WriteInTree.Document.Core.Serial.Page.Main (Site)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (PositionedMb (..))
 
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
-import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
@@ -27,21 +29,21 @@ import qualified WriteInTree.Document.SepProps.Data as SepProps
 
 type Text = Base.String
 
-convert_string_error :: Fana.Showable Text s => s -> Pos.PositionedMb (Accu.Accumulated Text)
-convert_string_error = Fana.show >>> Pos.PositionedMb Nothing
+convert_string_error :: Fana.Showable Text s => s -> PositionedMb (Accumulated Text)
+convert_string_error = Fana.show >>> PositionedMb Nothing
 
-type StructureAsTree = Data.StructureAsTree (Page.LinkInternalTarget Text)
-type Document = Data.Document Text
+type StructureAsTree = Data.StructureAsTree Text
+type Document = Data.Document
 
 type StructureAsTreeRaw = Data.StructureAsTree Text
 
-layer_meta_text_escapee :: Optic.Iso' (Page.Site i) (Page.Site i)
+layer_meta_text_escapee :: Optic.Iso' Site Page.Site
 layer_meta_text_escapee =
 	Optic.lift_iso_by_function (Optic.fn_up Page.text_content_in_site) Mtt.layer_escapee
 
 layer ::
 	SepProps.DocSepProps -> 
-	Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Page.Site Text)
+	Optic.PartialIso' (PositionedMb (Accumulated Text)) Text Site
 layer sep_props = 
 	Category2.identity
 	>**>^ Optic.piso_convert_error convert_string_error Tt.layer 
@@ -51,5 +53,5 @@ layer sep_props =
 	>**>^ Page.layer
 	>**>^ layer_meta_text_escapee
 
-layer_test :: Optic.PartialIso' (Pos.PositionedMb (Accu.Accumulated Text)) Text (Page.Site Text)
+layer_test :: Optic.PartialIso' (PositionedMb (Accumulated Text)) Text Site
 layer_test = layer def

@@ -11,7 +11,6 @@ import qualified WriteInTree.CommandLine as ClC
 import qualified WriteInTree.Compile as Compile
 import qualified WriteInTree.Convert as Convert
 import qualified WriteInTree.Document.SepProps.Command_ShowDefault as ShowDefaultProps
-import qualified WriteInTree.FillPageAddresses as PageAddresses
 
 
 main :: IO ()
@@ -26,4 +25,3 @@ program command =
 		ClC.CTranslate ifp ofp sentencing -> Compile.compile sentencing (Tech.FilePath ofp) ifp
 		ClC.CShowDefaultDocProps -> ShowDefaultProps.doit
 		ClC.CConvert test_idempotence ip op -> Convert.convert test_idempotence ip op
-		ClC.CFillPageAddresses new_addresses ip op -> PageAddresses.fill_page_addresses new_addresses ip op

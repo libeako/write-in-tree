@@ -14,7 +14,6 @@ data Command =
 	  CTranslate FilePath FilePath Bool -- ^ input and output paths, whether to sentence
 	| CShowDefaultDocProps -- ^ shows default document properties
 	| CConvert Bool FilePath FilePath
-	| CFillPageAddresses FilePath FilePath FilePath
 
 matevar_text__input_path :: String
 matevar_text__input_path = "INPUT-DOCUMENT-[FOLDER]"
@@ -92,20 +91,6 @@ parser_command_convert =
 			Parse.info options (Parse.progDesc description_text)
 			*>>> Parse.command "convert"
 
-parser_command_fill_page_addresses :: Parse.Mod Parse.CommandFields Command
-parser_command_fill_page_addresses = 
-	let
-		options :: Parse.Parser Command
-		options = 
-			Base.liftA3 CFillPageAddresses
-				(Parse.strOption option_page_addresses)
-				(Parse.strOption option_input_path)
-				(Parse.strOption option_output_path)
-		description_text = "Fills page addresses in document from" <> metavar_text__page_addresses
-		in
-			Parse.info options (Parse.progDesc description_text) 
-			*>>> Parse.command "fill-page-addresses"
-
 parser_command_show_default_doc_props :: Parse.Mod Parse.CommandFields Command
 parser_command_show_default_doc_props = 
 	Parse.command "default-doc-props" 
@@ -118,7 +103,6 @@ parser_commands = Parse.hsubparser
 		Base.mempty
 		<> parser_command_translate 
 		<> parser_command_convert
-		<> parser_command_fill_page_addresses
 		<> parser_command_show_default_doc_props
 	)
 
