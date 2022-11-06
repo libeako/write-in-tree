@@ -6,7 +6,7 @@ import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), inLabel_page_address, Labels)
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (Position)
+import WriteInTree.Document.Core.Serial.RichTextTree.Position (Position, HasPosition, get_position)
 
 import qualified Data.Tree as Tree
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
@@ -144,3 +144,9 @@ internal_address_in_link_in_tree = internal_address_in_link_in_node >**>^ node_i
 
 texts_in_Tree :: forall ia . Optic.Traversal' Text (StructureAsTree ia)
 texts_in_Tree = Category2.identity >**>^ texts_in_Node >**>^ node_in_tree
+
+------------- end of optics ----------------
+
+
+instance HasPosition (Node i) where
+	get_position = nodePosition

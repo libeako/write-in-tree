@@ -22,10 +22,8 @@ import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
-import qualified Text.XML.Light as Xml
-
-import qualified Technical.TextTree.Data as Data
 import qualified Technical.Xml as Xml
+import qualified Text.XML.Light as Xml
 
 
 type Text = Base.String
@@ -48,15 +46,15 @@ node_name :: Text
 node_name = "node"
 
 
-render_elem :: Data.Elem -> [Xml.Attr]
+render_elem :: Text -> [Xml.Attr]
 render_elem text = [xml_attribute attribute_text_name text]
 
-render_elem_tree :: Tree.Tree Data.Elem -> Xml.Element
+render_elem_tree :: Tree.Tree Text -> Xml.Element
 render_elem_tree tree = 
 	xml_elem node_name (render_elem (Tree.rootLabel tree)) 
 		(map render_elem_tree (Tree.subForest tree))
 
-render_to_whole_mm_file :: Tree.Tree Data.Elem -> Xml.Element
+render_to_whole_mm_file :: Tree.Tree Text -> Xml.Element
 render_to_whole_mm_file = render_elem_tree >>> (: []) >>> xml_elem "map" [xml_attribute "version" "1.0.1"]
 
 
@@ -92,13 +90,13 @@ instance Fana.Showable Text ParseError where
 
 
 -- | extracts a text-tree element from the attributes of an xml element
-elem_from_attributes :: [Xml.Attr] -> Maybe Data.Elem
+elem_from_attributes :: [Xml.Attr] -> Maybe Text
 elem_from_attributes attributes =
 	let 
 		-- finds the attribute with the given name
 		find_attr :: Base.String -> Maybe Xml.Attr
 		find_attr s = Base.find ((Base.== s) . Xml.qName . Xml.attrKey) attributes
-		from_attributes :: Xml.Attr -> Data.Elem
+		from_attributes :: Xml.Attr -> Text
 		from_attributes attr_value = Xml.attrVal attr_value
 		in
 			attribute_text_name -- we are interested in these attributes
@@ -111,7 +109,7 @@ extract_single_elem =
 		[e] -> Right e
 		_ -> Left PeNonSingleRoot
 
-parse_from_xml_element :: Xml.Element -> Tree.Forest Data.Elem
+parse_from_xml_element :: Xml.Element -> Tree.Forest Text
 parse_from_xml_element element = 
 	let 
 		map_filter_tree :: (ei -> Base.Maybe eo) -> Tree.Tree ei -> [Tree.Tree eo]
@@ -125,7 +123,7 @@ parse_from_xml_element element =
 		-- | the xml elements constituting the mindmap tree structure
 		mm_node_elems :: Tree.Forest Xml.ElementHead
 		mm_node_elems = map_filter_tree (Maybe.keep_iff xml_elem_is_mm_node) xml_elem_tree
-		from_mm_to_text_tree :: Tree.Tree Xml.ElementHead -> Tree.Forest Data.Elem
+		from_mm_to_text_tree :: Tree.Tree Xml.ElementHead -> Tree.Forest Text
 		from_mm_to_text_tree = map_filter_tree (Xml.attributes >>> elem_from_attributes)
 	in
 		(Base.fmap from_mm_to_text_tree mm_node_elems *>>> Base.concat) 
@@ -135,17 +133,17 @@ layer_xml :: Optic.PartialIso' () Text Xml.Element
 layer_xml = Optic.PartialIso Xml.showTopElement (Xml.parseXMLDoc >>> Either.upgrade_Maybe)
 
 -- | mindmap layer.
-layer_mm :: Optic.PartialIso' ParseErrorMindMap Xml.Element (Tree Data.Elem)
+layer_mm :: Optic.PartialIso' ParseErrorMindMap Xml.Element (Tree Text)
 layer_mm = Optic.PartialIso render_to_whole_mm_file (parse_from_xml_element >>> extract_single_elem)
 
-layer :: Optic.PartialIso' ParseError Text (Tree Data.Elem)
+layer :: Optic.PartialIso' ParseError Text (Tree Text)
 layer = 
 	(Optic.piso_convert_error (const XmlParseError) layer_xml) >**> 
 	(Optic.piso_convert_error MindmapParseError layer_mm)
 
 
-render :: Tree Data.Elem -> Text
+render :: Tree Text -> Text
 render = Optic.down layer
 
-parse :: Text -> Base.Either ParseError (Tree Data.Elem)
+parse :: Text -> Base.Either ParseError (Tree Text)
 parse = Optic.interpret layer

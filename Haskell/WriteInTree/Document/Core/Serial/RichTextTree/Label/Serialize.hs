@@ -43,12 +43,11 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructu
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.InlineClassCoding as Inline
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Structure
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
-import qualified Technical.TextTree.Data as Tt
 
 
 type Char = Base.Char
 type Text = [Char]
-type ElemLR = Tt.Elem
+type ElemLR = Text
 type ElemP = Positioned
 type ElemPT = ElemP Text
 type LabeledPositioned e = (Labels, Positioned e)

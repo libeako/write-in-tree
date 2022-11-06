@@ -45,7 +45,6 @@ common common
       Technical.Else
       Technical.Html
       Technical.ParsePropertyTree
-      Technical.TextTree.Data
       Technical.TextTree.MindMap
       Technical.Xml
       Technical.Xml.Data
@@ -66,6 +65,7 @@ common common
       WriteInTree.Document.Core.Serial.Page.Cut
       WriteInTree.Document.Core.Serial.Page.Data
       WriteInTree.Document.Core.Serial.Page.Main
+      WriteInTree.Document.Core.Serial.Page.Serialize
       WriteInTree.Document.Core.Serial.Page.SiteStructureDiscovery
       WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure
       WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix
