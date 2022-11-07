@@ -23,14 +23,14 @@ data Link ia =
 	| LEx String -- ^ | External.
 	deriving (Eq)
 
-data Inline ia =
+data Inline =
 	Inline
 	{ ilVisual :: Text
-	, ilLink :: Maybe (Link ia)
+	, ilLink :: Maybe (Link Text)
 	}
 	deriving (Eq)
 
-type Paragraph = Inline Text
+type Paragraph = Inline
 
 data IsPageTrunkStatus =
 	IsPageTrunk | IsNotPageTrunk
@@ -82,28 +82,20 @@ ofLink_internals =
 		up = Base.either LIn LEx
 		in Optic.Iso down up
 
-ofInline_internals ::
-	Optic.Iso
-		((Text, Maybe (Link ia))) ((Text, Maybe (Link ia)))
-		(Inline ia) (Inline ia)
+ofInline_internals :: Optic.Iso' ((Text, Maybe (Link Text))) Inline
 ofInline_internals = Optic.Iso (\ (Inline v l) -> (v, l)) (uncurry Inline)
 
-visual_in_Inline :: Optic.Lens' Text (Inline ia)
+visual_in_Inline :: Optic.Lens' Text Inline
 visual_in_Inline = Optic.lens_from_get_set ilVisual (\ e c -> c { ilVisual = e })
 
-link_in_Inline ::
-	forall ia1 ia2 .
-	Optic.Lens
-		(Maybe (Link ia1)) (Maybe (Link ia2)) 
-		(Inline ia1) (Inline ia2)
+link_in_Inline :: Optic.Lens' (Maybe (Link Text)) Inline
 link_in_Inline = Optic.lens_from_get_set ilLink (\ e c -> c { ilLink = e })
 
 internal_address_in_Link :: Optic.Prism ia1 ia2 (Link ia1) (Link ia2)
 internal_address_in_Link =
 	Optic.from_up_and_match LIn (\case { LIn ia -> Right ia; LEx t -> Left (LEx t) })
 
-internal_address_in_Inline ::
-	forall ia1 ia2 . Optic.AffineTraversal ia1 ia2 (Inline ia1) (Inline ia2)
+internal_address_in_Inline :: Optic.AffineTraversal' Text Inline
 internal_address_in_Inline =
 	Category2.identity
 	>**>^ internal_address_in_Link
@@ -111,7 +103,7 @@ internal_address_in_Inline =
 	>**>^ link_in_Inline
 
 link_in_Node :: Optic.Lens' (Maybe (Link Text)) Node
-link_in_Node = Category2.identity >**>^ link_in_Inline @Text  >**>^ inNode_content
+link_in_Node = Category2.identity >**>^ link_in_Inline  >**>^ inNode_content
 
 texts_in_Node :: forall . Optic.Traversal' Text Node
 texts_in_Node =
@@ -131,7 +123,7 @@ page_addresses_in_Node = Category2.identity >**>^ inLabel_page_address >**>^ inN
 node_in_tree :: Optic.Traversal' Node StructureAsTree
 node_in_tree = Optic.from_Traversable
 
-inlines_in_Structure :: Optic.Traversal' (Inline Text) StructureAsTree
+inlines_in_Structure :: Optic.Traversal' Inline StructureAsTree
 inlines_in_Structure = Category2.identity >**>^ inNode_content >**>^ node_in_tree
 
 internal_address_in_link_in_tree ::	Optic.Traversal' Text StructureAsTree

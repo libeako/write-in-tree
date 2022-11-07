@@ -6,6 +6,7 @@ where
 
 import Data.Tree (Tree (..), Forest)
 import Fana.Prelude
+import WriteInTree.Document.Core.Data (Inline)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 
@@ -18,7 +19,6 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
-type Inline = Data.Inline Text
 type LabeledPositioned e = (Labels, Positioned e)
 
 type ParseError = Pos.Positioned (Accu.Accumulated Text)

@@ -7,40 +7,36 @@ where
 import Prelude (Char)
 import Data.Bool (not)
 import Fana.Prelude
+import WriteInTree.Document.Core.Data (Inline, ilVisual, visual_in_Inline)
 
 import qualified Data.List as List
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified Prelude as Base
-import qualified WriteInTree.Document.Core.Data as D
 
 
-type Text = Base.String
-
-
-split_part :: Maybe (D.Inline ia) -> Maybe (D.Inline ia, Maybe (D.Inline ia))
+split_part :: Maybe Inline -> Maybe (Inline, Maybe Inline)
 split_part =
 	let
-		step :: D.Inline ia -> (D.Inline ia, Maybe (D.Inline ia))
+		step :: Inline -> (Inline, Maybe Inline)
 		step inline =
 			let
-				text = D.ilVisual inline
+				text = ilVisual inline
 				is_delimiter :: Char -> Bool
 				is_delimiter = (== ';')
 				(before_delimiter, rest) = List.break is_delimiter text
 				pure_rest = List.dropWhile is_delimiter rest
-				current = Optic.fill D.visual_in_Inline before_delimiter inline
+				current = Optic.fill visual_in_Inline before_delimiter inline
 				future = 
 					case rest of
 						[] -> Nothing
-						_ -> Just (Optic.fill D.visual_in_Inline pure_rest inline)
+						_ -> Just (Optic.fill visual_in_Inline pure_rest inline)
 				in (current, future)
 		in map step
 
-possibly_empty_sentences :: D.Inline ia -> [D.Inline ia]
+possibly_empty_sentences :: Inline -> [Inline]
 possibly_empty_sentences = Just >>> List.unfoldr split_part
 
-is_sentence_part_empty :: D.Inline ia -> Bool
+is_sentence_part_empty :: Inline -> Bool
 is_sentence_part_empty = const False
 
-sentences :: D.Inline ia -> [D.Inline ia]
+sentences :: Inline -> [Inline]
 sentences = possibly_empty_sentences >>> List.filter (is_sentence_part_empty >>> not)
