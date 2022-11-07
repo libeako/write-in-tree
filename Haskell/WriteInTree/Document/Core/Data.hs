@@ -18,15 +18,15 @@ type Text = Base.String
 
 
 -- | Can be internal or external.
-data Link ia =
-	  LIn ia -- ^ | Internal.
+data Link =
+	  LIn Text -- ^ | Internal.
 	| LEx String -- ^ | External.
 	deriving (Eq)
 
 data Inline =
 	Inline
 	{ ilVisual :: Text
-	, ilLink :: Maybe (Link Text)
+	, ilLink :: Maybe Link
 	}
 	deriving (Eq)
 
@@ -72,26 +72,23 @@ node_is_page_trunk :: Node -> Bool
 node_is_page_trunk node = nodePageTrunkStatus node == IsPageTrunk
 
 
-ofLink_internals :: 
-	Optic.Iso 
-		(Either ia1 String) (Either ia2 String)
-		(Link ia1) (Link ia2)
+ofLink_internals :: Optic.Iso' (Either Text String) Link
 ofLink_internals =
 	let
 		down = \case { LIn x -> Left x; LEx x -> Right x }
 		up = Base.either LIn LEx
 		in Optic.Iso down up
 
-ofInline_internals :: Optic.Iso' ((Text, Maybe (Link Text))) Inline
+ofInline_internals :: Optic.Iso' ((Text, Maybe Link)) Inline
 ofInline_internals = Optic.Iso (\ (Inline v l) -> (v, l)) (uncurry Inline)
 
 visual_in_Inline :: Optic.Lens' Text Inline
 visual_in_Inline = Optic.lens_from_get_set ilVisual (\ e c -> c { ilVisual = e })
 
-link_in_Inline :: Optic.Lens' (Maybe (Link Text)) Inline
+link_in_Inline :: Optic.Lens' (Maybe Link) Inline
 link_in_Inline = Optic.lens_from_get_set ilLink (\ e c -> c { ilLink = e })
 
-internal_address_in_Link :: Optic.Prism ia1 ia2 (Link ia1) (Link ia2)
+internal_address_in_Link :: Optic.Prism' Text Link
 internal_address_in_Link =
 	Optic.from_up_and_match LIn (\case { LIn ia -> Right ia; LEx t -> Left (LEx t) })
 
@@ -102,7 +99,7 @@ internal_address_in_Inline =
 	>**>^ Optic.prism_Maybe
 	>**>^ link_in_Inline
 
-link_in_Node :: Optic.Lens' (Maybe (Link Text)) Node
+link_in_Node :: Optic.Lens' (Maybe Link) Node
 link_in_Node = Category2.identity >**>^ link_in_Inline  >**>^ inNode_content
 
 texts_in_Node :: forall . Optic.Traversal' Text Node

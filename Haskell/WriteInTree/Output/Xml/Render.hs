@@ -96,12 +96,12 @@ wrap_by_header_content =
 		Nothing -> id
 		Just header -> wrap_subcontent_by_div >>> pure >>> (header :)
 
-render_link :: Maybe (Data.Link Text) -> Fn.Endo Xml.ContentL
+render_link :: Maybe Link -> Fn.Endo Xml.ContentL
 render_link =
 	let
 		wrap_with_link_to :: String -> Fn.Endo Xml.ContentL
 		wrap_with_link_to target = pure >>> Html.with_link_to target >>> Xml.element_as_content
-		get_address :: Link Text -> String
+		get_address :: Link -> String
 		get_address link = link_to_address link 
 		in maybe id (get_address >>> wrap_with_link_to)
 
@@ -221,7 +221,7 @@ page_file_name = fst >>> unwrapPageAddress >>> page_file_name_from_address
 page_file_path :: Page -> FilePath
 page_file_path = page_file_name
 
-link_to_address :: Link Text -> String
+link_to_address :: Link -> String
 link_to_address = 
 	\ case
 		LIn address -> page_file_name_from_address address

@@ -10,6 +10,7 @@ where
 
 import Data.Tree (Tree (..))
 import Fana.Prelude
+import WriteInTree.Document.Core.Data (Link)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 
@@ -55,13 +56,13 @@ children_number_error_message =
 meta_node_name :: Text
 meta_node_name = "links-to"
 
-parse_core' :: [Tree Text] -> Either ParseError' (Data.Link Text)
+parse_core' :: [Tree Text] -> Either ParseError' Link
 parse_core' =
 	map Tree.rootLabel >>>
 	\case
 		[destination_type, address] ->
 			let
-				build :: DestinationType -> Data.Link Text
+				build :: DestinationType -> Link
 				build =
 					\case
 						Internal -> Data.LIn address
@@ -69,18 +70,18 @@ parse_core' =
 				in map build (Optic.piso_interpret layer_destination_type destination_type)
 		_ -> Left children_number_error_message
 
-parse :: Tree Text -> Maybe (Either ParseError' (Data.Link Text))
+parse :: Tree Text -> Maybe (Either ParseError' Link)
 parse (Node trunk children) =
 	if trunk == Ntt.render_exceptional meta_node_name
 		then Just (parse_core' children)
 		else Nothing
 
-parse' :: Tree (LabeledPositioned Text) -> Maybe (Either ParseError (Data.Link Text))
+parse' :: Tree (LabeledPositioned Text) -> Maybe (Either ParseError Link)
 parse' tree =
 	map (BiFr.first (Pos.position_error (snd (Tree.rootLabel tree))))
 		(parse (map (snd >>> Pos.positionedValue) tree))
 
-render :: Data.Link Text -> Tree Text
+render :: Link -> Tree Text
 render d =
 	let
 		(dt, addr) =
@@ -93,5 +94,5 @@ render d =
 wrap_into_default_context :: x -> LabeledPositioned x
 wrap_into_default_context = Positioned def >>> Pair.after def
 
-render' :: Data.Link Text -> Tree (LabeledPositioned Text)
+render' :: Link -> Tree (LabeledPositioned Text)
 render' = render >>> map wrap_into_default_context

@@ -6,7 +6,7 @@ where
 
 import Data.Tree (Tree (..), Forest)
 import Fana.Prelude
-import WriteInTree.Document.Core.Data (Inline)
+import WriteInTree.Document.Core.Data (Inline, Link)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 
@@ -36,7 +36,7 @@ render (Node trunk children) =
 				Just link -> Node trunk_rendered (Individual.render' link : children_rendered)
 
 type ParseChildrenSituation =
-	(Maybe (Data.Link Text), Forest (LabeledPositioned Text) {- <- the rest of the children -})
+	(Maybe Link, Forest (LabeledPositioned Text) {- <- the rest of the children -})
 
 parse_children :: Forest (LabeledPositioned Text) -> Either ParseError ParseChildrenSituation
 parse_children children =
