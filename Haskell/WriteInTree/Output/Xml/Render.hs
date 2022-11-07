@@ -108,7 +108,7 @@ render_link =
 render_inline :: Inline Text -> Xml.ContentL
 render_inline il = (render_link (ilLink il)) (Xml.text (ilVisual il))
 
-render_paragraph :: Bool -> Paragraph Text -> Xml.ElementL
+render_paragraph :: Bool -> Paragraph -> Xml.ElementL
 render_paragraph sentencing p = 
 	let
 		content :: [Xml.ContentL]

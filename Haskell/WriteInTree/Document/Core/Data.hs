@@ -30,7 +30,7 @@ data Inline ia =
 	}
 	deriving (Eq)
 
-type Paragraph ia = Inline ia
+type Paragraph = Inline Text
 
 data IsPageTrunkStatus =
 	IsPageTrunk | IsNotPageTrunk
@@ -46,7 +46,7 @@ data Node =
 	Node
 	{ nodePosition :: Position
 	, nodeLabels :: Labels
-	, nodeContent :: Paragraph Text
+	, nodeContent :: Paragraph
 	, nodePageTrunkStatus :: IsPageTrunkStatus
 	}
 	deriving (Eq)
@@ -62,7 +62,7 @@ inNode_position = Optic.lens_from_get_set nodePosition (\ p w -> w { nodePositio
 inNode_labels :: Optic.Lens' Labels Node
 inNode_labels = Optic.lens_from_get_set nodeLabels (\ p w -> w { nodeLabels = p })
 
-inNode_content :: Optic.Lens' (Paragraph Text) Node
+inNode_content :: Optic.Lens' Paragraph Node
 inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })
 
 inNode_separate_page :: Optic.Lens' IsPageTrunkStatus Node

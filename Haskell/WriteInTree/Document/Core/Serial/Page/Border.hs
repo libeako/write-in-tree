@@ -6,7 +6,7 @@ where
 
 import Data.Tree (Tree)
 import Fana.Prelude
-import WriteInTree.Document.Core.Data (Node, nodeLabels, nodePosition, nodeContent)
+import WriteInTree.Document.Core.Data (Node, nodeLabels, nodePosition, nodeContent, Paragraph)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 
@@ -18,8 +18,6 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure a
 
 
 type Text = Base.String
-
-type Paragraph = Data.Paragraph Text
 
 -- | text value of node class signalling the separate page status
 text_page_class :: Text
