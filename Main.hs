@@ -4,7 +4,7 @@ module Main where
 import Prelude (IO)
 import Fana.Prelude
 
-import qualified System.Environment as Env
+-- ~ import qualified System.Environment as Env
 
 import qualified Technical.Else as Tech
 import qualified WriteInTree.CommandLine as ClC
@@ -16,7 +16,7 @@ import qualified WriteInTree.Document.SepProps.Command_ShowDefault as ShowDefaul
 main :: IO ()
 main = 
 	do
-		cl_arguments <- Env.getArgs
+		-- ~ cl_arguments <- Env.getArgs
 		ClC.parse_new >>= program
 
 program :: ClC.Command -> IO ()
