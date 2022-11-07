@@ -1,12 +1,12 @@
 module WriteInTree.Document.Core.Serial.Page.Border
 (
-	NodeH, layer,
+	layer,
 )
 where
 
 import Data.Tree (Tree)
 import Fana.Prelude
-import WriteInTree.Document.Core.Data (nodeLabels, nodePosition, nodeContent)
+import WriteInTree.Document.Core.Data (Node, nodeLabels, nodePosition, nodeContent)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 
@@ -29,14 +29,12 @@ has_page_class :: Labels -> Bool
 has_page_class = Label.labels_has_class text_page_class
 
 
-type NodeH = Data.Node Text
-
-render_from_node :: NodeH -> (Labels, Positioned Paragraph)
+render_from_node :: Node -> (Labels, Positioned Paragraph)
 render_from_node node = (nodeLabels node, Positioned (nodePosition node) (nodeContent node))
 
-parse_into_node :: (Labels, Positioned Paragraph) -> NodeH
+parse_into_node :: (Labels, Positioned Paragraph) -> Node
 parse_into_node (l, Positioned pos par) = 
 	Data.Node pos l par (Data.status_from_is_page_trunk (has_page_class l))
 
-layer :: Optic.Iso' (Tree (Labels, Positioned Paragraph)) (Tree NodeH)
+layer :: Optic.Iso' (Tree (Labels, Positioned Paragraph)) (Tree Node)
 layer = Optic.lift_iso (Optic.Iso render_from_node parse_into_node)

@@ -76,7 +76,7 @@ html_classes_of_whether_page_is_trunk :: Bool -> [Text]
 html_classes_of_whether_page_is_trunk page_is_trunk =
 	if page_is_trunk then [text_class_trunk_page] else []
 
-wrap_by_classes :: [Text] -> Node Text -> Fn.Endo Xml.ElementL
+wrap_by_classes :: [Text] -> Node -> Fn.Endo Xml.ElementL
 wrap_by_classes additional_classes n = 
 	let
 		classes_from_node :: [Text]
@@ -124,7 +124,7 @@ render_paragraph sentencing p =
 					in map render_possibly_sentence' all_sections
 	in (Xml.Head "p" [] (Xml.Labels Nothing []), content)
 
-render_section :: Bool -> Bool -> Site -> StructureAsTree Text -> Xml.ElementL
+render_section :: Bool -> Bool -> Site -> StructureAsTree -> Xml.ElementL
 render_section sentencing is_page_root site node_tree =
 	let
 		sub_content :: [Xml.ElementL]
@@ -132,7 +132,7 @@ render_section sentencing is_page_root site node_tree =
 		from_sub_content :: [Xml.ElementL] -> Xml.ElementL
 		from_sub_content =
 			let
-				trunk_node :: Node Text
+				trunk_node :: Node
 				trunk_node = rootLabel node_tree
 				has_class_code :: Bool
 				has_class_code =

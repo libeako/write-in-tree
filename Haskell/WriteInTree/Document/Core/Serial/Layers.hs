@@ -16,14 +16,12 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified Technical.TextTree.MindMap as Tt
-import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Page.Main as Page
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
-import qualified WriteInTree.Document.Main as Data
 import qualified WriteInTree.Document.SepProps.Data as SepProps
 
 
@@ -31,11 +29,6 @@ type Text = Base.String
 
 convert_string_error :: Fana.Showable Text s => s -> PositionedMb (Accumulated Text)
 convert_string_error = Fana.show >>> PositionedMb Nothing
-
-type StructureAsTree = Data.StructureAsTree Text
-type Document = Data.Document
-
-type StructureAsTreeRaw = Data.StructureAsTree Text
 
 layer_meta_text_escapee :: Optic.Iso' Site Page.Site
 layer_meta_text_escapee =
