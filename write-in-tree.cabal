@@ -23,7 +23,7 @@ common common
   ghc-options: 
     -fno-warn-tabs
     -fwarn-incomplete-patterns -fwarn-incomplete-uni-patterns 
-    -fwarn-unused-binds -fwarn-unused-matches
+    -fwarn-unused-matches
     -Wname-shadowing -Wincomplete-record-updates -Woverflowed-literals -Wmonomorphism-restriction
     -Wwrong-do-bind -Wunticked-promoted-constructors -Wunsupported-llvm-version
     -Worphans -Wsemigroup -Wnoncanonical-monoid-instances -Wnoncanonical-monad-instances
@@ -74,6 +74,7 @@ common common
       WriteInTree.Document.Main
       WriteInTree.Document.SepProps.Command_ShowDefault
       WriteInTree.Document.SepProps.Data
+      WriteInTree.Document.SepProps.File
       WriteInTree.Document.SepProps.Parse
       WriteInTree.Document.SepProps.Simco
       WriteInTree.Output.Sentence

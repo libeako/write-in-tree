@@ -8,8 +8,6 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize
 where
 
 import Control.Monad ((>=>))
-import Data.Default.Class
-import Data.Functor (($>))
 import Data.Traversable (sequence)
 import Data.Tree (Tree (..), Forest)
 import Fana.Data.HasSingle (HasSingle)
@@ -127,11 +125,6 @@ meta_name_address = "address"
 
 meta_name_class :: Text
 meta_name_class = "class"
-
-wrap_default :: forall a e . (Functor a, Default (a e)) => e -> a e
-wrap_default = ((def :: a e) $>)
-
-type Wrap a e = e -> a e
 
 render_address_tree :: PageAddress -> Tree Text
 render_address_tree address =

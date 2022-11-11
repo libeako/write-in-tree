@@ -21,12 +21,6 @@ type Text = Base.String
 type VersionNumber = Int.Int64
 type Version = VersionNumber
 
-current :: Version
-current = 4
-
-separator_char :: Base.Char
-separator_char = '.'
-
 data ParseError = 
 	  PeNotSupported
 	| PeNotInteger Text

@@ -12,8 +12,6 @@ import qualified Technical.Xml.Data as Data
 import qualified Text.XML.Light as Xml
 
 
-type Text = Data.Text
-
 render_attribute :: Data.Attribute -> Xml.Attr
 render_attribute (n, v) = Xml.Attr (Xml.unqual n) v
 

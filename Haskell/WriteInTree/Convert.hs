@@ -11,9 +11,13 @@ import Technical.Else (tell_error)
 import System.FilePath (FilePath)
 import WriteInTree.Document.Main (Document (..))
 
+import qualified Control.Monad.Except as Monad
 import qualified Prelude as Base
 import qualified System.IO as Base
 import qualified WriteInTree.Document.File as File
+
+
+type Text = Base.String
 
 
 write :: Bool -> FilePath -> Document -> IO ()
@@ -27,7 +31,7 @@ write do_readback_test address doc =
 				check_readback_doc :: Document -> IO ()
 				check_readback_doc readback_doc = 
 					when (readback_doc /= doc) (Base.hPutStrLn Base.stderr inequal_error_message)
-				in File.read address >>= either tell_error check_readback_doc
+				in Monad.runExceptT (File.read address) >>= either tell_error check_readback_doc
 		in
 			do
 				File.write address doc
@@ -36,6 +40,6 @@ write do_readback_test address doc =
 convert :: Bool -> FilePath {- input -} -> FilePath {- output -} -> IO ()
 convert do_readback_test input_address output_address = 
 	let
-		from_doc_result :: Either File.Error Document -> IO ()
+		from_doc_result :: Either Text Document -> IO ()
 		from_doc_result = Base.either tell_error (write do_readback_test output_address)
-		in File.read input_address >>= from_doc_result
+		in Monad.runExceptT (File.read input_address) >>= from_doc_result

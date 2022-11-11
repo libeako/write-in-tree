@@ -51,12 +51,6 @@ make_map_name_code = id
 	>>> MapI.from_list_lists 
 	>>> Filter.map_filter List.first
 
-make_map_code_name :: Configuration -> MapS.Map Char Text
-make_map_code_name = id 
-	>>> map (class_to_key_value_pair >>> Pair.swap) 
-	>>> MapI.from_list_lists 
-	>>> Filter.map_filter List.first
-
 parse_all :: Configuration -> L -> H
 parse_all possible_classes l = 
 	let

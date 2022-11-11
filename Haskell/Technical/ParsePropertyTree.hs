@@ -60,7 +60,7 @@ parser_of_text = parser_of_simple pure
 
 parser_of_record :: forall p . RecordType p -> Parser p
 parser_of_record record = \case
-	PropTree.MakeAtomicProperty e -> Left "a composite value [product] is to be parsed but can not be from a single input property"
+	PropTree.MakeAtomicProperty _ -> Left "a composite value [product] is to be parsed but can not be from a single input property"
 	PropTree.MakeCompositeProperty m -> let
 		with_field :: HiddenFieldOfProduct p -> Parser p
 		with_field (HiddenFieldOfProduct (FieldOfProduct lift parser)) sub_input = map lift (parser sub_input)
@@ -85,7 +85,7 @@ parser_of_record record = \case
 
 parser_of_list :: forall e . e -> Parser e -> Parser [e]
 parser_of_list default_elem_value elem_parser = \case
-	PropTree.MakeAtomicProperty e -> Left "a composite value [list] is to be parsed but can not be from a single input property"
+	PropTree.MakeAtomicProperty _ -> Left "a composite value [list] is to be parsed but can not be from a single input property"
 	PropTree.MakeCompositeProperty m -> let
 		per_elem :: (Text, PropTree.Property) -> Either ParseError e
 		per_elem = snd >>> elem_parser >>> (map ($ default_elem_value))

@@ -74,7 +74,7 @@ over_Labeled' config =
 		parse :: LabeledPositioned TextSplit.H -> LabeledPositioned Text
 		parse elem =
 			case positionedValue (snd elem) of
-				(cs, text) ->
+				(cs, _) ->
 					Optic.fn_up Optic.lens_1
 						(Structure.add_new_classes_to_Labels cs) ((map >>> map) snd elem)
 		in Optic.Iso (move_classes_out_from_elem' config) parse
