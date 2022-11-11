@@ -1,6 +1,6 @@
 module Technical.FolderMember
 (
-	Member (..), lift_by_piso, member_string,
+	Member (..), lift_by_piso, member_string, read,
 )
 where
 

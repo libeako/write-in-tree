@@ -11,7 +11,6 @@ import WriteInTree.Document.Core.Serial.Page.Main (Site)
 import WriteInTree.Document.Main (Document (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..))
 
-import qualified Control.Monad.Except as Monad
 import qualified Data.Bifunctor as Bifunctor
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Acc
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -20,10 +19,25 @@ import qualified Prelude as Base
 import qualified System.Directory as Directory
 import qualified Technical.FolderMember as FolderMember
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
-import qualified WriteInTree.Document.SepProps.File as SepProps
+import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
 
 type Text = Base.String
 
+
+member_config :: Member DocSepProps
+member_config =
+	let
+		render :: DocSepProps -> String
+		render = SepPropsSimco.to_simco_text
+		parse :: String -> Either String DocSepProps
+		parse = 
+			id
+			>>> SepPropsSimco.parse_from_text
+			>>> Bifunctor.first (Fana.show >>> Acc.extract >>> ("error in separate properties file:\n" <>))
+		in
+			FolderMember.lift_by_piso
+				(Optic.PartialIso render parse)
+				(member_string "separate properties [config]" "properties.simco.text")
 
 member_core :: DocSepProps -> Member Site
 member_core sep_props =
@@ -35,24 +49,30 @@ member_core sep_props =
 			id
 			>>> Optic.piso_interpret (CoreSerial.layer config) 
 			>>> Bifunctor.first (Fana.show >>> Acc.extract)
-		in 
-			FolderMember.lift_by_piso 
+		in
+			FolderMember.lift_by_piso
 				(Optic.PartialIso (render sep_props) (parse sep_props))
 				(member_string "core tree content" "tree.mm")
 
 write :: FilePath -> Document -> IO ()
-write address d =
+write address doc =
 	let
-		sep_props = docSepProps d
+		sep_props = docSepProps doc
+		write_member :: Member d -> d -> IO ()
+		write_member m = memberWriter m address
 		in
 			do
 				Directory.createDirectory address
-				SepProps.write address sep_props
-				memberWriter (member_core sep_props) address (docCore d)
+				write_member member_config (docSepProps doc)
+				write_member (member_core sep_props) (docCore doc)
 
-read :: FilePath -> Monad.ExceptT Text IO Document
+read :: FilePath -> IO Document
 read folder_path =
-	do
-		config <- SepProps.read folder_path
-		core <- Monad.ExceptT (memberReader (member_core config) folder_path)
-		pure (Document config core)
+	let
+		read_member :: Member d -> IO (d)
+		read_member = FolderMember.read folder_path
+		in
+			do
+				config <- read_member member_config
+				core <- read_member (member_core config)
+				pure (Document config core)
