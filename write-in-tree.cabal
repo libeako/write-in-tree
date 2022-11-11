@@ -43,6 +43,7 @@ common common
   default-language: Haskell2010
   other-modules:
       Technical.Else
+      Technical.FolderMember
       Technical.Html
       Technical.ParsePropertyTree
       Technical.TextTree.MindMap
@@ -70,7 +71,6 @@ common common
       WriteInTree.Document.Core.Serial.RichTextTree.Path
       WriteInTree.Document.Core.Serial.RichTextTree.Position
       WriteInTree.Document.File
-      WriteInTree.Document.Folder
       WriteInTree.Document.Main
       WriteInTree.Document.SepProps.Command_ShowDefault
       WriteInTree.Document.SepProps.Data
