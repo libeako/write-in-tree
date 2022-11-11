@@ -21,7 +21,7 @@ import qualified Technical.Else as Tech
 
 compile_website :: Bool -> FilePath -> Site -> Ot.Output
 compile_website sentencing output_folder = 
-	Ott.to_technical sentencing output_folder >>> HePair.after "" >>> Right
+	Ott.to_technical sentencing output_folder >>> HePair.after ""
 
 compile :: Bool -> Tech.FilePath {- output -} -> FilePath {- input -} -> IO ()
 compile sentencing output_folder = 

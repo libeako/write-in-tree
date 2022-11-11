@@ -52,19 +52,13 @@ data FileOps = FileOps
 empty_fileops :: FileOps
 empty_fileops = FileOps { foFileCreations = [] }
 
--- | The output in positive case, that is when the things go well.
-type SuccessfulOutput = 
+type Output = 
 	(
 	-- | The text to be written on to the standard output
 	Content, 
 	-- | The output files to create.
 	FileOps
 	)
-	
-type Output = Either 
-	-- | Error message
-	Content
-	SuccessfulOutput
 
 ensure_new_line_at_end, ensure_new_line_at_end_if_should :: String -> String
 ensure_new_line_at_end s = case (FnL.last s) of
@@ -75,8 +69,7 @@ ensure_new_line_at_end_if_should s = case s of
 	_ -> ensure_new_line_at_end s
 
 write :: Output -> IO ()
-write op = case op of
-	Left em -> do IO.hPutStr IO.stderr (ensure_new_line_at_end_if_should em)
-	Right (so, FileOps { foFileCreations = fcreates }) -> do
+write (so, FileOps { foFileCreations = fcreates }) =
+	do
 		Base.putStr (ensure_new_line_at_end_if_should so)
 		List.foldl (>>) (return ()) (map create_file fcreates)
