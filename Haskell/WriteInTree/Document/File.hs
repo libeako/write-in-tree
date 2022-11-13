@@ -49,10 +49,11 @@ member_core sep_props =
 			id
 			>>> Optic.piso_interpret (CoreSerial.layer config) 
 			>>> Bifunctor.first (Fana.show >>> Acc.extract)
-		in
-			FolderMember.lift_by_piso
-				(Optic.PartialIso (render sep_props) (parse sep_props))
-				(member_string "core tree content" "tree.mm")
+		serializer :: Optic.PartialIso' String String Site
+		serializer = Optic.PartialIso (render sep_props) (parse sep_props)
+		mindmap_file_format :: FolderMember.FileFormat Site
+		mindmap_file_format = FolderMember.FileFormat "mindmap" "tree.mm" serializer
+		in FolderMember.member_multi_format "core tree content" (mindmap_file_format, [])
 
 write :: FilePath -> Document -> IO ()
 write address doc =
