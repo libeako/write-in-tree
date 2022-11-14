@@ -62,7 +62,7 @@ member_content sep_props =
 		mindmap_file_format = FolderMember.FileFormat "mind-map" "tree.mm" (serializer Mm.layer)
 		plain_text_tree_file_format :: FolderMember.FileFormat Site
 		plain_text_tree_file_format = FolderMember.FileFormat "plain text tree" "content" (serializer Tt.text_tree)
-		in FolderMember.member_multi_format "core tree content" (mindmap_file_format, [plain_text_tree_file_format])
+		in FolderMember.member_multi_format "core tree content" (plain_text_tree_file_format, [mindmap_file_format])
 
 write :: FilePath -> Document -> IO ()
 write address doc =
