@@ -46,6 +46,7 @@ common common
       Technical.FolderMember
       Technical.Html
       Technical.ParsePropertyTree
+      Technical.TextTree.General
       Technical.TextTree.MindMap
       Technical.Xml
       Technical.Xml.Data

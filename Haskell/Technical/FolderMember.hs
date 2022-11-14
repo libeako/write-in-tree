@@ -64,7 +64,12 @@ try_to_read_format folder_path format =
 		react_on_existence =
 			\case
 				False -> pure Nothing
-				True -> map (parser >>> Just) (Base.readFile file_path)			
+				True -> 
+					let
+						prefix_error_message = 
+							Bifunctor.first 
+								(\ em -> "error while parsing file format '" <> ffFormatName format <> "'" <> em)
+						in map (parser >>> prefix_error_message >>> Just) (Base.readFile file_path)	
 		in FileSys.doesFileExist file_path >>= react_on_existence
 
 get_first_valid_monadic_just :: Monad m => [m (Maybe e)] -> m (Maybe e)
