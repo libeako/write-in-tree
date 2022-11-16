@@ -124,27 +124,19 @@ render_paragraph sentencing p =
 					in map render_possibly_sentence' all_sections
 	in (Xml.Head "p" [] (Xml.Labels Nothing []), content)
 
-render_section :: Bool -> Bool -> Site -> StructureAsTree -> Xml.ElementL
-render_section sentencing is_page_root site node_tree =
+render_section :: Bool -> Site -> StructureAsTree -> Xml.ElementL
+render_section sentencing site node_tree =
 	let
 		sub_content :: [Xml.ElementL]
-		sub_content = map (render_section sentencing False site) (subForest node_tree)
+		sub_content = map (render_section sentencing site) (subForest node_tree)
 		from_sub_content :: [Xml.ElementL] -> Xml.ElementL
 		from_sub_content =
 			let
 				trunk_node :: Node
 				trunk_node = rootLabel node_tree
-				has_class_code :: Bool
-				has_class_code =
-					let
-						current_classes = (nodeLabels >>> ofLabels_class_values) trunk_node
-						exceptional_classes = text_classes_non_sentencing
-						in Fold.any (flip Fold.elem exceptional_classes) current_classes
-				revised_sentencing = sentencing && not has_class_code
+				revised_sentencing = sentencing
 				header :: Maybe Xml.ElementL
-				header =
-					if is_page_root then Nothing else
-						Just (render_paragraph revised_sentencing (Data.nodeContent trunk_node))
+				header = Just (render_paragraph revised_sentencing (Data.nodeContent trunk_node))
 				in
 					wrap_by_header_content header >>>
 					wrap_by_section >>> wrap_by_classes [] trunk_node
@@ -184,12 +176,22 @@ render_navigation_bar trunk_page path_to_site_trunk =
 render_page_body_content :: Bool -> Site -> ([Page], Page) -> [Xml.ContentL]
 render_page_body_content sentencing site (path_to_trunk, page) =
 	let
-		node_tree = snd page
+		node_forest = snd (snd page)
 		page_is_trunk :: Bool
 		page_is_trunk = List.null path_to_trunk
 		content = 
-			[Html.classify_into [text_class_page_main_part]
-				[Xml.element_as_content (render_section sentencing True site node_tree)]]
+			[
+				Html.classify_into [text_class_page_main_part]
+					(
+						map 
+							(
+								\ node_tree -> 
+									Xml.element_as_content 
+										(render_section sentencing site node_tree)
+							) 
+							node_forest
+					)
+			]
 		navigation_bar = render_navigation_bar page path_to_trunk
 		nav_separator =
 			let
