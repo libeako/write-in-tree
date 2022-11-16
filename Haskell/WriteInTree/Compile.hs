@@ -19,13 +19,13 @@ import qualified WriteInTree.Output.Xml.Render as Ott
 import qualified Technical.Else as Tech
 
 
-compile_website :: Bool -> FilePath -> Site -> Ot.Output
-compile_website sentencing output_folder = 
-	Ott.to_technical sentencing output_folder >>> HePair.after ""
+compile_website :: FilePath -> Site -> Ot.Output
+compile_website output_folder = 
+	Ott.to_technical output_folder >>> HePair.after ""
 
-compile :: Bool -> Tech.FilePath {- output -} -> FilePath {- input -} -> IO ()
-compile sentencing output_folder = 
+compile :: Tech.FilePath {- output -} -> FilePath {- input -} -> IO ()
+compile output_folder = 
 	let 
 		document_to_website :: Document -> Ot.Output
-		document_to_website = DocData.docCore >>> compile_website sentencing (Tech.deFilePath output_folder) 
+		document_to_website = DocData.docCore >>> compile_website (Tech.deFilePath output_folder) 
 		in DocRead.read >=> (document_to_website >>> Ot.write)

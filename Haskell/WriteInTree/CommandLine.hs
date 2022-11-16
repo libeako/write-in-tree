@@ -11,7 +11,7 @@ import qualified Options.Applicative as Parse
 
 
 data Command = 
-	  CTranslate FilePath FilePath Bool -- ^ input and output paths, whether to sentence
+	  CTranslate FilePath FilePath -- ^ input and output paths
 	| CShowDefaultDocProps -- ^ shows default document properties
 	| CConvert Bool FilePath FilePath
 
@@ -64,10 +64,9 @@ parser_command_translate =
 	let
 		options :: Parse.Parser Command
 		options = 
-			Base.liftA3 CTranslate
+			Base.liftA2 CTranslate
 				(Parse.strOption option_input_path)
 				(Parse.strOption option_output_path)
-				flag_sentencing
 		description_text = 
 			"Generate HTML website from " <> 
 			matevar_text__input_path <>

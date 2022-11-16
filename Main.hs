@@ -22,6 +22,6 @@ main =
 program :: ClC.Command -> IO ()
 program command =
 	case command of
-		ClC.CTranslate ifp ofp sentencing -> Compile.compile sentencing (Tech.FilePath ofp) ifp
+		ClC.CTranslate ifp ofp -> Compile.compile (Tech.FilePath ofp) ifp
 		ClC.CShowDefaultDocProps -> ShowDefaultProps.doit
 		ClC.CConvert test_idempotence ip op -> Convert.convert test_idempotence ip op

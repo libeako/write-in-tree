@@ -77,7 +77,6 @@ common common
       WriteInTree.Document.SepProps.Data
       WriteInTree.Document.SepProps.Parse
       WriteInTree.Document.SepProps.Simco
-      WriteInTree.Output.Sentence
       WriteInTree.Output.Technical
       WriteInTree.Output.Xml.Render
 

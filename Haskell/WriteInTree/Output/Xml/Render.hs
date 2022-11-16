@@ -4,7 +4,6 @@ module WriteInTree.Output.Xml.Render
 )
 where
 
-import Data.Bool (not)
 import Data.Tree (Tree, rootLabel, subForest)
 import Fana.Prelude
 import Prelude (String, FilePath)
@@ -26,7 +25,6 @@ import qualified Technical.Xml.Data as Xml
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix as Class
 import qualified WriteInTree.Output.Technical as T
-import qualified WriteInTree.Output.Sentence as Sentence
 
 
 -- | text prefix for html class names - to prevent name collision with
@@ -40,16 +38,6 @@ text_class_trunk_page = text_class_prefix <> "trunk-page"
 -- | html class marking the core content of sections
 text_class_wit_content :: Text
 text_class_wit_content = text_class_prefix <> "content"
-
--- | html class marking inline text representing sentences
-text_class_sentence :: Text
-text_class_sentence = text_class_prefix <> "sentence"
-
--- | html classes, the nodes holding of which are not subject of sentencing
-text_classes_non_sentencing :: [Text]
-text_classes_non_sentencing = let
-	base = ["code", "code-block"]
-	in base <> map (text_class_prefix <>) base
 
 -- | html class of the core part of the navigation bar [which lists the page references]
 text_class_nav_core :: Text
@@ -108,35 +96,21 @@ render_link =
 render_inline :: Inline -> Xml.ContentL
 render_inline il = (render_link (ilLink il)) (Xml.text (ilVisual il))
 
-render_paragraph :: Bool -> Paragraph -> Xml.ElementL
-render_paragraph sentencing p = 
-	let
-		content :: [Xml.ContentL]
-		content = 
-			if not sentencing 
-				then [render_inline p]
-				else
-					let
-						all_sections :: [Inline]
-						all_sections = Sentence.sentences p
-						render_possibly_sentence' = 
-							render_inline >>> List.singleton >>> Html.classify_into [text_class_sentence] >>> Xml.element_as_content
-					in map render_possibly_sentence' all_sections
-	in (Xml.Head "p" [] (Xml.Labels Nothing []), content)
+render_paragraph :: Paragraph -> Xml.ElementL
+render_paragraph p = (Xml.Head "p" [] (Xml.Labels Nothing []), [render_inline p])
 
-render_section :: Bool -> Site -> StructureAsTree -> Xml.ElementL
-render_section sentencing site node_tree =
+render_section :: Site -> StructureAsTree -> Xml.ElementL
+render_section site node_tree =
 	let
 		sub_content :: [Xml.ElementL]
-		sub_content = map (render_section sentencing site) (subForest node_tree)
+		sub_content = map (render_section site) (subForest node_tree)
 		from_sub_content :: [Xml.ElementL] -> Xml.ElementL
 		from_sub_content =
 			let
 				trunk_node :: Node
 				trunk_node = rootLabel node_tree
-				revised_sentencing = sentencing
 				header :: Maybe Xml.ElementL
-				header = Just (render_paragraph revised_sentencing (Data.nodeContent trunk_node))
+				header = Just (render_paragraph (Data.nodeContent trunk_node))
 				in
 					wrap_by_header_content header >>>
 					wrap_by_section >>> wrap_by_classes [] trunk_node
@@ -173,25 +147,20 @@ render_navigation_bar trunk_page path_to_site_trunk =
 				(Xml.Head "nav" [] (Xml.Labels Nothing navigation_classes)) 
 				[navigation_content_single_line]
 
-render_page_body_content :: Bool -> Site -> ([Page], Page) -> [Xml.ContentL]
-render_page_body_content sentencing site (path_to_trunk, page) =
+render_page_body_content :: Site -> ([Page], Page) -> [Xml.ContentL]
+render_page_body_content site (path_to_trunk, page) =
 	let
 		node_forest = snd (snd page)
 		page_is_trunk :: Bool
 		page_is_trunk = List.null path_to_trunk
 		content = 
-			[
-				Html.classify_into [text_class_page_main_part]
-					(
-						map 
-							(
-								\ node_tree -> 
-									Xml.element_as_content 
-										(render_section sentencing site node_tree)
-							) 
-							node_forest
-					)
-			]
+			let
+				core = 
+					let
+						per_child node_tree =
+							Xml.element_as_content (render_section site node_tree)
+						in map per_child node_forest
+				in [Html.classify_into [text_class_page_main_part] core]
 		navigation_bar = render_navigation_bar page path_to_trunk
 		nav_separator =
 			let
@@ -201,18 +170,18 @@ render_page_body_content sentencing site (path_to_trunk, page) =
 				in Html.horizontal_line (Xml.Labels Nothing classes_names)
 		in map Xml.element_as_content (navigation_bar : nav_separator : content)
 
-render_page :: Bool -> Site -> ([Page], Page) -> Xml.ElementL
-render_page sentencing site (path_to_trunk, page) = 
+render_page :: Site -> ([Page], Page) -> Xml.ElementL
+render_page site (path_to_trunk, page) = 
 	let
 		classes :: [Text]
 		classes = html_classes_of_whether_page_is_trunk (List.null path_to_trunk)
 		in 
 			Html.page classes (Html.header (title_of_page page) "style.css")
-				(render_page_body_content sentencing site (path_to_trunk, page))
+				(render_page_body_content site (path_to_trunk, page))
 
-render_page_to_text :: Bool -> Site -> ([Page], Page) -> String
-render_page_to_text sentencing site (path_to_trunk, page) =
-	Html.page_text (render_page sentencing site (path_to_trunk, page))
+render_page_to_text :: Site -> ([Page], Page) -> String
+render_page_to_text site (path_to_trunk, page) =
+	Html.page_text (render_page site (path_to_trunk, page))
 
 page_file_name_from_address :: Text -> String
 page_file_name_from_address address = Fp.addExtension address "html"
@@ -229,25 +198,25 @@ link_to_address =
 		LIn address -> page_file_name_from_address address
 		LEx a -> a
 
-compile_a_page :: Bool -> Site -> FilePath -> ([Page], Page) -> T.FileCreation
-compile_a_page sentencing site output_folder_path (path_to_trunk, page) =
+compile_a_page :: Site -> FilePath -> ([Page], Page) -> T.FileCreation
+compile_a_page site output_folder_path (path_to_trunk, page) =
 	let 
 		page_f_path = page_file_path page
 		in
 			(
 			Fp.joinPath [output_folder_path, page_f_path],
-			render_page_to_text sentencing site (path_to_trunk, page)
+			render_page_to_text site (path_to_trunk, page)
 			)
 
-to_technical :: Bool -> FilePath -> Site -> T.FileOps
-to_technical sentencing output_folder_path site =
+to_technical :: FilePath -> Site -> T.FileOps
+to_technical output_folder_path site =
 	let
 		pages_with_pathes :: Tree ([Page], Page)
 		pages_with_pathes = map (BiFr.first (map rootLabel)) (Tree.with_path_to_trunk site)
 		main_page = Tree.rootLabel site
 		regular_files =
 			map
-				(compile_a_page sentencing site output_folder_path)
+				(compile_a_page site output_folder_path)
 				pages_with_pathes
 		redirect_file =
 			let 
