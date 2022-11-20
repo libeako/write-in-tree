@@ -8,7 +8,7 @@ import Data.Tree (Tree, Forest)
 import Fana.Prelude
 import Fana.Data.Tree.OfBase (children_in_tree)
 import Prelude (Char, String, IO, FilePath)
-import Technical.FolderMember (Reader, ReadDir, Member (..), member_string, read_forest)
+import Technical.FolderMember (Folder, Reader, Member (..), member_string, read_forest)
 import System.FilePath ((</>))
 import WriteInTree.Document.Core.Serial.Page.Data
 import WriteInTree.Document.Main (Document (..))
@@ -99,8 +99,9 @@ read_recursively folder_path sep_props =
 	let
 		read_member :: Member Site -> IO (Site)
 		read_member = FolderMember.read folder_path
-		read_dir_to_page :: ReadDir Site -> Page
-		read_dir_to_page (name, site) = Tree.rootLabel (Optic.fill title_in_trunk_page name site)
+		read_dir_to_page :: Folder Site -> Page
+		read_dir_to_page (name, site) = 
+			Tree.rootLabel (Optic.fill title_in_trunk_page (Optic.up file_name_iso name) site)
 		in (map >>> map >>> map) read_dir_to_page (read_forest (single_folder_content_reader sep_props) folder_path)
 
 read_single_folder :: FilePath -> IO Document

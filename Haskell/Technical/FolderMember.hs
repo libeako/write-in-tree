@@ -1,25 +1,30 @@
 module Technical.FolderMember
 (
-	Reader, ReadDir,
+	Folder,
+	Reader,
 	Member (Member, memberName, memberWriter), 
 	lift_by_piso, member_string, read,
 	FileFormat (..), FileFormats, member_multi_format,
-	read_forest,
+	write_forest, read_forest,
 )
 where
 
 import Control.Monad ((>=>))
-import Data.Tree (Forest)
+import Data.Tree (Tree, Forest)
 import Fana.Prelude
 import Prelude (IO, String)
 import System.FilePath (FilePath, (</>))
 import Technical.FolderTree (Directory (..), read_directory_forest)
 
 import qualified Data.Bifunctor as Bifunctor
+import qualified Data.Tree as Tree
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified System.Directory as FileSys
 
+
+{-| Name and immediate data of folder. -}
+type Folder d = (String, d)
 
 type Reader d = FilePath -> IO (Either String d)
 
@@ -89,7 +94,7 @@ try_to_read_formats :: forall d . FilePath -> [FileFormat d] -> IO (Either Strin
 try_to_read_formats folder_path =
 	map (try_to_read_format folder_path) >>> get_first_valid_monadic_just
 	>>> map (maybe (Left "did not find it") id)
-			
+
 member_multi_format :: forall d . String -> FileFormats d -> Member d
 member_multi_format member_name formats =
 	let
@@ -103,19 +108,30 @@ member_multi_format member_name formats =
 		in Member member_name writer reader
 
 
-{-| Name and immediate data read from a folder. -}
-type ReadDir d = (String, d)
+write_forest :: forall d . (FilePath -> d -> IO ()) -> FilePath -> Forest (Folder d) -> IO ()
+write_forest writer folder_path =
+	let
+		write_one :: Tree (Folder d) -> IO ()
+		write_one (Tree.Node (folder_name, d) children) =
+			let
+				deeper_path = folder_path </> folder_name
+				in
+					do
+						FileSys.createDirectoryIfMissing False deeper_path
+						writer deeper_path d
+						write_forest writer deeper_path children
+		in traverse write_one >>> map (const ())
 
-read_dir :: Reader d -> Directory -> IO (ReadDir d)
+read_dir :: Reader d -> Directory -> IO (Folder d)
 read_dir reader dir = 
 	let
 		path = dirPath dir
-		from_either :: Either String d -> ReadDir d
+		from_either :: Either String d -> Folder d
 		from_either =
 			\ case
 				Left error_message -> Base.error ("in folder " <> path <> ":\n" <> error_message)
 				Right d -> (dirName dir, d)
 		in map from_either (reader path)
 
-read_forest :: Reader d -> FilePath -> IO (Forest (ReadDir d))
+read_forest :: Reader d -> FilePath -> IO (Forest (Folder d))
 read_forest reader = read_directory_forest >=> (traverse >>> traverse) (read_dir reader)
