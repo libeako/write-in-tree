@@ -44,6 +44,7 @@ common common
   other-modules:
       Technical.Else
       Technical.FolderMember
+      Technical.FolderTree
       Technical.Html
       Technical.ParsePropertyTree
       Technical.TextTree.General

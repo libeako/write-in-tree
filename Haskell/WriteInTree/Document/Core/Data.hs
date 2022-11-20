@@ -102,8 +102,8 @@ internal_address_in_Inline =
 link_in_Node :: Optic.Lens' (Maybe Link) Node
 link_in_Node = Category2.identity >**>^ link_in_Inline  >**>^ inNode_content
 
-texts_in_Node :: forall . Optic.Traversal' Text Node
-texts_in_Node =
+text_in_Node :: forall . Optic.Lens' Text Node
+text_in_Node =
 	Category2.identity
 	>**>^ visual_in_Inline
 	>**>^ inNode_content
@@ -127,7 +127,7 @@ internal_address_in_link_in_tree ::	Optic.Traversal' Text StructureAsTree
 internal_address_in_link_in_tree = internal_address_in_link_in_node >**>^ node_in_tree
 
 texts_in_Tree :: forall ia . Optic.Traversal' Text StructureAsTree
-texts_in_Tree = Category2.identity >**>^ texts_in_Node >**>^ node_in_tree
+texts_in_Tree = Category2.identity >**>^ text_in_Node >**>^ node_in_tree
 
 ------------- end of optics ----------------
 

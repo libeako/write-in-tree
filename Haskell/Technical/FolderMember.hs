@@ -1,14 +1,19 @@
 module Technical.FolderMember
 (
+	Reader, ReadDir,
 	Member (Member, memberName, memberWriter), 
 	lift_by_piso, member_string, read,
 	FileFormat (..), FileFormats, member_multi_format,
+	read_forest,
 )
 where
 
+import Control.Monad ((>=>))
+import Data.Tree (Forest)
 import Fana.Prelude
 import Prelude (IO, String)
 import System.FilePath (FilePath, (</>))
+import Technical.FolderTree (Directory (..), read_directory_forest)
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -16,11 +21,13 @@ import qualified Prelude as Base
 import qualified System.Directory as FileSys
 
 
+type Reader d = FilePath -> IO (Either String d)
+
 data Member d =
 	Member
 	{ memberName :: String
 	, memberWriter :: FilePath -> d -> IO ()
-	, memberReader :: FilePath -> IO (Either String d)
+	, memberReader :: Reader d
 	}
 
 read :: FilePath -> Member d -> IO (d)
@@ -35,7 +42,7 @@ lift_by_piso (Optic.PartialIso render parse) (Member name writer reader) =
 		prefix_parse_error_message :: String -> String
 		prefix_parse_error_message message = "while parsing " <> name <> ":" <> message
 		prefixed_parse :: l -> Either String h
-		prefixed_parse = parse >>> Bifunctor.first prefix_parse_error_message 
+		prefixed_parse = parse >>> Bifunctor.first prefix_parse_error_message
 		in Member name (map (render >>>) writer) (map (map (>>= prefixed_parse)) reader)
 
 member_string :: String -> FilePath -> Member String
@@ -54,7 +61,7 @@ data FileFormat d =
 
 type FileFormats d = (FileFormat d, [FileFormat d])
 
-{-| returns None iff the file does not exist  -}
+{-| returns None iff the file does not exist -}
 try_to_read_format :: forall d . FilePath -> FileFormat d -> IO (Maybe (Either String d))
 try_to_read_format folder_path format =
 	let
@@ -64,11 +71,11 @@ try_to_read_format folder_path format =
 		react_on_existence =
 			\case
 				False -> pure Nothing
-				True -> 
+				True ->
 					let
-						prefix_error_message = 
-							Bifunctor.first 
-								(\ em -> "error while parsing file format '" <> ffFormatName format <> "'" <> em)
+						prefix_error_message =
+							Bifunctor.first
+								(\ em -> "error while parsing file format '" <> ffFormatName format <> "'\n" <> em)
 						in map (parser >>> prefix_error_message >>> Just) (Base.readFile file_path)	
 		in FileSys.doesFileExist file_path >>= react_on_existence
 
@@ -79,7 +86,7 @@ get_first_valid_monadic_just =
 		(head : tail) -> head >>= maybe (get_first_valid_monadic_just tail) (Just >>> pure)
 
 try_to_read_formats :: forall d . FilePath -> [FileFormat d] -> IO (Either String d)
-try_to_read_formats folder_path = 
+try_to_read_formats folder_path =
 	map (try_to_read_format folder_path) >>> get_first_valid_monadic_just
 	>>> map (maybe (Left "did not find it") id)
 			
@@ -89,8 +96,26 @@ member_multi_format member_name formats =
 		writer :: FilePath -> d -> IO ()
 		writer folder_path =
 			let
-				format = fst formats 
+				format = fst formats
 				in Optic.down (ffSerializer format) >>> Base.writeFile (folder_path </> ffFileName format)
 		reader :: FilePath -> IO (Either String d)
 		reader = flip try_to_read_formats (fst formats : snd formats)
 		in Member member_name writer reader
+
+
+{-| Name and immediate data read from a folder. -}
+type ReadDir d = (String, d)
+
+read_dir :: Reader d -> Directory -> IO (ReadDir d)
+read_dir reader dir = 
+	let
+		path = dirPath dir
+		from_either :: Either String d -> ReadDir d
+		from_either =
+			\ case
+				Left error_message -> Base.error ("in folder " <> path <> ":\n" <> error_message)
+				Right d -> (dirName dir, d)
+		in map from_either (reader path)
+
+read_forest :: Reader d -> FilePath -> IO (Forest (ReadDir d))
+read_forest reader = read_directory_forest >=> (traverse >>> traverse) (read_dir reader)
