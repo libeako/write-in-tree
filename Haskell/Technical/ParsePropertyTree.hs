@@ -69,7 +69,7 @@ parser_of_record record = \case
 			when_input_field_name_not_matched :: ParseResult p
 			when_input_field_name_not_matched = let
 				error_message :: Accu.Accumulated Text
-				error_message = "the input field does not have a corresponding field in the data to read into"
+				error_message = "the name of the field is not recognized"
 				in Left error_message
 			internal_parse_result :: ParseResult p
 			internal_parse_result = Base.maybe 
@@ -77,7 +77,7 @@ parser_of_record record = \case
 				(flip with_field sub_input) 
 				(Map.get_at field_name record)
 			error_message_prefix :: Accu.Accumulated Text
-			error_message_prefix = "at field \"" <> Accu.single field_name <> "\" : "
+			error_message_prefix = "at field \"" <> Accu.single field_name <> "\":\n"
 			in Bifunctor.first (error_message_prefix <>) internal_parse_result
 		parse_results :: [ParseResult p]
 		parse_results = map (uncurry parser_of_field) m

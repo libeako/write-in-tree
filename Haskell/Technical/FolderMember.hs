@@ -38,14 +38,14 @@ data Member d =
 read :: FilePath -> Member d -> IO (d)
 read folder_path (Member name _ reader) =
 	let
-		error_result message = Base.error ("could not read '" <> name <> "'\n" <> message)
+		error_result message = Base.error ("could not read " <> name <> "\n" <> message)
 		in map (either error_result id) (reader folder_path)
 
 lift_by_piso :: forall l h . Optic.PartialIso' String l h -> Member l -> Member h
 lift_by_piso (Optic.PartialIso render parse) (Member name writer reader) =
 	let
 		prefix_parse_error_message :: String -> String
-		prefix_parse_error_message message = "while parsing " <> name <> ":" <> message
+		prefix_parse_error_message message = "while parsing " <> name <> ":\n" <> message
 		prefixed_parse :: l -> Either String h
 		prefixed_parse = parse >>> Bifunctor.first prefix_parse_error_message
 		in Member name (map (render >>>) writer) (map (map (>>= prefixed_parse)) reader)

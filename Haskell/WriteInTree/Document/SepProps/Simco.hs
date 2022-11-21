@@ -29,11 +29,11 @@ import qualified WriteInTree.Document.SepProps.Parse as Parse
 type Text = String
 
 from_InlineClass_to_simco :: InlineClass -> SimcoData.Tree
-from_InlineClass_to_simco (InlineClass name code) = 
+from_InlineClass_to_simco (InlineClass name codes) = 
 	SimcoData.make_tree "-" 
 		[
 		SimcoData.make_atom "name" name,
-		SimcoData.make_atom "code" code
+		SimcoData.make_tree "codes" (map (SimcoData.make_atom "-") codes)
 		]
 
 -- | renders the given data into simco language.
@@ -50,8 +50,8 @@ data ParseError
 
 instance Fana.Showable Text ParseError where
 	show = \case
-		ParseErrorInSimcoLayer details -> "error parsing SimCo : " <> Fana.show details
-		ParseErrorInUpperLayer details -> "error parsing layer above SimCo : " <> Fana.show details
+		ParseErrorInSimcoLayer details -> "error parsing SimCo:\n" <> Fana.show details
+		ParseErrorInUpperLayer details -> "error parsing layer above SimCo:\n" <> Fana.show details
 
 upper_layer :: Optic.PartialIso' (Accu.Accumulated Text) (Base.Forest SimcoData.NodeWithActivity) DocSepProps
 upper_layer = Optic.PartialIso to_simco Parse.parse_from_line_forest

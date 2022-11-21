@@ -6,6 +6,7 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit
 where
 
 import Data.Functor.Identity (Identity (..))
+import Data.Maybe (catMaybes)
 import Fana.Develop.Test.Define (Test)
 import Fana.Prelude
 import WriteInTree.Document.SepProps.Data (InlineClass (..))
@@ -37,10 +38,20 @@ type Configuration = [Class]
 type Class = InlineClass
 
 class_to_key_value_pair :: Class -> (ClassName, ClassCode)
-class_to_key_value_pair c = (ilc_name c, ilc_code c)
+class_to_key_value_pair c =
+	let
+		code :: Text
+		code = 
+			case ilc_codes c of
+				(first : _) -> first
+				_ -> ""
+		in (ilc_name c, code)
+
+split_with_class :: InlineContent -> Class -> Maybe InlineContent
+split_with_class i = ilc_codes >>> map (flip List.stripPrefix i) >>> catMaybes >>> List.first
 
 parse_single :: Class -> InlineContent -> (Maybe ClassName, InlineContent)
-parse_single c i = Base.maybe (Nothing, i) (Pair.after (Just (ilc_name c))) (List.stripPrefix (ilc_code c) i)
+parse_single c i = Base.maybe (Nothing, i) (Pair.after (Just (ilc_name c))) (split_with_class i c)
 
 render_single :: ClassCode -> InlineContent -> InlineContent
 render_single = (<>)
@@ -73,6 +84,6 @@ layer config = Optic.Iso (render_all (make_map_name_code config)) (parse_all con
 test_layer :: Test
 test_layer = let
 	t = "hello"
-	config = [InlineClass "page" "*->", InlineClass "title" "***"]
+	config = [InlineClass "page" ["*->"], InlineClass "title" ["***"]]
 	highs = [([], t), (map ilc_name config, t)]
 	in Test.single "text-split" (Optic.test_iso_law (layer config) (highs, []))

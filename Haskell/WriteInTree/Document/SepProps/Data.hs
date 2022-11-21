@@ -1,6 +1,6 @@
 module WriteInTree.Document.SepProps.Data
 (
-	InlineClass (..), ofInlineClass_name, ofInlineClass_code,
+	InlineClass (..), ofInlineClass_name, ofInlineClass_codes,
 	DocSepProps (..), lens_lang_ver_in_props, ofProps_inline_classes,
 )
 where
@@ -20,15 +20,15 @@ type Text = Base.String
 data InlineClass =
 	InlineClass
 	{ ilc_name :: Text
-	, ilc_code :: Text
+	, ilc_codes :: [Text]
 	}
 	deriving (Eq)
 
 ofInlineClass_name :: Optic.Lens' Text InlineClass
 ofInlineClass_name = Optic.lens_from_get_set ilc_name (\ e c -> c { ilc_name = e })
 
-ofInlineClass_code :: Optic.Lens' Text InlineClass
-ofInlineClass_code = Optic.lens_from_get_set ilc_code (\ e c -> c { ilc_code = e })
+ofInlineClass_codes :: Optic.Lens' [Text] InlineClass
+ofInlineClass_codes = Optic.lens_from_get_set ilc_codes (\ e c -> c { ilc_codes = e })
 
 instance Default InlineClass where def = InlineClass def def
 

@@ -25,34 +25,40 @@ type Char = Base.Char
 type Text = [Char]
 
 type_structure :: PropTree.RecordType DocSepProps
-type_structure = let
-	field_version :: PropTree.HiddenFieldOfProduct DocSepProps
-	field_version = let
-		version_parser :: PropTree.Parser Version.Version
-		version_parser = \case
-			MakeAtomicProperty version_text -> 
-				map const (Bifunctor.first Fana.show (Version.version_from_text version_text))
-			MakeCompositeProperty _ -> Left "expected single element but found composite"
-		in PropTree.field_from_optic Props.lens_lang_ver_in_props version_parser
-	field_inline_classes :: PropTree.HiddenFieldOfProduct DocSepProps
-	field_inline_classes = let
-		parser_of_InlineClass :: PropTree.Parser Props.InlineClass
-		parser_of_InlineClass = let
-			field_of_InlineClass_name :: PropTree.HiddenFieldOfProduct Props.InlineClass
-			field_of_InlineClass_name = PropTree.field_from_optic Props.ofInlineClass_name PropTree.parser_of_text
-			field_of_InlineClass_code :: PropTree.HiddenFieldOfProduct Props.InlineClass
-			field_of_InlineClass_code = PropTree.field_from_optic Props.ofInlineClass_code PropTree.parser_of_text
-			field_map :: StringyMap.Map Char (PropTree.HiddenFieldOfProduct Props.InlineClass)
-			field_map = MapI.from_list 
-				[ ("name", field_of_InlineClass_name)
-				, ("code", field_of_InlineClass_code)
-				]
-			in PropTree.parser_of_record field_map
-		in PropTree.field_from_optic Props.ofProps_inline_classes (PropTree.parser_of_list def parser_of_InlineClass)
-	in MapI.from_list 
-		[ ("language-version", field_version)
-		, ("inline-classes", field_inline_classes)
-		]
+type_structure = 
+	let
+		field_version :: PropTree.HiddenFieldOfProduct DocSepProps
+		field_version = 
+			let
+				version_parser :: PropTree.Parser Version.Version
+				version_parser = \case
+					MakeAtomicProperty version_text -> 
+						map const (Bifunctor.first Fana.show (Version.version_from_text version_text))
+					MakeCompositeProperty _ -> Left "expected single element but found composite"
+				in PropTree.field_from_optic Props.lens_lang_ver_in_props version_parser
+		field_inline_classes :: PropTree.HiddenFieldOfProduct DocSepProps
+		field_inline_classes = 
+			let
+				parser_of_InlineClass :: PropTree.Parser Props.InlineClass
+				parser_of_InlineClass = 
+					let
+						field_of_InlineClass_name :: PropTree.HiddenFieldOfProduct Props.InlineClass
+						field_of_InlineClass_name = PropTree.field_from_optic Props.ofInlineClass_name PropTree.parser_of_text
+						field_of_InlineClass_codes :: PropTree.HiddenFieldOfProduct Props.InlineClass
+						field_of_InlineClass_codes = 
+							PropTree.field_from_optic Props.ofInlineClass_codes 
+								(PropTree.parser_of_list def PropTree.parser_of_text)
+						field_map :: StringyMap.Map Char (PropTree.HiddenFieldOfProduct Props.InlineClass)
+						field_map = MapI.from_list 
+							[ ("name", field_of_InlineClass_name)
+							, ("codes", field_of_InlineClass_codes)
+							]
+						in PropTree.parser_of_record field_map
+				in PropTree.field_from_optic Props.ofProps_inline_classes (PropTree.parser_of_list def parser_of_InlineClass)
+		in MapI.from_list 
+			[ ("language-version", field_version)
+			, ("inline-classes", field_inline_classes)
+			]
 
 
 parse_from_line_forest :: Base.Forest SimcoDL.NodeWithActivity -> Either (Accu.Accumulated Text) DocSepProps
