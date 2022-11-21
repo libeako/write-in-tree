@@ -132,13 +132,12 @@ render_navigation_bar_per_element not_this_page page =
 		add_classes = (: []) >>> Html.classify_into (classes) >>> Xml.element_as_content
 		in add_classes content
 
-render_navigation_bar :: Page -> [Page] -> Xml.Element Xml.Labels
-render_navigation_bar trunk_page path_to_site_trunk = 
+render_navigation_bar :: [Page] -> Xml.Element Xml.Labels
+render_navigation_bar path_to_site_trunk =
 	let
 		page_is_trunk = List.null path_to_site_trunk
-		list_core = trunk_page : path_to_site_trunk
 		list_is_trunk = False : List.repeat True
-		list = List.zipWith (render_navigation_bar_per_element) list_is_trunk list_core 
+		list = List.zipWith (render_navigation_bar_per_element) list_is_trunk path_to_site_trunk
 		navigation_classes = html_classes_of_whether_page_is_trunk page_is_trunk
 		navigation_content_single_line = 
 			(Xml.Head "p" [] (Xml.Labels Nothing [text_class_nav_core]), List.reverse list)
@@ -161,7 +160,7 @@ render_page_body_content site (path_to_trunk, page) =
 							Xml.element_as_content (render_section site node_tree)
 						in map per_child node_forest
 				in [Html.classify_into [text_class_page_main_part] core]
-		navigation_bar = render_navigation_bar page path_to_trunk
+		navigation_bar = render_navigation_bar path_to_trunk
 		nav_separator =
 			let
 				classes_names :: [Text]
