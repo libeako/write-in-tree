@@ -6,7 +6,6 @@ where
 
 import Data.Tree (Tree, Forest)
 import Fana.Prelude
-import Fana.Data.Tree.OfBase (children_in_tree)
 import Prelude (Char, String, IO, FilePath)
 import Technical.FolderMember (Folder, Reader, Member (..), member_string, read_forest)
 import System.FilePath ((</>))
@@ -20,6 +19,7 @@ import qualified Fana.Math.Algebra.Monoid.Accumulate as Acc
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Text.Indent as Tt
 import qualified Fana.Serial.Print.Show as Fana
+import qualified Prelude as Base
 import qualified System.Directory as Directory
 import qualified Technical.FolderMember as FolderMember
 import qualified Technical.TextTree.MindMap as Mm
@@ -111,7 +111,7 @@ write address doc =
 		write_member m = memberWriter m address
 		pages_folder_path = address </> pages_folder_name
 		folderify_page :: Page -> Folder Page
-		folderify_page page = (title_of_page page, page)
+		folderify_page page = (Optic.down file_name_iso (title_of_page page), page)
 		pages :: Forest (Folder Page)
 		pages = map (map folderify_page) [docCore doc]
 		in
@@ -139,14 +139,15 @@ read_single_folder folder_path =
 	let
 		read_member :: Member d -> IO (d)
 		read_member = FolderMember.read folder_path
-		merge_sites :: Site -> Forest Page -> Site
-		merge_sites main foldered_pages = Optic.fn_up children_in_tree (foldered_pages <>) main
+		treeify_page_forest :: Forest p -> Tree p
+		treeify_page_forest = \case
+			[single] -> single
+			_ -> Base.error "page folder forest must consist of a single tree"
 		in
 			do
 				config <- read_member member_config
-				core <- read_member (member_content config)
 				foldered_pages <- read_recursively (folder_path </> pages_folder_name) config
-				pure (Document config (merge_sites core foldered_pages))
+				pure (Document config (treeify_page_forest foldered_pages))
 
 read :: FilePath -> IO Document
 read = read_single_folder
