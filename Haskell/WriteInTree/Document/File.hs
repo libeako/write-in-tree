@@ -42,6 +42,25 @@ member_config =
 				(Optic.PartialIso render parse)
 				(member_string "separate properties [config]" "properties.simco.text")
 
+member_content' :: DocSepProps -> Member Page
+member_content' sep_props =
+	let
+		serializer :: Optic.PartialIso' String String Page
+		serializer =
+			let
+				render :: DocSepProps -> Page -> String
+				render config = Optic.down (CoreSerial.layer' config Tt.text_tree)
+				parse :: DocSepProps -> String -> Either String Page
+				parse config =
+					id
+					>>> Optic.piso_interpret (CoreSerial.layer' config Tt.text_tree)
+					>>> Bifunctor.first (Fana.show >>> Acc.extract)
+				in liftA2 Optic.PartialIso render parse sep_props
+		in 
+			FolderMember.lift_by_piso
+				serializer
+				(member_string "core page tree content" "content")
+
 member_content :: DocSepProps -> Member Site
 member_content sep_props =
 	let
@@ -77,19 +96,30 @@ file_name_iso = Optic.lift_iso file_char_iso
 pages_folder_name :: Text
 pages_folder_name = "pages"
 
+single_folder_content_writer :: DocSepProps -> FilePath -> Page -> IO ()
+single_folder_content_writer sep_props folder_path = 
+	memberWriter (member_content' sep_props) folder_path
+
+write_page_forest :: DocSepProps -> FilePath -> Forest (Folder Page) -> IO ()
+write_page_forest sep_props folder_path = FolderMember.write_forest (single_folder_content_writer sep_props) folder_path
+
 write :: FilePath -> Document -> IO ()
 write address doc =
 	let
 		sep_props = docSepProps doc
 		write_member :: Member d -> d -> IO ()
 		write_member m = memberWriter m address
+		pages_folder_path = address </> pages_folder_name
+		folderify_page :: Page -> Folder Page
+		folderify_page page = (title_of_page page, page)
+		pages :: Forest (Folder Page)
+		pages = map (map folderify_page) [docCore doc]
 		in
 			do
 				Directory.createDirectory address
-				Directory.createDirectory (address </> pages_folder_name)
+				Directory.createDirectory pages_folder_path
 				write_member member_config (docSepProps doc)
-				write_member (member_content sep_props) (docCore doc)
-
+				write_page_forest sep_props pages_folder_path pages
 
 single_folder_content_reader :: DocSepProps -> Reader Site
 single_folder_content_reader sep_props path = map Right (FolderMember.read path (member_content sep_props))

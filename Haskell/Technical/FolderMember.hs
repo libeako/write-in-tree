@@ -31,7 +31,7 @@ type Reader d = FilePath -> IO (Either String d)
 data Member d =
 	Member
 	{ memberName :: String
-	, memberWriter :: FilePath -> d -> IO ()
+	, memberWriter :: FilePath {- of folder -} -> d -> IO ()
 	, memberReader :: Reader d
 	}
 

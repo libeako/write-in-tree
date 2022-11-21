@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.Page.Serialize
 (
-	ParseError, layer,
+	ParseError, layer', layer,
 )
 where
 
@@ -42,6 +42,9 @@ render_sub page_map (Tree.Node trunk children) =
 				in render_page page_map page
 		_ -> Tree.Node trunk (map (render_sub page_map) children)
 
+render_page' :: PageContent -> Tree Node
+render_page' (title_node, children) = Tree.Node title_node children
+
 render_page :: PageMap -> PageContent -> Tree Node
 render_page page_map (title_node, children) =
 	Tree.Node title_node (map (render_sub page_map) children)
@@ -60,6 +63,16 @@ render pages =
 
 type ParseError = PositionedMb (Accumulated Text)
 type ParseFailable = Either ParseError
+
+get_address_of_node' :: Node -> ParseFailable PageAddress
+get_address_of_node' node =
+	case address_of_Labels (nodeLabels node) of
+		Nothing ->
+			let 
+				error = Acc.single "page trunk node does not have address."
+				positioned_error = maybefy_positioned (position_error node error)
+				in Left positioned_error
+		Just address -> Right address
 
 get_address_of_node :: Node -> ParseFailable (Maybe PageAddress)
 get_address_of_node node =
@@ -82,15 +95,6 @@ addressify_node node = map (Pair.before node) (get_address_of_node node)
 addressify :: Tree Node -> ParseFailable (Tree AddressedNode)
 addressify = traverse addressify_node
 
-
-parse_page :: PageAddress -> Node -> Forest AddressedNode -> Tree Page
-parse_page address trunk_node children =
-	let
-		main_content :: [Tree Node]
-		sub_pages :: [Forest Page]
-		(main_content, sub_pages) = List.unzip (map parse_sub_tree children)
-		in Tree.Node (address, (trunk_node, main_content)) (fold sub_pages)
-
 parse_sub_tree :: Tree AddressedNode -> (Tree Node, Forest Page)
 parse_sub_tree (Tree.Node (address_mb, trunk_node) children) =
 	let
@@ -103,6 +107,21 @@ parse_sub_tree (Tree.Node (address_mb, trunk_node) children) =
 			let	link_content = Tree.Node (link_to_subpage address trunk_node) []
 				in (link_content, [parse_page address trunk_node children])
 		in maybe as_sub_content as_page address_mb
+
+parse_page' :: Tree Node -> ParseFailable Page
+parse_page' (Tree.Node trunk children) =
+	let
+		from_address :: PageAddress -> Page
+		from_address a = (a, (trunk, children))
+		in map from_address (get_address_of_node' trunk)
+
+parse_page :: PageAddress -> Node -> Forest AddressedNode -> Tree Page
+parse_page address trunk_node children =
+	let
+		main_content :: [Tree Node]
+		sub_pages :: [Forest Page]
+		(main_content, sub_pages) = List.unzip (map parse_sub_tree children)
+		in Tree.Node (address, (trunk_node, main_content)) (fold sub_pages)
 
 link_to_subpage :: PageAddress -> Node -> Node
 link_to_subpage address =
@@ -117,6 +136,10 @@ parse_from_addressed_tree (Tree.Node (address_mb, title_node) children) =
 
 parse :: Tree Node -> ParseFailable (Tree Page)
 parse = addressify >=> parse_from_addressed_tree
+
+
+layer' :: Optic.PartialIso' ParseError (Tree Node) Page
+layer' = Optic.PartialIso (snd >>> render_page') parse_page'
 
 layer :: Optic.PartialIso' ParseError (Tree Node) (Tree Page)
 layer = Optic.PartialIso render parse

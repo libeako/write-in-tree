@@ -1,6 +1,6 @@
 module Technical.FolderTree
 (
-	Directory(..), read_directory_forest,
+	Directory (..), read_directory_forest,
 )
 where
 
