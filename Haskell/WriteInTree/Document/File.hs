@@ -14,15 +14,12 @@ import WriteInTree.Document.Main (Document (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..))
 
 import qualified Data.Bifunctor as Bifunctor
-import qualified Data.Tree as Tree
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Acc
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified Fana.Serial.Bidir.Instances.Text.Indent as Tt
 import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 import qualified System.Directory as Directory
 import qualified Technical.FolderMember as FolderMember
-import qualified Technical.TextTree.MindMap as Mm
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
 import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
 
@@ -42,46 +39,24 @@ member_config =
 				(Optic.PartialIso render parse)
 				(member_string "separate properties [config]" "properties.simco.text")
 
-member_content' :: DocSepProps -> Member Page
-member_content' sep_props =
+member_content :: DocSepProps -> Member Page
+member_content sep_props =
 	let
 		serializer :: Optic.PartialIso' String String Page
 		serializer =
 			let
 				render :: DocSepProps -> Page -> String
-				render config = Optic.down (CoreSerial.layer' config Tt.text_tree)
+				render config = Optic.down (CoreSerial.layer config)
 				parse :: DocSepProps -> String -> Either String Page
 				parse config =
 					id
-					>>> Optic.piso_interpret (CoreSerial.layer' config Tt.text_tree)
+					>>> Optic.piso_interpret (CoreSerial.layer config)
 					>>> Bifunctor.first (Fana.show >>> Acc.extract)
 				in liftA2 Optic.PartialIso render parse sep_props
 		in 
 			FolderMember.lift_by_piso
 				serializer
 				(member_string "core page tree content" "content")
-
-member_content :: DocSepProps -> Member Site
-member_content sep_props =
-	let
-		serializer ::
-			Fana.Showable Text e =>
-			Optic.PartialIso' e Text [Tree Text] -> Optic.PartialIso' String String Site
-		serializer tt_layer =
-			let
-				render :: DocSepProps -> Site -> String
-				render config = Optic.down (CoreSerial.layer config tt_layer)
-				parse :: DocSepProps -> String -> Either String Site
-				parse config =
-					id
-					>>> Optic.piso_interpret (CoreSerial.layer config tt_layer)
-					>>> Bifunctor.first (Fana.show >>> Acc.extract)
-				in liftA2 Optic.PartialIso render parse sep_props
-		mindmap_file_format :: FolderMember.FileFormat Site
-		mindmap_file_format = FolderMember.FileFormat "mind-map" "tree.mm" (serializer Mm.layer)
-		plain_text_tree_file_format :: FolderMember.FileFormat Site
-		plain_text_tree_file_format = FolderMember.FileFormat "plain text tree" "content" (serializer Tt.text_tree)
-		in FolderMember.member_multi_format "core tree content" (plain_text_tree_file_format, [mindmap_file_format])
 
 file_char_iso :: Optic.Iso' Char Char
 file_char_iso = 
@@ -98,7 +73,7 @@ pages_folder_name = "pages"
 
 single_folder_content_writer :: DocSepProps -> FilePath -> Page -> IO ()
 single_folder_content_writer sep_props folder_path = 
-	memberWriter (member_content' sep_props) folder_path
+	memberWriter (member_content sep_props) folder_path
 
 write_page_forest :: DocSepProps -> FilePath -> Forest (Folder Page) -> IO ()
 write_page_forest sep_props folder_path = FolderMember.write_forest (single_folder_content_writer sep_props) folder_path
@@ -121,7 +96,7 @@ write address doc =
 				write_member member_config (docSepProps doc)
 				write_page_forest sep_props pages_folder_path pages
 
-single_folder_content_reader :: DocSepProps -> Reader Site
+single_folder_content_reader :: DocSepProps -> Reader Page
 single_folder_content_reader sep_props path = map Right (FolderMember.read path (member_content sep_props))
 
 read_recursively :: FilePath -> DocSepProps -> IO (Forest Page)
@@ -129,13 +104,12 @@ read_recursively folder_path sep_props =
 	let
 		read_member :: Member Site -> IO (Site)
 		read_member = FolderMember.read folder_path
-		read_dir_to_page :: Folder Site -> Page
-		read_dir_to_page (name, site) = 
-			Tree.rootLabel (Optic.fill title_in_trunk_page (Optic.up file_name_iso name) site)
+		read_dir_to_page :: Folder Page -> Page
+		read_dir_to_page (name, page) = Optic.fill title_in_page (Optic.up file_name_iso name) page
 		in (map >>> map >>> map) read_dir_to_page (read_forest (single_folder_content_reader sep_props) folder_path)
 
-read_single_folder :: FilePath -> IO Document
-read_single_folder folder_path =
+read :: FilePath -> IO Document
+read folder_path =
 	let
 		read_member :: Member d -> IO (d)
 		read_member = FolderMember.read folder_path
@@ -148,6 +122,3 @@ read_single_folder folder_path =
 				config <- read_member member_config
 				foldered_pages <- read_recursively (folder_path </> pages_folder_name) config
 				pure (Document config (treeify_page_forest foldered_pages))
-
-read :: FilePath -> IO Document
-read = read_single_folder

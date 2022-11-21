@@ -3,7 +3,7 @@ module WriteInTree.Document.Core.Serial.Page.Main
 	Page, Site,
 	title_of_section, title_of_page, text_content_in_site,
 	node_in_site,
-	layer', layer,
+	layer,
 )
 where
 
@@ -23,17 +23,9 @@ import qualified WriteInTree.Document.Core.Serial.Page.Serialize as Serialize
 type ParseError = Serialize.ParseError
 
 
-layer' ::
-	Optic.PartialIso' ParseError 
-		(Tree (Labels, Positioned Paragraph)) Page
-layer' =
-	Category2.identity
-	>**>^ Border.layer
-	>**>^ Serialize.layer'
-
 layer ::
 	Optic.PartialIso' ParseError 
-		(Tree (Labels, Positioned Paragraph)) Site
+		(Tree (Labels, Positioned Paragraph)) Page
 layer =
 	Category2.identity
 	>**>^ Border.layer
