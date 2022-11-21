@@ -11,8 +11,7 @@ import Control.Monad ((>=>))
 import Data.Traversable (sequence)
 import Data.Tree (Tree (..), Forest)
 import Fana.Data.HasSingle (HasSingle)
-import Fana.Haskell.DescribingClass
-import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
+import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), address_of_Labels, Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configuration)
@@ -269,14 +268,14 @@ parse_tree =
 
 layer_new_simple ::
 	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
-		(Tree ElemLR) (Tree ElemPT) (Tree ElemT) (Tree ElemT)
-layer_new_simple = Optic.PartialIso render_tree parse_tree
+		(Forest ElemLR) (Tree ElemPT) (Forest ElemT) (Tree ElemT)
+layer_new_simple = Optic.PartialIso (map render_tree) parse_tree
 
 
 layer :: Configuration ->
 	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
-		(Tree ElemLR) (Tree ElemPT) (Tree ElemT) (Tree ElemT)
+		(Forest ElemLR) (Tree ElemPT) (Forest ElemT) (Tree ElemT)
 layer config =
 	Cat2.identity
-	>**> layer_new_simple
-	>**> convert_from_describing_class_4 (Optic.lift_iso (Inline.layer config))
+	>**>^ layer_new_simple
+	>**>^ Optic.change_iso_per_component map id (Optic.lift_iso (Inline.layer config))

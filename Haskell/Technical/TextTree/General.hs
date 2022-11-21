@@ -35,6 +35,6 @@ forest_to_tree = either (ForestParseError >>> Left) extract_single
 
 forest_to_tree_serializer :: 
 	Optic.PartialIso fe l1 l2 [Tree e] [Tree e] -> 
-	Optic.PartialIso (ParseError fe) l1 l2 (Tree e) (Tree e)
+	Optic.PartialIso (ParseError fe) l1 l2 [Tree e] (Tree e)
 forest_to_tree_serializer (Optic.PartialIso down up) = 
-	Optic.PartialIso ((: []) >>> down) (up >>> forest_to_tree)
+	Optic.PartialIso down (up >>> forest_to_tree)

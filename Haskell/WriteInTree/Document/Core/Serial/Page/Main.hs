@@ -7,7 +7,7 @@ module WriteInTree.Document.Core.Serial.Page.Main
 )
 where
 
-import Data.Tree (Tree)
+import Data.Tree (Tree, Forest)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import WriteInTree.Document.Core.Data (Paragraph)
 import WriteInTree.Document.Core.Serial.Page.Data
@@ -24,8 +24,8 @@ type ParseError = Serialize.ParseError
 
 
 layer ::
-	Optic.PartialIso' ParseError 
-		(Tree (Labels, Positioned Paragraph)) Page
+	Optic.PartialIso ParseError 
+		(Forest (Labels, Positioned Paragraph)) (Tree (Labels, Positioned Paragraph)) Page Page
 layer =
 	Category2.identity
 	>**>^ Border.layer

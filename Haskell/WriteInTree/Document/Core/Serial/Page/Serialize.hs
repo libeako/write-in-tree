@@ -4,7 +4,7 @@ module WriteInTree.Document.Core.Serial.Page.Serialize
 )
 where
 
-import Data.Tree (Tree)
+import Data.Tree (Tree, Forest)
 import Fana.Math.Algebra.Monoid.Accumulate (Accumulated)
 import Fana.Prelude
 import WriteInTree.Document.Core.Data
@@ -22,9 +22,6 @@ import qualified Prelude as Base
 
 
 type PageMap = StringyMap.Map Base.Char PageContent
-
-render_page :: PageContent -> Tree Node
-render_page (title_node, children) = Tree.Node title_node children
 
 type ParseError = PositionedMb (Accumulated Text)
 type ParseFailable = Either ParseError
@@ -46,5 +43,5 @@ parse_page (Tree.Node trunk children) =
 		from_address a = (a, (trunk, children))
 		in map from_address (get_address_of_node trunk)
 
-layer :: Optic.PartialIso' ParseError (Tree Node) Page
-layer = Optic.PartialIso (snd >>> render_page) parse_page
+layer :: Optic.PartialIso ParseError (Forest Node) (Tree Node) Page Page
+layer = Optic.PartialIso (snd >>> snd) parse_page

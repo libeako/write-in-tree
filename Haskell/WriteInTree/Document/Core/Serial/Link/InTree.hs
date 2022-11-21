@@ -56,5 +56,8 @@ parse (Node trunk children) =
 			map (Node ((map >>> map) (flip Data.Inline l) trunk)) (traverse parse rest_of_children)
 		in parse_children children >>= from_situation
 
-layer :: Optic.PartialIso' ParseError (Tree (LabeledPositioned Text)) (Tree (LabeledPositioned Inline))
-layer = Optic.PartialIso render parse
+layer :: 
+	Optic.PartialIso ParseError 
+		(Forest (LabeledPositioned Text)) (Tree (LabeledPositioned Text))
+		(Forest (LabeledPositioned Inline)) (Tree (LabeledPositioned Inline))
+layer = Optic.PartialIso (map render) parse
