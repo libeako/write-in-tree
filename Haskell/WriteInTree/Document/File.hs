@@ -13,7 +13,6 @@ import WriteInTree.Document.Core.Serial.Page.Data
 import WriteInTree.Document.Main (Document (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..))
 
-import qualified Data.Bifunctor as Bifunctor
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Acc
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
@@ -27,32 +26,17 @@ import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
 member_config :: Member DocSepProps
 member_config =
 	let
-		render :: DocSepProps -> String
-		render = SepPropsSimco.to_simco_text
-		parse :: String -> Either String DocSepProps
-		parse = 
-			id
-			>>> SepPropsSimco.parse_from_text
-			>>> Bifunctor.first (Fana.show >>> Acc.extract >>> ("error in separate properties file:\n" <>))
+		serializer :: Optic.PartialIso' Text Text DocSepProps
+		serializer = Optic.piso_convert_error (Fana.show >>> Acc.extract >>> ("error in separate properties file:\n" <>)) SepPropsSimco.layer 
 		in
-			FolderMember.lift_by_piso
-				(Optic.PartialIso render parse)
+			FolderMember.lift_by_piso serializer
 				(member_string "separate properties [config]" "properties.simco.text")
 
 member_content :: DocSepProps -> Member Page
 member_content sep_props =
 	let
 		serializer :: Optic.PartialIso' String String Page
-		serializer =
-			let
-				render :: DocSepProps -> Page -> String
-				render config = Optic.down (CoreSerial.layer config)
-				parse :: DocSepProps -> String -> Either String Page
-				parse config =
-					id
-					>>> Optic.piso_interpret (CoreSerial.layer config)
-					>>> Bifunctor.first (Fana.show >>> Acc.extract)
-				in liftA2 Optic.PartialIso render parse sep_props
+		serializer = Optic.piso_convert_error (Fana.show >>> Acc.extract) (CoreSerial.layer sep_props)
 		in 
 			FolderMember.lift_by_piso
 				serializer

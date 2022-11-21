@@ -1,7 +1,7 @@
 -- | serialization of the separate document properties in simco language
 module WriteInTree.Document.SepProps.Simco
 (
-	ParseError,
+	ParseError, layer,
 	to_simco_text, parse_from_text,
 	test,
 )
@@ -29,8 +29,8 @@ import qualified WriteInTree.Document.SepProps.Parse as Parse
 type Text = String
 
 from_InlineClass_to_simco :: InlineClass -> SimcoData.Tree
-from_InlineClass_to_simco (InlineClass name codes) = 
-	SimcoData.make_tree "-" 
+from_InlineClass_to_simco (InlineClass name codes) =
+	SimcoData.make_tree "-"
 		[
 		SimcoData.make_atom "name" name,
 		SimcoData.make_tree "codes" (map (SimcoData.make_atom "-") codes)
@@ -38,7 +38,7 @@ from_InlineClass_to_simco (InlineClass name codes) =
 
 -- | renders the given data into simco language.
 to_simco :: DocSepProps -> SimcoData.Forest
-to_simco props = 
+to_simco props =
 	[
 		SimcoData.make_atom "language-version" (Base.show (language_version props)),
 		SimcoData.make_tree "inline-classes" (map from_InlineClass_to_simco (prop_inline_classes props))
@@ -56,16 +56,16 @@ instance Fana.Showable Text ParseError where
 upper_layer :: Optic.PartialIso' (Accu.Accumulated Text) (Base.Forest SimcoData.NodeWithActivity) DocSepProps
 upper_layer = Optic.PartialIso to_simco Parse.parse_from_line_forest
 
-whole_layer :: Optic.PartialIso' ParseError Text DocSepProps
-whole_layer = 
+layer :: Optic.PartialIso' ParseError Text DocSepProps
+layer =
 	(Optic.piso_convert_error ParseErrorInSimcoLayer SimcoSerial.serializer) >**>
 	(Optic.piso_convert_error ParseErrorInUpperLayer upper_layer)
 
 to_simco_text :: DocSepProps -> Text
-to_simco_text = Optic.down whole_layer
+to_simco_text = Optic.down layer
 
 parse_from_text :: Text -> Either ParseError DocSepProps
-parse_from_text = Optic.piso_interpret whole_layer
+parse_from_text = Optic.piso_interpret layer
 
 
 -- * test :
@@ -86,7 +86,7 @@ test_upper_layer =
 test_layer :: Test
 test_layer = 
 	Test.single "whole layer"
-		(Optic.test_piso (Category2.identity, Category2.identity) [] [Default.def] whole_layer)
+		(Optic.test_piso (Category2.identity, Category2.identity) [] [Default.def] layer)
 
 test :: Test
 test = Test.bunch "document : separate properties : simco" [test_simco_layer, test_upper_layer, test_layer]
