@@ -47,7 +47,7 @@ type_structure =
 						field_of_InlineClass_codes :: PropTree.HiddenFieldOfProduct Props.InlineClass
 						field_of_InlineClass_codes = 
 							PropTree.field_from_optic Props.ofInlineClass_codes 
-								(PropTree.parser_of_list def PropTree.parser_of_text)
+								(map (map const) (PropTree.parse_string_list Right))
 						field_map :: StringyMap.Map Char (PropTree.HiddenFieldOfProduct Props.InlineClass)
 						field_map = MapI.from_list 
 							[ ("name", field_of_InlineClass_name)

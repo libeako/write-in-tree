@@ -5,7 +5,7 @@ module Technical.ParsePropertyTree
 	FieldOfProduct (..), HiddenFieldOfProduct (..), field_from_optic,
 	RecordType,
 	parser_of_text,
-	parser_of_record, parser_of_list,
+	parser_of_record, parser_of_list, parse_string_list,
 )
 where
 
@@ -72,9 +72,9 @@ parser_of_record record = \case
 				error_message = "the name of the field is not recognized"
 				in Left error_message
 			internal_parse_result :: ParseResult p
-			internal_parse_result = Base.maybe 
-				when_input_field_name_not_matched 
-				(flip with_field sub_input) 
+			internal_parse_result = Base.maybe
+				when_input_field_name_not_matched
+				(flip with_field sub_input)
 				(Map.get_at field_name record)
 			error_message_prefix :: Accu.Accumulated Text
 			error_message_prefix = "at field \"" <> Accu.single field_name <> "\":\n"
@@ -90,3 +90,22 @@ parser_of_list default_elem_value elem_parser = \case
 		per_elem :: (Text, PropTree.Property) -> Either ParseError e
 		per_elem = snd >>> elem_parser >>> (map ($ default_elem_value))
 		in map const (traverse (per_elem) m)
+
+{-|
+	parse a list of strings.
+	
+	supposes those strings to be the values of atomic named properties, 
+	just under the given property and the names are discarded
+-}
+parse_string_list :: forall . (Text -> Either ParseError Text) -> PropTree.Property -> Either ParseError [Text]
+parse_string_list elem_value_parser =
+	\case
+		PropTree.MakeAtomicProperty _ -> Left "a composite value [list] is to be parsed but can not be from a single input property"
+		PropTree.MakeCompositeProperty m ->
+			let
+				per_elem :: PropTree.Property -> Either ParseError Text
+				per_elem = 
+					\case
+						PropTree.MakeCompositeProperty _ -> Left "list of atomic value properties was supposed but encountered a composite property"
+						PropTree.MakeAtomicProperty apv -> elem_value_parser apv
+				in traverse (snd >>> per_elem) m

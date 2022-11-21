@@ -1,8 +1,10 @@
 # Dependencies
 
 The local dependencies are here :
-https://bitbucket.org/libeako/
+https://github.com/libeako/
 
 
 todo :
-tree -> forest
+simco
+	move parser and renderer combinators into library fana
+	combine serializers, not parsers and renderers
