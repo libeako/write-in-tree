@@ -30,7 +30,7 @@ member_config =
 		serializer = Optic.piso_convert_error (Fana.show >>> Acc.extract >>> ("error in separate properties file:\n" <>)) SepPropsSimco.layer 
 		in
 			FolderMember.lift_by_piso serializer
-				(member_string "separate properties [config]" "properties.simco.text")
+				(member_string "separate properties [config]" "properties.simco")
 
 member_content :: DocSepProps -> Member Page
 member_content sep_props =
