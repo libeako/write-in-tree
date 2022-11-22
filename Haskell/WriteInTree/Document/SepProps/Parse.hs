@@ -32,9 +32,9 @@ type_structure =
 			let
 				version_parser :: PropTree.Parser Version.Version
 				version_parser = \case
-					MakeAtomicProperty version_text -> 
+					PropertyValueAtomic version_text -> 
 						map const (Bifunctor.first Fana.show (Version.version_from_text version_text))
-					MakeCompositeProperty _ -> Left "expected single element but found composite"
+					PropertyValueComposite _ -> Left "expected single element but found composite"
 				in PropTree.field_from_optic Props.lens_lang_ver_in_props version_parser
 		field_inline_classes :: PropTree.HiddenFieldOfProduct DocSepProps
 		field_inline_classes = 
@@ -67,7 +67,7 @@ parse_from_line_forest =
 		modifier :: Base.Forest SimcoDL.NodeWithActivity -> Either (Accu.Accumulated Text) (DocSepProps -> DocSepProps)
 		modifier = id
 			>>> SimcoDL.clean
-			>>> MakeCompositeProperty
+			>>> PropertyValueComposite
 			>>> PropTree.parser_of_record type_structure
 	in 
 		modifier >>> map ($ def)
