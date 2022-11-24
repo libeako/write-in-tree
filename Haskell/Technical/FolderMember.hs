@@ -38,7 +38,7 @@ data Member d =
 read :: FilePath -> Member d -> IO (d)
 read folder_path (Member name _ reader) =
 	let
-		error_result message = Base.error ("could not read " <> name <> "\n" <> message)
+		error_result message = Base.error ("could not read " <> name <> " in " <> folder_path <> "\n" <> message)
 		in map (either error_result id) (reader folder_path)
 
 lift_by_piso :: forall l h . Optic.PartialIso' String l h -> Member l -> Member h

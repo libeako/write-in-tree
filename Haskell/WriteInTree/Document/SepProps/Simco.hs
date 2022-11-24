@@ -28,20 +28,11 @@ import qualified WriteInTree.Document.SepProps.Parse as Parse
 
 type Text = String
 
-from_InlineClass_to_simco :: InlineClass -> SimcoData.Tree
-from_InlineClass_to_simco (InlineClass name codes) =
-	SimcoData.make_tree "-"
-		[
-		SimcoData.make_atom "name" name,
-		SimcoData.make_tree "codes" (map (SimcoData.make_atom "-") codes)
-		]
-
 -- | renders the given data into simco language.
 to_simco :: DocSepProps -> SimcoData.Forest
 to_simco props =
 	[
-		SimcoData.make_atom "language-version" (Base.show (language_version props)),
-		SimcoData.make_tree "inline-classes" (map from_InlineClass_to_simco (prop_inline_classes props))
+		SimcoData.make_atom "language-version" (Base.show (language_version props))
 	]
 
 data ParseError

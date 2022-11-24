@@ -66,10 +66,8 @@ common common
       WriteInTree.Document.Core.Serial.Page.Serialize
       WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure
       WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix
-      WriteInTree.Document.Core.Serial.RichTextTree.Label.InlineClassCoding
       WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure
       WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize
-      WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit
       WriteInTree.Document.Core.Serial.RichTextTree.Path
       WriteInTree.Document.Core.Serial.RichTextTree.Position
       WriteInTree.Document.File

@@ -47,7 +47,6 @@ data Node =
 	{ nodePosition :: Position
 	, nodeLabels :: Labels
 	, nodeContent :: Paragraph
-	, nodePageTrunkStatus :: IsPageTrunkStatus
 	}
 	deriving (Eq)
 
@@ -64,13 +63,6 @@ inNode_labels = Optic.lens_from_get_set nodeLabels (\ p w -> w { nodeLabels = p 
 
 inNode_content :: Optic.Lens' Paragraph Node
 inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })
-
-inNode_separate_page :: Optic.Lens' IsPageTrunkStatus Node
-inNode_separate_page = Optic.lens_from_get_set nodePageTrunkStatus (\ p w -> w { nodePageTrunkStatus = p })
-
-node_is_page_trunk :: Node -> Bool
-node_is_page_trunk node = nodePageTrunkStatus node == IsPageTrunk
-
 
 ofLink_internals :: Optic.Iso' (Either Text String) Link
 ofLink_internals =

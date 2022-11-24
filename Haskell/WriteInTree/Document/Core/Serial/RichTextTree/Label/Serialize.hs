@@ -1,7 +1,5 @@
 module WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize
 (
-	Structure.add_new_classes_to_Labels,
-	Configuration,
 	layer,
 	LabeledPositioned (..),
 )
@@ -11,10 +9,8 @@ import Control.Monad ((>=>))
 import Data.Traversable (sequence)
 import Data.Tree (Tree (..), Forest)
 import Fana.Data.HasSingle (HasSingle)
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), address_of_Labels, Labels)
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.TextSplit (Configuration)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (Positioned), get_position)
 
 import qualified Control.Monad.State.Lazy as Base
@@ -24,20 +20,16 @@ import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Maybe as Base
 import qualified Data.Tree as Tree
-import qualified Fana.Data.CollectionWithEmpty as Fana
 import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.HasSingle as HasSingle
 import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as StringyMap
-import qualified Fana.Data.Key.Traversable as TravKey
 import qualified Fana.Data.List as List
-import qualified Fana.Math.Algebra.Category.OnTypePairs as Cat2
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Mtt
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.InlineClassCoding as Inline
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure as Structure
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
@@ -49,7 +41,6 @@ type ElemP = Positioned
 type ElemPT = ElemP Text
 type LabeledPositioned e = (Labels, Positioned e)
 type ElemT = LabeledPositioned Text
-type Classes = Structure.ClassesMap
 
 data IdRepetitionSearchInput =
 	IdRepetitionSearchInput
@@ -161,16 +152,6 @@ parse_classes_tree_as_exceptional tree@(Node trunk children) =
 		then Left (Right (map (rootLabel >>> HasSingle.elem) children))
 		else Right tree
 
-render_classes_into_siblings :: Classes -> Fn.Endo (Forest Text)
-render_classes_into_siblings classes =
-	let
-		class_list :: [Text]
-		class_list = TravKey.keys classes
-		in
-			case class_list of
-				[] -> id
-				_ -> (render_class_tree class_list :)
-
 parse_address_from_siblings ::
 	forall a .
 	HasSingle a =>
@@ -189,66 +170,32 @@ parse_address_from_siblings =
 							map (Just >>> Pair.before normal_children) first_address_result
 		in Base.StateT raw
 
-parse_classes_from_siblings ::
-	forall a .
-	HasSingle a =>
-	Base.StateT (Forest (a Text)) (Either (Accu.Accumulated Text)) Classes
-parse_classes_from_siblings =
-	let
-		raw :: Forest (a Text) -> Either (Accu.Accumulated Text) (Classes, Forest (a Text))
-		raw siblings =
-			let
-				classes_results :: [Either (Accu.Accumulated Text) [Text]]
-				(classes_results, normal_children) =
-					Base.partitionEithers (map parse_classes_tree_as_exceptional siblings)
-				classes_result :: Either (Accu.Accumulated Text) [[Text]]
-				classes_result = Base.sequence classes_results
-				merge_classes :: [[Text]] -> Either (Accu.Accumulated Text) Classes
-				merge_classes = Fold.fold >>> Structure.index_classes
-				in map (Pair.before normal_children) (classes_result >>= merge_classes)
-		in Base.StateT raw
-
-render_all_into_siblings :: (Maybe PageAddress, Classes) -> Fn.Endo (Forest Text)
-render_all_into_siblings (address, classes) =
-	render_classes_into_siblings classes >>>
-	render_address_into_siblings address
-
-parse_all_from_siblings ::
-	forall a .
-	HasSingle a =>
-	Base.StateT (Forest (a Text)) (Either (Accu.Accumulated Text)) (Maybe PageAddress, Classes)
-parse_all_from_siblings =
-	liftA2 (,) parse_address_from_siblings parse_classes_from_siblings
-
 render_tree :: Tree ElemT -> Tree ElemLR
 render_tree (Node trunk children) =
 	let
 		labels = fst trunk
 		address :: Maybe PageAddress
 		address = Structure.address_of_Labels labels
-		classes :: Classes
-		classes = maybe Fana.empty_coll id (Structure.classes_of_Labels labels)
 		in
 			Node ((HasSingle.elem >>> HasSingle.elem) trunk)
-				(render_all_into_siblings (address, classes) (map render_tree children))
+				(render_address_into_siblings address (map render_tree children))
 
 parse_tree_r :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
 parse_tree_r (Node trunk all_children) =
 	let
 		current_parse_result ::
 			Either (Pos.PositionedMb (Accu.Accumulated Text))
-				((Maybe PageAddress, Classes), [Tree ElemPT])
+				(Maybe PageAddress, [Tree ElemPT])
 		current_parse_result =
 			BiFr.first (Pos.position_error_mb trunk)
-			(Base.runStateT parse_all_from_siblings all_children)
+			(Base.runStateT parse_address_from_siblings all_children)
 		continue_parse_result ::
-			((Maybe PageAddress, Classes), [Tree ElemPT]) ->
+			(Maybe PageAddress, [Tree ElemPT]) ->
 			Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
-		continue_parse_result ((page_address, classes), normal_children) =
+		continue_parse_result (page_address, normal_children) =
 			let
 				position = Pos.get_position trunk
-				classes_mb = if Fana.is_coll_empty classes then Nothing else (Just classes)
-				labels = Structure.Labels page_address classes_mb
+				labels = Structure.Labels page_address
 				in
 					map (Node (labels, (Positioned position (HasSingle.elem trunk))))
 						(traverse parse_tree_r normal_children)
@@ -266,16 +213,7 @@ parse_tree =
 			)			
 		in parse_tree_r >=> from_tree
 
-layer_new_simple ::
+layer ::
 	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
 		(Forest ElemLR) (Tree ElemPT) (Forest ElemT) (Tree ElemT)
-layer_new_simple = Optic.PartialIso (map render_tree) parse_tree
-
-
-layer :: Configuration ->
-	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
-		(Forest ElemLR) (Tree ElemPT) (Forest ElemT) (Tree ElemT)
-layer config =
-	Cat2.identity
-	>**>^ layer_new_simple
-	>**>^ Optic.change_iso_per_component map id (Optic.lift_iso (Inline.layer config))
+layer = Optic.PartialIso (map render_tree) parse_tree

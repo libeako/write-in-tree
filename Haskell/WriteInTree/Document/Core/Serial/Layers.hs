@@ -22,7 +22,6 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructu
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
-import qualified WriteInTree.Document.SepProps.Data as SepProps
 
 
 show_error :: Fana.Showable Text e => e -> PositionedMb (Accumulated Text)
@@ -34,14 +33,12 @@ layer_meta_text_escapee =
 
 type LayerTextTree = Optic.PartialIso' (PositionedMb (Accumulated Text)) Text (Tree Text)
 
-layer ::
-	SepProps.DocSepProps ->
-	Optic.PartialIso' (PositionedMb (Accumulated Text)) Text Page
-layer sep_props =
+layer :: Optic.PartialIso' (PositionedMb (Accumulated Text)) Text Page
+layer =
 	Category2.identity
 	>**>^ Optic.piso_convert_error show_error (TtG.forest_to_tree_serializer Tt.text_tree)
 	>**>^ Path.layer
-	>**>^ Label.layer (SepProps.prop_inline_classes sep_props)
+	>**>^ Label.layer
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
 	>**>^ Page.layer
 	>**>^ layer_meta_text_escapee

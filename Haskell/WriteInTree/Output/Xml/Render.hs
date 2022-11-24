@@ -9,7 +9,7 @@ import Fana.Prelude
 import Prelude (String, FilePath)
 import WriteInTree.Document.Core.Data
 import WriteInTree.Document.Core.Serial.Page.Main
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), ofLabels_class_values)
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 
 import qualified Data.Bifunctor as BiFr
 import qualified Data.Foldable as Fold
@@ -64,13 +64,8 @@ html_classes_of_whether_page_is_trunk :: Bool -> [Text]
 html_classes_of_whether_page_is_trunk page_is_trunk =
 	if page_is_trunk then [text_class_trunk_page] else []
 
-wrap_by_classes :: [Text] -> Node -> Fn.Endo Xml.ElementL
-wrap_by_classes additional_classes n = 
-	let
-		classes_from_node :: [Text]
-		classes_from_node = ofLabels_class_values (nodeLabels n)
-		all_classes = classes_from_node <> additional_classes
-		in Optic.fn_up Xml.lens_classes_of_Element (all_classes <>)
+wrap_by_classes :: [Text] -> Fn.Endo Xml.ElementL
+wrap_by_classes classes = Optic.fn_up Xml.lens_classes_of_Element (classes <>)
 
 wrap_subcontent_by_div :: [Xml.ElementL] -> Xml.ElementL
 wrap_subcontent_by_div = Xml.tree (Xml.Head "div" [] (Xml.Labels Nothing [text_class_wit_content]))
@@ -113,7 +108,7 @@ render_section site node_tree =
 				header = Just (render_paragraph (Data.nodeContent trunk_node))
 				in
 					wrap_by_header_content header >>>
-					wrap_by_section >>> wrap_by_classes [] trunk_node
+					wrap_by_section >>> wrap_by_classes []
 		in from_sub_content sub_content
 
 render_navigation_bar_per_element :: Bool -> Page -> Xml.Content Xml.Labels
