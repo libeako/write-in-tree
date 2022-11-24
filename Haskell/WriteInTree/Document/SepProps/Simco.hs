@@ -7,6 +7,7 @@ module WriteInTree.Document.SepProps.Simco
 )
 where
 
+import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Develop.Test.Define (Test)
 import Fana.Prelude
@@ -18,10 +19,10 @@ import qualified Data.Default.Class as Default
 import qualified Data.Tree as Base
 import qualified Fana.Develop.Test.Define as Test
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
-import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.Data as SimcoData
 import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Simco.IndentedTextSerial as SimcoSerial
+import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Serialize as PropTree
 import qualified Fana.Serial.Print.Show as Fana
 import qualified WriteInTree.Document.SepProps.Parse as Parse
 
@@ -37,15 +38,18 @@ to_simco props =
 
 data ParseError
 	= ParseErrorInSimcoLayer SimcoSerial.ParseError
-	| ParseErrorInUpperLayer (Accu.Accumulated Text)
+	| ParseErrorInUpperLayer Text
 
 instance Fana.Showable Text ParseError where
 	show = \case
 		ParseErrorInSimcoLayer details -> "error parsing SimCo:\n" <> Fana.show details
 		ParseErrorInUpperLayer details -> "error parsing layer above SimCo:\n" <> Fana.show details
 
-upper_layer :: Optic.PartialIso' (Accu.Accumulated Text) (Base.Forest SimcoData.NodeWithActivity) DocSepProps
-upper_layer = Optic.PartialIso to_simco Parse.parse_from_line_forest
+upper_layer :: Optic.PartialIso' Text (Base.Forest SimcoData.NodeWithActivity) DocSepProps
+upper_layer = 
+	Category2.identity
+	>**>^ SimcoData.serialize
+	>**>^ PropTree.record_serializer_over_property_list Parse.type_structure
 
 layer :: Optic.PartialIso' ParseError Text DocSepProps
 layer =

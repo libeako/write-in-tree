@@ -11,8 +11,6 @@ import Control.Monad ()
 import Fana.Prelude
 
 import qualified Data.Int as Int
-import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
-import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 
 
@@ -25,10 +23,10 @@ data ParseError =
 	  PeNotSupported
 	| PeNotInteger Text
 
-instance Fana.Showable Text ParseError where
+instance Base.Show ParseError where
 	show = \case
 		PeNotSupported -> "This version of the language is not supported."
-		PeNotInteger t -> "Language version error: " <> Accu.single t <> " is not an integer."
+		PeNotInteger t -> "Language version error: " <> t <> " is not an integer."
 
 int_from_text :: Text -> Either ParseError VersionNumber
 int_from_text t = 
