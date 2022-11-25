@@ -20,6 +20,7 @@ import qualified Prelude as Base
 import qualified System.Directory as Directory
 import qualified Technical.FolderMember as FolderMember
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
+import qualified WriteInTree.Document.SepProps.PropTree as SepPropsPT
 import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
 
 
@@ -27,7 +28,10 @@ member_config :: Member DocSepProps
 member_config =
 	let
 		serializer :: Optic.PartialIso' Text Text DocSepProps
-		serializer = Optic.piso_convert_error (Fana.show >>> Acc.extract >>> ("error in separate properties file:\n" <>)) SepPropsSimco.layer 
+		serializer =
+			Optic.piso_convert_error
+				(Fana.show >>> Acc.extract >>> ("error in separate properties file:\n" <>))
+				(SepPropsSimco.layer SepPropsPT.type_structure)
 		in
 			FolderMember.lift_by_piso serializer
 				(member_string "separate properties [config]" "properties.simco")

@@ -1,16 +1,16 @@
-module WriteInTree.Document.SepProps.Parse
+module WriteInTree.Document.SepProps.PropTree
 (
 	type_structure,
 )
 where
 
 import Fana.Prelude
-import WriteInTree.Document.SepProps.Data (DocSepProps(..))
+import WriteInTree.Document.SepProps.Data (DocSepProps (..))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified Fana.Serial.Bidir.Instances.Text.PropertyTree.Serialize as PropTree
+import qualified Fana.PropertyTree.Serialize as PropTree
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Serial.LanguageVersion as Version
 import qualified WriteInTree.Document.SepProps.Data as Props

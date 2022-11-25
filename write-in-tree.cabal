@@ -35,7 +35,7 @@ common common
     , containers >=0.5 && <0.6
     , data-default-class >=0.1 && <0.2
     , directory <=1.4
-    , fana ==0.0.0.186
+    , fana ==0.0.0.187
     , filepath <=1.4
     , mtl >=2.2 && <2.3
     , optparse-applicative >=0.14 && <0.17
@@ -46,7 +46,6 @@ common common
       Technical.FolderMember
       Technical.FolderTree
       Technical.Html
-      Technical.ParsePropertyTree
       Technical.TextTree.General
       Technical.TextTree.MindMap
       Technical.Xml
@@ -74,7 +73,7 @@ common common
       WriteInTree.Document.Main
       WriteInTree.Document.SepProps.Command_ShowDefault
       WriteInTree.Document.SepProps.Data
-      WriteInTree.Document.SepProps.Parse
+      WriteInTree.Document.SepProps.PropTree
       WriteInTree.Document.SepProps.Simco
       WriteInTree.Output.Technical
       WriteInTree.Output.Xml.Render
