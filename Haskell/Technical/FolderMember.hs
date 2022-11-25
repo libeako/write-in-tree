@@ -2,7 +2,7 @@ module Technical.FolderMember
 (
 	Folder,
 	Reader,
-	Member (Member, memberName, memberWriter), 
+	Member (..), 
 	lift_by_piso, member_string, read,
 	FileFormat (..), FileFormats, member_multi_format,
 	write_forest, read_forest,
