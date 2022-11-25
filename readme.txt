@@ -4,7 +4,6 @@ The local dependencies are here :
 https://github.com/libeako/
 
 
-todo :
-simco
-	move parser and renderer combinators into library fana
-	combine serializers, not parsers and renderers
+todo
+	delete all usages of 'undefined' for user input invalidity
+		because it introduces non-strictness and bugs via that
