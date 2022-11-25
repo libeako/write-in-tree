@@ -134,10 +134,7 @@ parse_address_tree_as_exceptional tree@(Node trunk children) =
 		else Right tree
 
 render_address_into_siblings :: Maybe PageAddress -> Fn.Endo (Forest Text)
-render_address_into_siblings =
-	\case
-		Nothing -> id
-		Just address -> (render_address_tree address :)
+render_address_into_siblings = const id
 
 render_class_tree :: [Text] -> Tree Text
 render_class_tree classes =
