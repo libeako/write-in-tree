@@ -1,7 +1,7 @@
 module WriteInTree.Document.Core.Serial.Page.Main
 (
 	Page, Site,
-	title_of_section, title_of_page, text_content_in_site,
+	title_of_page,
 	node_in_site,
 	layer,
 )
