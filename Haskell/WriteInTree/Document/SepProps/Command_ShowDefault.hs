@@ -14,4 +14,4 @@ import qualified WriteInTree.Document.SepProps.Simco as Simco
 
 -- | executes the command.
 doit :: IO ()
-doit = putStr (Optic.down (Simco.layer PT.type_structure) Default.def)
+doit = putStr (Optic.down (Simco.layer PT.type_structure_doc_sep_props) Default.def)

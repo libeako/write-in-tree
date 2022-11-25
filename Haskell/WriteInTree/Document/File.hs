@@ -11,7 +11,7 @@ import Technical.FolderMember (Folder, Reader, Member (..), member_string, read_
 import System.FilePath ((</>))
 import WriteInTree.Document.Core.Serial.Page.Data
 import WriteInTree.Document.Main (Document (..))
-import WriteInTree.Document.SepProps.Data (DocSepProps (..))
+import WriteInTree.Document.SepProps.Data (DocSepProps (..), FolderSepProps (FolderSepProps))
 
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Acc
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -30,11 +30,23 @@ member_config =
 		serializer :: Optic.PartialIso' Text Text DocSepProps
 		serializer =
 			Optic.piso_convert_error
-				(Fana.show >>> Acc.extract >>> ("error in separate properties file:\n" <>))
-				(SepPropsSimco.layer SepPropsPT.type_structure)
+				(Fana.show >>> Acc.extract >>> ("error in document's separate properties file:\n" <>))
+				(SepPropsSimco.layer SepPropsPT.type_structure_doc_sep_props)
 		in
 			FolderMember.lift_by_piso serializer
-				(member_string "separate properties [config]" "properties.simco")
+				(member_string "document separate properties" "properties.simco")
+
+member_folder_config :: Member FolderSepProps
+member_folder_config =
+	let
+		serializer :: Optic.PartialIso' Text Text FolderSepProps
+		serializer =
+			Optic.piso_convert_error
+				(Fana.show >>> Acc.extract >>> ("error in folder's separate properties file:\n" <>))
+				(SepPropsSimco.layer SepPropsPT.type_structure_folder_sep_props)
+		in
+			FolderMember.lift_by_piso serializer
+				(member_string "folder separate properties" "properties.simco")
 
 member_content :: Member Page
 member_content =
@@ -60,7 +72,10 @@ pages_folder_name :: Text
 pages_folder_name = "pages"
 
 single_folder_content_writer :: FilePath -> Page -> IO ()
-single_folder_content_writer folder_path = memberWriter member_content folder_path
+single_folder_content_writer folder_path page = 
+	do
+		memberWriter member_folder_config folder_path (FolderSepProps (fst page))
+		memberWriter member_content folder_path page
 
 write_page_forest :: FilePath -> Forest (Folder Page) -> IO ()
 write_page_forest folder_path = 

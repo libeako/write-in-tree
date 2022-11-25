@@ -5,13 +5,12 @@ module WriteInTree.Document.SepProps.Simco
 )
 where
 
+import Data.Default.Class
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
-import WriteInTree.Document.SepProps.Data
 
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
-
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Acc
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.PropertyTree.Serialize as PropTree
@@ -28,7 +27,7 @@ prefix_simco_parse_error m = "error parsing SimCo:\n" <> Acc.extract (Fana.show 
 prefix_config_parse_error :: Text -> Text
 prefix_config_parse_error m = "error parsing properties file:\n" <> m
 
-layer :: PropTree.RecordType DocSepProps -> Optic.PartialIso' Text Text DocSepProps
+layer :: Default r => PropTree.RecordType r -> Optic.PartialIso' Text Text r
 layer rt =
 	Category2.identity
 	>**>^ (Optic.piso_convert_error prefix_simco_parse_error SimcoAsText.serializer)
