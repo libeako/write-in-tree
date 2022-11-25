@@ -11,6 +11,7 @@ import Prelude (Char, String, IO, FilePath)
 import Technical.FolderMember (Folder, Reader, Member (..), member_string, read_forest)
 import System.FilePath ((</>))
 import WriteInTree.Document.Core.Serial.Page.Data
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 import WriteInTree.Document.Main (Document (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..), FolderSepProps (FolderSepProps))
 
@@ -50,10 +51,10 @@ member_folder_config =
 			FolderMember.lift_by_piso serializer
 				(member_string "folder separate properties" "properties.simco")
 
-member_content :: Member PageContent
+member_content :: Member PageContentBulk
 member_content =
 	let
-		serializer :: Optic.PartialIso' String String PageContent
+		serializer :: Optic.PartialIso' String String PageContentBulk
 		serializer = Optic.piso_convert_error (Fana.show >>> Acc.extract) CoreSerial.layer
 		in
 			FolderMember.lift_by_piso
@@ -77,7 +78,7 @@ single_folder_content_writer :: FilePath -> Page -> IO ()
 single_folder_content_writer folder_path page =
 	do
 		memberWriter member_folder_config folder_path (FolderSepProps (fst page))
-		memberWriter member_content folder_path (snd page)
+		memberWriter member_content folder_path (snd (snd page))
 
 write_page_forest :: FilePath -> Forest (Folder Page) -> IO ()
 write_page_forest folder_path =
@@ -101,22 +102,22 @@ write address doc =
 				write_member member_config (docSepProps doc)
 				write_page_forest pages_folder_path pages
 
-single_folder_content_reader :: Reader Page
+single_folder_content_reader :: Reader (PageAddress, PageContentBulk)
 single_folder_content_reader path =
 	let
-		r :: ExceptT String IO Page
+		r :: ExceptT String IO (PageAddress, PageContentBulk)
 		r = 
 			do
 				sep_props <- ExceptT (FolderMember.memberReader member_folder_config path)
-				page_content <- ExceptT (FolderMember.memberReader member_content path)
-				pure (SepPropsData.address sep_props, page_content)
+				page_content_bulk <- ExceptT (FolderMember.memberReader member_content path)
+				pure (SepPropsData.address sep_props, page_content_bulk)
 		in runExceptT r
 
 read_recursively :: FilePath -> IO (Forest Page)
 read_recursively folder_path =
 	let
-		read_dir_to_page :: Folder Page -> Page
-		read_dir_to_page (name, page) = Optic.fill title_in_page (Optic.up file_name_iso name) page
+		read_dir_to_page :: Folder (PageAddress, PageContentBulk) -> Page
+		read_dir_to_page (name, (address, content_bulk)) = (address, (name, content_bulk))
 		in (map >>> map >>> map) read_dir_to_page (read_forest single_folder_content_reader folder_path)
 
 read :: FilePath -> IO Document

@@ -23,5 +23,5 @@ parse =
 	>>> Tree.with_path_to_trunk
 	>>> map (Bifunctor.first (map Tree.rootLabel) >>> uncurry Positioned)
 
-layer :: Optic.Iso (Forest Text) (Tree Text) (Forest Text) (Tree (Positioned Text))
-layer = Optic.Iso id parse
+layer :: Optic.Iso (Forest Text) (Forest Text) (Forest Text) (Forest (Positioned Text))
+layer = Optic.Iso id (map parse)

@@ -215,5 +215,5 @@ parse_tree =
 
 layer ::
 	Optic.PartialIso (Pos.PositionedMb (Accu.Accumulated Text))
-		(Forest ElemLR) (Tree ElemPT) (Forest ElemT) (Tree ElemT)
-layer = Optic.PartialIso (map render_tree) parse_tree
+		(Forest ElemLR) (Forest ElemPT) (Forest ElemT) (Forest ElemT)
+layer = Optic.lift_piso (Optic.PartialIso render_tree parse_tree)

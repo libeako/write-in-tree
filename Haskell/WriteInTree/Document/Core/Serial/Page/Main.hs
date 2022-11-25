@@ -7,7 +7,7 @@ module WriteInTree.Document.Core.Serial.Page.Main
 )
 where
 
-import Data.Tree (Tree, Forest)
+import Data.Tree (Forest)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import WriteInTree.Document.Core.Data (Paragraph)
 import WriteInTree.Document.Core.Serial.Page.Data
@@ -21,9 +21,9 @@ import qualified WriteInTree.Document.Core.Serial.Page.Serialize as Serialize
 
 
 layer ::
-	Optic.Iso 
-		(Forest (Labels, Positioned Paragraph)) (Tree (Labels, Positioned Paragraph)) 
-		PageContent PageContent
+	Optic.Iso
+		(Forest (Labels, Positioned Paragraph)) (Forest (Labels, Positioned Paragraph)) 
+		PageContentBulk PageContentBulk
 layer =
 	Category2.identity
 	>**>^ Border.layer

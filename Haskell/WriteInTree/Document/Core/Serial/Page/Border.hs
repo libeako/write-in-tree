@@ -4,7 +4,7 @@ module WriteInTree.Document.Core.Serial.Page.Border
 )
 where
 
-import Data.Tree (Tree, Forest)
+import Data.Tree (Forest)
 import Fana.Prelude
 import WriteInTree.Document.Core.Data (Node, nodeLabels, nodePosition, nodeContent, Paragraph)
 import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
@@ -28,5 +28,5 @@ render_from_node node = (nodeLabels node, Positioned (nodePosition node) (nodeCo
 parse_into_node :: (Labels, Positioned Paragraph) -> Node
 parse_into_node (l, Positioned pos par) = Data.Node pos l par
 
-layer :: Optic.Iso (Forest (Labels, Positioned Paragraph)) (Tree (Labels, Positioned Paragraph)) (Forest Node) (Tree Node)
-layer = Optic.change_iso_per_component map id (Optic.lift_iso (Optic.Iso render_from_node parse_into_node))
+layer :: Optic.Iso (Forest (Labels, Positioned Paragraph)) (Forest (Labels, Positioned Paragraph)) (Forest Node) (Forest Node)
+layer = (Optic.lift_iso >>> Optic.lift_iso) (Optic.Iso render_from_node parse_into_node)

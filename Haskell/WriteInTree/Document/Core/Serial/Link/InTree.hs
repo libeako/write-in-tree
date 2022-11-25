@@ -58,6 +58,6 @@ parse (Node trunk children) =
 
 layer :: 
 	Optic.PartialIso ParseError 
-		(Forest (LabeledPositioned Text)) (Tree (LabeledPositioned Text))
-		(Forest (LabeledPositioned Inline)) (Tree (LabeledPositioned Inline))
-layer = Optic.PartialIso (map render) parse
+		(Forest (LabeledPositioned Text)) (Forest (LabeledPositioned Text))
+		(Forest (LabeledPositioned Inline)) (Forest (LabeledPositioned Inline))
+layer = Optic.lift_piso (Optic.PartialIso render parse)
