@@ -17,7 +17,6 @@ import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified WriteInTree.Document.Core.Serial.Page.Border as Border
-import qualified WriteInTree.Document.Core.Serial.Page.Serialize as Serialize
 
 
 layer ::
@@ -27,4 +26,3 @@ layer ::
 layer =
 	Category2.identity
 	>**>^ Border.layer
-	>**>^ Serialize.layer
