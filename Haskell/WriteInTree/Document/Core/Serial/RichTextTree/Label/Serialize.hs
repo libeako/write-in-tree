@@ -15,12 +15,10 @@ import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (Posit
 
 import qualified Control.Monad.State.Lazy as Base
 import qualified Data.Bifunctor as BiFr
-import qualified Data.Either as Base
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Maybe as Base
 import qualified Data.Tree as Tree
-import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.HasSingle as HasSingle
 import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Data.Key.Map.Interface as MapI
@@ -109,36 +107,8 @@ check_uniquness_of_ids =
 		extract_single = Base.catMaybes >>> List.first
 		in sequence uniquness_checks >>> extract_single
 
-
-meta_name_address :: Text
-meta_name_address = "address"
-
 meta_name_class :: Text
 meta_name_class = "class"
-
-render_address_tree :: PageAddress -> Tree Text
-render_address_tree address =
-	Node (Mtt.render_exceptional meta_name_address) [Node (unwrapPageAddress address) []]
-
-parse_address :: [Tree Text] -> Either (Accu.Accumulated Text) PageAddress
-parse_address =
-	\case
-		[Node address []] -> Right (PageAddress address)
-		_ -> Left (Accu.single "wrong format of page address text value [must be a single tree node]")
-
-parse_address_tree_as_exceptional ::
-	HasSingle a => Tree (a Text) -> Either (Either (Accu.Accumulated Text) PageAddress) (Tree (a Text))
-parse_address_tree_as_exceptional tree@(Node trunk children) =
-	if HasSingle.elem trunk == (Mtt.render_exceptional meta_name_address)
-		then Left (parse_address ((map >>> map) HasSingle.elem children))
-		else Right tree
-
-render_address_into_siblings :: Maybe PageAddress -> Fn.Endo (Forest Text)
-render_address_into_siblings = const id
-
-render_class_tree :: [Text] -> Tree Text
-render_class_tree classes =
-	Node (Mtt.render_exceptional meta_name_class) (map (flip Node []) classes)
 
 parse_classes_tree_as_exceptional ::
 	forall a .
@@ -151,20 +121,11 @@ parse_classes_tree_as_exceptional tree@(Node trunk children) =
 
 parse_address_from_siblings ::
 	forall a .
-	HasSingle a =>
 	Base.StateT (Forest (a Text)) (Either (Accu.Accumulated Text)) (Maybe PageAddress)
 parse_address_from_siblings =
 	let
 		raw :: Forest (a Text) -> Either (Accu.Accumulated Text) (Maybe PageAddress, Forest (a Text))
-		raw siblings =
-			let
-				(address_results, normal_children) =
-					Base.partitionEithers (map parse_address_tree_as_exceptional siblings)
-				in
-					case address_results of
-						[] -> Right (Nothing, normal_children)
-						(first_address_result : _) ->
-							map (Just >>> Pair.before normal_children) first_address_result
+		raw siblings = Right (Nothing, siblings)
 		in Base.StateT raw
 
 render_tree :: Tree ElemT -> Tree ElemLR
@@ -173,9 +134,7 @@ render_tree (Node trunk children) =
 		labels = fst trunk
 		address :: Maybe PageAddress
 		address = Structure.address_of_Labels labels
-		in
-			Node ((HasSingle.elem >>> HasSingle.elem) trunk)
-				(render_address_into_siblings address (map render_tree children))
+		in Node ((HasSingle.elem >>> HasSingle.elem) trunk) (map render_tree children)
 
 parse_tree_r :: Tree ElemPT -> Either (Pos.PositionedMb (Accu.Accumulated Text)) (Tree ElemT)
 parse_tree_r (Node trunk all_children) =

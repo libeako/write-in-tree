@@ -1,8 +1,5 @@
 module WriteInTree.Document.Core.Serial.Page.Main
 (
-	Page, Site,
-	title_of_page,
-	node_in_site,
 	layer,
 )
 where

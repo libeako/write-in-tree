@@ -8,7 +8,7 @@ where
 import Control.Monad ((>=>))
 import Fana.Prelude
 import Prelude (IO, FilePath)
-import WriteInTree.Document.Core.Serial.Page.Main (Site)
+import WriteInTree.Document.Core.Serial.Page.Data (Site)
 import WriteInTree.Document.Main (Document (..))
 
 import qualified Fana.Data.HeteroPair as HePair
