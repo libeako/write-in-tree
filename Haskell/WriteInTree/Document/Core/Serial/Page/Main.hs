@@ -20,12 +20,10 @@ import qualified WriteInTree.Document.Core.Serial.Page.Border as Border
 import qualified WriteInTree.Document.Core.Serial.Page.Serialize as Serialize
 
 
-type ParseError = Serialize.ParseError
-
-
 layer ::
-	Optic.PartialIso ParseError 
-		(Forest (Labels, Positioned Paragraph)) (Tree (Labels, Positioned Paragraph)) Page Page
+	Optic.Iso 
+		(Forest (Labels, Positioned Paragraph)) (Tree (Labels, Positioned Paragraph)) 
+		PageContent PageContent
 layer =
 	Category2.identity
 	>**>^ Border.layer

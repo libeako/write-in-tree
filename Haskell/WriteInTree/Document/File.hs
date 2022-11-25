@@ -50,10 +50,10 @@ member_folder_config =
 			FolderMember.lift_by_piso serializer
 				(member_string "folder separate properties" "properties.simco")
 
-member_content :: Member Page
+member_content :: Member PageContent
 member_content =
 	let
-		serializer :: Optic.PartialIso' String String Page
+		serializer :: Optic.PartialIso' String String PageContent
 		serializer = Optic.piso_convert_error (Fana.show >>> Acc.extract) CoreSerial.layer
 		in
 			FolderMember.lift_by_piso
@@ -77,7 +77,7 @@ single_folder_content_writer :: FilePath -> Page -> IO ()
 single_folder_content_writer folder_path page =
 	do
 		memberWriter member_folder_config folder_path (FolderSepProps (fst page))
-		memberWriter member_content folder_path page
+		memberWriter member_content folder_path (snd page)
 
 write_page_forest :: FilePath -> Forest (Folder Page) -> IO ()
 write_page_forest folder_path =
@@ -107,9 +107,9 @@ single_folder_content_reader path =
 		r :: ExceptT String IO Page
 		r = 
 			do
-				sep_props <- (ExceptT (FolderMember.memberReader member_folder_config path) :: ExceptT String IO FolderSepProps)
-				page <- ExceptT (FolderMember.memberReader member_content path)
-				pure (SepPropsData.address sep_props, snd page)
+				sep_props <- ExceptT (FolderMember.memberReader member_folder_config path)
+				page_content <- ExceptT (FolderMember.memberReader member_content path)
+				pure (SepPropsData.address sep_props, page_content)
 		in runExceptT r
 
 read_recursively :: FilePath -> IO (Forest Page)

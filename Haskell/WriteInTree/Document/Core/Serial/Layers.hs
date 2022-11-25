@@ -27,13 +27,13 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 show_error :: Fana.Showable Text e => e -> PositionedMb (Accumulated Text)
 show_error = Fana.show >>> PositionedMb Nothing
 
-layer_meta_text_escapee :: Optic.Iso' Page Page
+layer_meta_text_escapee :: Optic.Iso' PageContent PageContent
 layer_meta_text_escapee =
-	Optic.lift_iso_by_function (Optic.fn_up text_content_in_page) Mtt.layer_escapee
+	Optic.lift_iso_by_function (Optic.fn_up text_content_in_page_content) Mtt.layer_escapee
 
 type LayerTextTree = Optic.PartialIso' (PositionedMb (Accumulated Text)) Text (Tree Text)
 
-layer :: Optic.PartialIso' (PositionedMb (Accumulated Text)) Text Page
+layer :: Optic.PartialIso' (PositionedMb (Accumulated Text)) Text PageContent
 layer =
 	Category2.identity
 	>**>^ Optic.piso_convert_error show_error (TtG.forest_to_tree_serializer Tt.text_tree)

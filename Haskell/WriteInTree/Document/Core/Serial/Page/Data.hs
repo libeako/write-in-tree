@@ -3,7 +3,7 @@ module WriteInTree.Document.Core.Serial.Page.Data
 	Text,
 	PageContentTree, PageContentBulk, PageTitle, PageContent, Page,
 	Site,
-	title_of_section, title_of_page, text_content_in_page, text_content_in_site,
+	title_of_section, title_of_page, text_content_in_page, text_content_in_page_content, text_content_in_site,
 	title_in_page, title_in_trunk_page,
 	node_in_site,
 )
@@ -41,12 +41,17 @@ title_of_page = snd >>> fst >>> nodeContent >>> ilVisual
 
 -- optics :
 
-node_in_page :: Optic.Traversal' Node Page
-node_in_page =
+node_in_page_content :: Optic.Traversal' Node PageContent
+node_in_page_content =
 	Category2.identity
 	>**>^ node_in_tree
 	>**>^ Optic.from_Traversable
 	>**>^ lens_2
+
+node_in_page :: Optic.Traversal' Node Page
+node_in_page =
+	Category2.identity
+	>**>^ node_in_page_content
 	>**>^ lens_2
 
 node_in_site :: Optic.Traversal' Node Site
@@ -54,6 +59,9 @@ node_in_site =
 	Category2.identity
 	>**>^ node_in_page
 	>**>^ Optic.from_Traversable
+
+text_content_in_page_content :: Optic.Traversal' Text PageContent
+text_content_in_page_content = Category2.identity >**>^ text_in_Node  >**>^ node_in_page_content
 
 text_content_in_page :: Optic.Traversal' Text Page
 text_content_in_page = Category2.identity >**>^ text_in_Node  >**>^ node_in_page
