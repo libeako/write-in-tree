@@ -21,20 +21,12 @@ type ElemP = Positioned
 type ElemPT = ElemP Text
 type ElemT = Positioned Text
 
-meta_name_class :: Text
-meta_name_class = "class"
-
-render_node :: ElemT -> ElemLR
-render_node = HasSingle.elem
 
 parse_node :: ElemPT -> ElemT
-parse_node node =
-	let
-		position = Pos.get_position node
-		in (Positioned position (HasSingle.elem node))
+parse_node node = Positioned (Pos.get_position node) (HasSingle.elem node)
 
-serialize_node :: Optic.Iso ElemLR ElemPT ElemT ElemT
-serialize_node = Optic.Iso render_node parse_node
+serialize_node :: Optic.Iso ElemLR ElemPT Text ElemT
+serialize_node = Optic.Iso id parse_node
 
-serialize_forest :: Optic.Iso (Forest ElemLR) (Forest ElemPT) (Forest ElemT) (Forest ElemT)
+serialize_forest :: Optic.Iso (Forest ElemLR) (Forest ElemPT) (Forest Text) (Forest ElemT)
 serialize_forest = (Optic.lift_iso >>> Optic.lift_iso) serialize_node

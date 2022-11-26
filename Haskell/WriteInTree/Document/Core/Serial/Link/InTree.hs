@@ -21,17 +21,17 @@ type Text = Base.String
 
 type ParseError = Pos.Positioned (Accu.Accumulated Text)
 
-render :: Tree (Positioned Inline) -> Tree (Positioned Text)
+render :: Tree (Positioned Inline) -> Tree Text
 render (Node trunk children) =
 	let
-		trunk_rendered :: Positioned Text
-		trunk_rendered = map Data.ilVisual trunk
-		children_rendered :: [Tree (Positioned Text)]
+		trunk_rendered :: Text
+		trunk_rendered = Data.ilVisual (positionedValue trunk)
+		children_rendered :: [Tree Text]
 		children_rendered = map render children
 		in
 			case (positionedValue >>> Data.ilLink) trunk of
 				Nothing -> Node trunk_rendered children_rendered
-				Just link -> Node trunk_rendered (Individual.render' link : children_rendered)
+				Just link -> Node trunk_rendered (Individual.render link : children_rendered)
 
 type ParseChildrenSituation =
 	(Maybe Link, Forest (Positioned Text) {- <- the rest of the children -})
@@ -56,6 +56,6 @@ parse (Node trunk children) =
 
 layer :: 
 	Optic.PartialIso ParseError 
-		(Forest (Positioned Text)) (Forest (Positioned Text))
+		(Forest Text) (Forest (Positioned Text))
 		(Forest (Positioned Inline)) (Forest (Positioned Inline))
 layer = Optic.lift_piso (Optic.PartialIso render parse)

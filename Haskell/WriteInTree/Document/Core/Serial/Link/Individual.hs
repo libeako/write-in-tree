@@ -3,7 +3,7 @@ module WriteInTree.Document.Core.Serial.Link.Individual
 	meta_node_name,
 	MetaNodeName (..),
 	ParseError,
-	render', parse',
+	render, parse',
 )
 where
 
@@ -87,9 +87,3 @@ render d =
 				Data.LEx a -> (External, a)
 		in Node (Ntt.render_exceptional meta_node_name)
 			(map (flip Node []) [render_DestinationType dt, addr])
-
-wrap_into_default_context :: x -> Positioned x
-wrap_into_default_context = Positioned def
-
-render' :: Link -> Tree (Positioned Text)
-render' = render >>> map wrap_into_default_context
