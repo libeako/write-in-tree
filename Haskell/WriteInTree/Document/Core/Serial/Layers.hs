@@ -16,7 +16,7 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Text.Indent as Tt
 import qualified Fana.Serial.Print.Show as Fana
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
-import qualified WriteInTree.Document.Core.Serial.Page.Main as Page
+import qualified WriteInTree.Document.Core.Serial.Page.Border as PageBorder
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
@@ -39,5 +39,5 @@ layer =
 	>**>^ Path.layer
 	>**>^ Label.serialize_forest
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
-	>**>^ Page.layer
+	>**>^ PageBorder.serialize
 	>**>^ layer_meta_text_escapee
