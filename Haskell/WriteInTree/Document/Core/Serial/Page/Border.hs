@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.Page.Border
 (
-	layer,
+	serialize,
 )
 where
 
@@ -11,16 +11,8 @@ import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix as Class
 
-
-type Text = Base.String
-
--- | text value of node class signalling the separate page status
-text_page_class :: Text
-text_page_class = Class.class_prefix <> "page"
 
 render_from_node :: Node -> (Labels, Positioned Paragraph)
 render_from_node node = (nodeLabels node, Positioned (nodePosition node) (nodeContent node))
@@ -28,5 +20,9 @@ render_from_node node = (nodeLabels node, Positioned (nodePosition node) (nodeCo
 parse_into_node :: (Labels, Positioned Paragraph) -> Node
 parse_into_node (l, Positioned pos par) = Data.Node pos l par
 
-layer :: Optic.Iso (Forest (Labels, Positioned Paragraph)) (Forest (Labels, Positioned Paragraph)) (Forest Node) (Forest Node)
-layer = (Optic.lift_iso >>> Optic.lift_iso) (Optic.Iso render_from_node parse_into_node)
+serialize ::
+	Optic.Iso
+		(Forest (Labels, Positioned Paragraph))
+		(Forest (Labels, Positioned Paragraph))
+		(Forest Node) (Forest Node)
+serialize = (Optic.lift_iso >>> Optic.lift_iso) (Optic.Iso render_from_node parse_into_node)

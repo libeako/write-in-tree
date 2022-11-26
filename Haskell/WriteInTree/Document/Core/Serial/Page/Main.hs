@@ -22,4 +22,4 @@ layer ::
 		PageContentBulk PageContentBulk
 layer =
 	Category2.identity
-	>**>^ Border.layer
+	>**>^ Border.serialize
