@@ -7,7 +7,7 @@ where
 
 import Data.Tree (Forest)
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), Labels)
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (Positioned))
 
 import qualified Fana.Data.HasSingle as HasSingle
@@ -29,18 +29,13 @@ meta_name_class :: Text
 meta_name_class = "class"
 
 render_node :: ElemT -> ElemLR
-render_node node =
-	let
-		labels = fst node
-		address :: Maybe PageAddress
-		address = Structure.address_of_Labels labels
-		in (HasSingle.elem >>> HasSingle.elem) node
+render_node = HasSingle.elem >>> HasSingle.elem
 
 parse_node :: ElemPT -> ElemT
 parse_node node =
 	let
 		position = Pos.get_position node
-		labels = Structure.Labels Nothing
+		labels = Structure.Labels
 		in (labels, (Positioned position (HasSingle.elem node)))
 
 serialize_node :: Optic.Iso ElemLR ElemPT ElemT ElemT

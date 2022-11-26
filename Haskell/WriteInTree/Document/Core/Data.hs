@@ -5,7 +5,7 @@ module WriteInTree.Document.Core.Data where
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..), inLabel_page_address, Labels)
+import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Position, HasPosition, get_position)
 
 import qualified Data.Tree as Tree
@@ -105,9 +105,6 @@ internal_address_in_link_in_node =
 	Category2.identity
 	>**>^ internal_address_in_Inline
 	>**>^ inNode_content
-
-page_addresses_in_Node :: Optic.Traversal' (Maybe PageAddress) Node
-page_addresses_in_Node = Category2.identity >**>^ inLabel_page_address >**>^ inNode_labels
 
 node_in_tree :: Optic.Traversal' Node StructureAsTree
 node_in_tree = Optic.from_Traversable
