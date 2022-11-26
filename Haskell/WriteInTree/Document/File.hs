@@ -120,8 +120,8 @@ read_recursively folder_path =
 		read_dir_to_page (name, (address, content_bulk)) = (address, (name, content_bulk))
 		in (map >>> map >>> map) read_dir_to_page (read_forest single_folder_content_reader folder_path)
 
-search_error_in_site :: Site -> Maybe String
-search_error_in_site site =
+search_page_address_error_in_site :: Site -> Maybe String
+search_page_address_error_in_site site =
 	let
 		page_map_result :: Either (String, [PageContent]) (SMap.Map Char PageContent)
 		page_map_result = MapI.from_list_of_uniques (map (Bifunctor.first unwrapPageAddress) (toList site))
@@ -146,7 +146,7 @@ read folder_path =
 		process_page_forest :: Forest Page -> Either Text (Tree Page)
 		process_page_forest = 
 			\case
-				[single] -> maybe (Right single) Left (search_error_in_site single)
+				[single] -> maybe (Right single) Left (search_page_address_error_in_site single)
 				_ -> Left "page folder forest must consist of a single tree"
 		in
 			do

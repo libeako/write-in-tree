@@ -37,7 +37,7 @@ layer =
 	Category2.identity
 	>**>^ Optic.piso_convert_error show_error Tt.text_tree
 	>**>^ Path.layer
-	>**>^ Label.layer
+	>**>^ Label.serialize_forest
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
 	>**>^ Page.layer
 	>**>^ layer_meta_text_escapee
