@@ -5,7 +5,6 @@ module WriteInTree.Document.Core.Data where
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Position, HasPosition, get_position)
 
 import qualified Data.Tree as Tree
@@ -45,7 +44,6 @@ status_from_is_page_trunk =
 data Node =
 	Node
 	{ nodePosition :: Position
-	, nodeLabels :: Labels
 	, nodeContent :: Paragraph
 	}
 	deriving (Eq)
@@ -57,9 +55,6 @@ type StructureAsTree = Tree.Tree Node
 
 inNode_position :: Optic.Lens' Position Node
 inNode_position = Optic.lens_from_get_set nodePosition (\ p w -> w { nodePosition = p })
-
-inNode_labels :: Optic.Lens' Labels Node
-inNode_labels = Optic.lens_from_get_set nodeLabels (\ p w -> w { nodeLabels = p })
 
 inNode_content :: Optic.Lens' Paragraph Node
 inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })

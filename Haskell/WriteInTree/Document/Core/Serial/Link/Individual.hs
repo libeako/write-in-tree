@@ -11,11 +11,9 @@ where
 import Data.Tree (Tree (..))
 import Fana.Prelude
 import WriteInTree.Document.Core.Data (Link)
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (Labels)
 import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
 
 import qualified Data.Bifunctor as BiFr
-import qualified Fana.Data.HeteroPair as Pair
 import qualified Data.Tree as Tree
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -27,7 +25,6 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
 
 type Text = Base.String
-type LabeledPositioned e = (Labels, Positioned e)
 
 data MetaNodeName = MnLink deriving (Base.Enum, Base.Bounded)
 
@@ -76,10 +73,10 @@ parse (Node trunk children) =
 		then Just (parse_core' children)
 		else Nothing
 
-parse' :: Tree (LabeledPositioned Text) -> Maybe (Either ParseError Link)
+parse' :: Tree (Positioned Text) -> Maybe (Either ParseError Link)
 parse' tree =
-	map (BiFr.first (Pos.position_error (snd (Tree.rootLabel tree))))
-		(parse (map (snd >>> Pos.positionedValue) tree))
+	map (BiFr.first (Pos.position_error (Tree.rootLabel tree)))
+		(parse (map Pos.positionedValue tree))
 
 render :: Link -> Tree Text
 render d =
@@ -91,8 +88,8 @@ render d =
 		in Node (Ntt.render_exceptional meta_node_name)
 			(map (flip Node []) [render_DestinationType dt, addr])
 
-wrap_into_default_context :: x -> LabeledPositioned x
-wrap_into_default_context = Positioned def >>> Pair.after def
+wrap_into_default_context :: x -> Positioned x
+wrap_into_default_context = Positioned def
 
-render' :: Link -> Tree (LabeledPositioned Text)
+render' :: Link -> Tree (Positioned Text)
 render' = render >>> map wrap_into_default_context
