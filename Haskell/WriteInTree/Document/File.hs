@@ -15,6 +15,11 @@ import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddres
 import WriteInTree.Document.Main (Document (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..), FolderSepProps (FolderSepProps))
 
+import qualified Data.Bifunctor as Bifunctor
+import qualified Fana.Data.Key.LensToMaybeElement as MapI
+import qualified Fana.Data.Key.Map.Interface as MapI
+import qualified Fana.Data.Key.Map.KeyIsString as SMap
+import qualified Fana.Data.List as List
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Acc
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
@@ -115,18 +120,36 @@ read_recursively folder_path =
 		read_dir_to_page (name, (address, content_bulk)) = (address, (name, content_bulk))
 		in (map >>> map >>> map) read_dir_to_page (read_forest single_folder_content_reader folder_path)
 
+search_error_in_site :: Site -> Maybe String
+search_error_in_site site =
+	let
+		page_map_result :: Either (String, [PageContent]) (SMap.Map Char PageContent)
+		page_map_result = MapI.from_list_of_uniques (map (Bifunctor.first unwrapPageAddress) (toList site))
+		in
+			case page_map_result of
+				Left (repeted_address, _) -> Just ("multiple pages have the same address " <> repeted_address)
+				Right page_map -> 
+					let
+						addresses :: [String]
+						addresses = Optic.to_list internal_address_in_link_in_site site
+						reference_error_of_address :: String -> Maybe String
+						reference_error_of_address address = 
+							maybe (Just ("page with address " <> address <> " does not exist")) (const Nothing)
+								(flip MapI.get_at page_map address)
+						in List.first (catMaybes (map reference_error_of_address addresses))
+
 read :: FilePath -> ExceptT Text IO Document
 read folder_path =
 	let
 		read_member :: Member d -> ExceptT Text IO d
 		read_member = FolderMember.read folder_path
-		treeify_page_forest :: Forest p -> Either Text (Tree p)
-		treeify_page_forest = 
+		process_page_forest :: Forest Page -> Either Text (Tree Page)
+		process_page_forest = 
 			\case
-				[single] -> Right single
+				[single] -> maybe (Right single) Left (search_error_in_site single)
 				_ -> Left "page folder forest must consist of a single tree"
 		in
 			do
 				sep_props <- read_member member_config
 				foldered_pages <- read_recursively (folder_path </> pages_folder_name)
-				liftEither (map (Document sep_props)(treeify_page_forest foldered_pages))
+				liftEither (map (Document sep_props)(process_page_forest foldered_pages))

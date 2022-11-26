@@ -5,6 +5,7 @@ module WriteInTree.Document.Core.Serial.Page.Data
 	Site,
 	title_of_page, 
 	text_content_in_page_content_bulk, 
+	internal_address_in_link_in_site,
 	node_in_site,
 )
 where
@@ -59,4 +60,13 @@ text_content_in_page_content_bulk =
 	Category2.identity
 	>**>^ text_in_Node
 	>**>^ node_in_tree
+	>**>^ Optic.from_Traversable
+
+internal_address_in_link_in_site :: Optic.Traversal' Text Site
+internal_address_in_link_in_site = 
+	Category2.identity
+	>**>^ internal_address_in_link_in_tree
+	>**>^ Optic.from_Traversable
+	>**>^ Optic.lens_2
+	>**>^ Optic.lens_2
 	>**>^ Optic.from_Traversable
