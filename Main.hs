@@ -10,7 +10,6 @@ import qualified Technical.Else as Tech
 import qualified WriteInTree.CommandLine as ClC
 import qualified WriteInTree.Compile as Compile
 import qualified WriteInTree.Convert as Convert
-import qualified WriteInTree.Document.SepProps.Command_ShowDefault as ShowDefaultProps
 
 
 handle_error :: ExceptT String IO () -> IO ()
@@ -26,5 +25,4 @@ program :: ClC.Command -> ExceptT String IO ()
 program command =
 	case command of
 		ClC.CTranslate ifp ofp -> Compile.compile (Tech.FilePath ofp) ifp
-		ClC.CShowDefaultDocProps -> ExceptT (map Right (ShowDefaultProps.doit))
 		ClC.CConvert test_idempotence ip op -> Convert.convert test_idempotence ip op

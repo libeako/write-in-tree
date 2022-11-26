@@ -12,7 +12,6 @@ import qualified Options.Applicative as Parse
 
 data Command = 
 	  CTranslate FilePath FilePath -- ^ input and output paths
-	| CShowDefaultDocProps -- ^ shows default document properties
 	| CConvert Bool FilePath FilePath
 
 matevar_text__input_path :: String
@@ -36,11 +35,6 @@ option_output_path =
 	Parse.long "output" <>
 	Parse.help "output [folder] path" <>
 	Parse.metavar metavar_text__output_filter
-option_page_addresses :: Parse.Mod Parse.OptionFields String
-option_page_addresses =
-	Parse.long "page-addresses" <>
-	Parse.help "path of new page addresses" <>
-	Parse.metavar metavar_text__page_addresses
 
 option_whether_to_do_readback_test :: Parse.Mod Parse.FlagFields Bool
 option_whether_to_do_readback_test = 
@@ -90,19 +84,12 @@ parser_command_convert =
 			Parse.info options (Parse.progDesc description_text)
 			*>>> Parse.command "convert"
 
-parser_command_show_default_doc_props :: Parse.Mod Parse.CommandFields Command
-parser_command_show_default_doc_props = 
-	Parse.command "default-doc-props" 
-		(Parse.info (pure CShowDefaultDocProps) (Parse.progDesc "Shows the default document properties."))
-
-
 parser_commands :: Parse.Parser Command
 parser_commands = Parse.hsubparser 
 	(
 		Base.mempty
 		<> parser_command_translate 
 		<> parser_command_convert
-		<> parser_command_show_default_doc_props
 	)
 
 parse_new :: IO (Command)

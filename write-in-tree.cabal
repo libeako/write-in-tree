@@ -69,7 +69,6 @@ common common
       WriteInTree.Document.Core.Serial.RichTextTree.Position
       WriteInTree.Document.File
       WriteInTree.Document.Main
-      WriteInTree.Document.SepProps.Command_ShowDefault
       WriteInTree.Document.SepProps.Data
       WriteInTree.Document.SepProps.PropTree
       WriteInTree.Document.SepProps.Simco

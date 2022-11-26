@@ -1,7 +1,7 @@
 module WriteInTree.Document.Main
 (
 	Document (..),
-	core_in_document, node_in_doc,
+	core_in_document, node_in_document,
 )
 where
 
@@ -27,5 +27,5 @@ data Document =
 core_in_document :: Optic.Lens' Site Document
 core_in_document = Optic.lens_from_get_set docCore (\ c (Document sp _) -> Document sp c)
 
-node_in_doc :: Optic.Traversal' Data.Node Document
-node_in_doc = Category2.identity >**>^ Page.node_in_site >**>^ core_in_document
+node_in_document :: Optic.Traversal' Data.Node Document
+node_in_document = Category2.identity >**>^ Page.node_in_site >**>^ core_in_document

@@ -58,6 +58,7 @@ member_string member_name file_name =
 		reader = (</> file_name) >>> Base.readFile >>> map Right >>> ExceptT
 		in Member member_name writer reader
 
+
 data FileFormat d =
 	FileFormat
 	{ ffFormatName :: String
