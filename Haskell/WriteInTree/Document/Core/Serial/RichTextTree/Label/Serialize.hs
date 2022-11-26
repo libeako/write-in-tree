@@ -5,8 +5,6 @@ module WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize
 )
 where
 
-import Control.Monad ((>=>))
-import Data.Traversable (sequence)
 import Data.Tree (Tree (..), Forest)
 import Fana.Data.HasSingle (HasSingle)
 import Fana.Prelude
@@ -105,7 +103,7 @@ check_uniquness_of_ids =
 		uniquness_checks = map check_uniquness_of_id id_repetition_search_inputs
 		extract_single :: [Maybe e] -> Maybe e
 		extract_single = Base.catMaybes >>> List.first
-		in sequence uniquness_checks >>> extract_single
+		in sequenceA uniquness_checks >>> extract_single
 
 meta_name_class :: Text
 meta_name_class = "class"

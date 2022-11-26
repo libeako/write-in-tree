@@ -4,7 +4,6 @@ module Technical.FolderTree
 )
 where
 
-import Data.Maybe (catMaybes)
 import Data.Tree (Tree, Forest)
 import Fana.Prelude
 import Prelude (IO)

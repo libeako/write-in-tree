@@ -5,5 +5,4 @@ https://github.com/libeako/
 
 
 todo
-	delete all usages of 'undefined' for user input invalidity
-		because it introduces non-strictness and bugs via that
+	 check uniqueness and existance of page addresses

@@ -4,7 +4,7 @@ module WriteInTree.Document.File
 )
 where
 
-import Control.Monad.Except (ExceptT (..), runExceptT)
+import Control.Monad.Except (ExceptT (..), liftEither)
 import Data.Tree (Tree, Forest)
 import Fana.Prelude
 import Prelude (Char, String, IO, FilePath)
@@ -18,7 +18,6 @@ import WriteInTree.Document.SepProps.Data (DocSepProps (..), FolderSepProps (Fol
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Acc
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
-import qualified Prelude as Base
 import qualified System.Directory as Directory
 import qualified Technical.FolderMember as FolderMember
 import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
@@ -104,33 +103,30 @@ write address doc =
 
 single_folder_content_reader :: Reader (PageAddress, PageContentBulk)
 single_folder_content_reader path =
-	let
-		r :: ExceptT String IO (PageAddress, PageContentBulk)
-		r = 
-			do
-				sep_props <- ExceptT (FolderMember.memberReader member_folder_config path)
-				page_content_bulk <- ExceptT (FolderMember.memberReader member_content path)
-				pure (SepPropsData.address sep_props, page_content_bulk)
-		in runExceptT r
+	do
+		sep_props <- FolderMember.memberReader member_folder_config path
+		page_content_bulk <- FolderMember.memberReader member_content path
+		pure (SepPropsData.address sep_props, page_content_bulk)
 
-read_recursively :: FilePath -> IO (Forest Page)
+read_recursively :: FilePath -> ExceptT String IO (Forest Page)
 read_recursively folder_path =
 	let
 		read_dir_to_page :: Folder (PageAddress, PageContentBulk) -> Page
 		read_dir_to_page (name, (address, content_bulk)) = (address, (name, content_bulk))
 		in (map >>> map >>> map) read_dir_to_page (read_forest single_folder_content_reader folder_path)
 
-read :: FilePath -> IO Document
+read :: FilePath -> ExceptT Text IO Document
 read folder_path =
 	let
-		read_member :: Member d -> IO (d)
+		read_member :: Member d -> ExceptT Text IO d
 		read_member = FolderMember.read folder_path
-		treeify_page_forest :: Forest p -> Tree p
-		treeify_page_forest = \case
-			[single] -> single
-			_ -> Base.error "page folder forest must consist of a single tree"
+		treeify_page_forest :: Forest p -> Either Text (Tree p)
+		treeify_page_forest = 
+			\case
+				[single] -> Right single
+				_ -> Left "page folder forest must consist of a single tree"
 		in
 			do
-				config <- read_member member_config
+				sep_props <- read_member member_config
 				foldered_pages <- read_recursively (folder_path </> pages_folder_name)
-				pure (Document config (treeify_page_forest foldered_pages))
+				liftEither (map (Document sep_props)(treeify_page_forest foldered_pages))

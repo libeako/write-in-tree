@@ -5,9 +5,9 @@ module WriteInTree.Compile
 where
 
 
-import Control.Monad ((>=>))
+import Control.Monad.Except (ExceptT (..))
 import Fana.Prelude
-import Prelude (IO, FilePath)
+import Prelude (String, IO, FilePath)
 import WriteInTree.Document.Core.Serial.Page.Data (Site)
 import WriteInTree.Document.Main (Document (..))
 
@@ -23,9 +23,9 @@ compile_website :: FilePath -> Site -> Ot.Output
 compile_website output_folder = 
 	Ott.to_technical output_folder >>> HePair.after ""
 
-compile :: Tech.FilePath {- output -} -> FilePath {- input -} -> IO ()
+compile :: Tech.FilePath {- output -} -> FilePath {- input -} -> ExceptT String IO ()
 compile output_folder = 
 	let 
 		document_to_website :: Document -> Ot.Output
 		document_to_website = DocData.docCore >>> compile_website (Tech.deFilePath output_folder) 
-		in File.read >=> (document_to_website >>> Ot.write)
+		in File.read >=> (document_to_website >>> Ot.write >>> map Right >>> ExceptT)
