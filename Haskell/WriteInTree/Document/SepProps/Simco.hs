@@ -21,7 +21,7 @@ import qualified Fana.Serial.Print.Show as Fana
 
 type Text = String
 
-prefix_simco_parse_error :: SimcoAsText.ParseError -> Text
+prefix_simco_parse_error :: Text -> Text
 prefix_simco_parse_error m = "error parsing SimCo:\n" <> Acc.extract (Fana.show m)
 
 prefix_props_parse_error :: Text -> Text

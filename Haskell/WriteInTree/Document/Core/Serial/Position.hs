@@ -1,5 +1,6 @@
 module WriteInTree.Document.Core.Serial.Position
 (
+	Count,
 	Position, inPositioned_position,
 	HasPosition (..), Positioned (..), PositionedMb (..),
 	position_error_in_piso,
@@ -8,11 +9,10 @@ module WriteInTree.Document.Core.Serial.Position
 )
 where
 
+import Fana.Data.Tree.SerializeHight (Count)
 import Fana.Prelude
 
 import qualified Data.Bifunctor as Bifunctor
-import qualified Data.Foldable as Fold
-import qualified Data.List as List
 import qualified Data.Maybe as Base
 import qualified Fana.Data.HasSingle as Fana
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
@@ -23,15 +23,10 @@ import qualified Prelude as Base
 
 type Text = Base.String
 
-type Position = [Text]
+type Position = Count
 
 show_position :: Position -> Accu.Accumulated Text
-show_position =
-	List.reverse >>>
-	map Fana.show >>>
-	List.intersperse (Accu.single ": ") >>>
-	Fold.fold >>>
-	(Accu.single "\nat "<>)
+show_position = Base.show >>> Accu.single >>> ("at line " <>)
 
 class HasPosition p where get_position :: p -> Position
 
