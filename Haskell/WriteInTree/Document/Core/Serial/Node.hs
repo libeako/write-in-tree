@@ -1,4 +1,4 @@
-module WriteInTree.Document.Core.Serial.Page.Border
+module WriteInTree.Document.Core.Serial.Node
 (
 	serialize,
 )

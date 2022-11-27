@@ -59,7 +59,7 @@ common common
       WriteInTree.Document.Core.Serial.Layers
       WriteInTree.Document.Core.Serial.Link.Individual
       WriteInTree.Document.Core.Serial.Link.InTree
-      WriteInTree.Document.Core.Serial.Page.Border
+      WriteInTree.Document.Core.Serial.Node
       WriteInTree.Document.Core.Serial.Page.Data
       WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure
       WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix
