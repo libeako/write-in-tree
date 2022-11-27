@@ -22,13 +22,12 @@ import qualified System.FilePath as Fp
 import qualified Technical.Html as Html
 import qualified Technical.Xml.Data as Xml
 import qualified WriteInTree.Document.Core.Data as Data
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.ClassPrefix as Class
 import qualified WriteInTree.Output.Technical as T
 
 
 -- | text prefix for html class names - to prevent name collision with
 text_class_prefix :: Text
-text_class_prefix = Class.class_prefix
+text_class_prefix = "wit-"
 
 -- | html class of some elements of a page if and only if the page is trunk
 text_class_trunk_page :: Text
