@@ -44,7 +44,7 @@ parse_children children =
 			maybe
 				(Right (Nothing, children))
 				(map (\ l -> (Just l, rest)))
-				(Individual.parse' first)
+				(Individual.parse first)
 
 parse :: Tree (Positioned Text) -> Either ParseError (Tree (Positioned Inline))
 parse (Node trunk children) =

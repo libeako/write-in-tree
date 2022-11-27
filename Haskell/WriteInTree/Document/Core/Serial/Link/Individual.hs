@@ -3,7 +3,7 @@ module WriteInTree.Document.Core.Serial.Link.Individual
 	meta_node_name,
 	MetaNodeName (..),
 	ParseError,
-	render, parse',
+	render, parse,
 )
 where
 
@@ -28,8 +28,7 @@ type Text = Base.String
 
 data MetaNodeName = MnLink deriving (Base.Enum, Base.Bounded)
 
-type ParseError' = Accu.Accumulated Text
-type ParseError = Pos.Positioned ParseError'
+type ParseError = Pos.Positioned (Accu.Accumulated Text)
 
 data DestinationType = Internal | External deriving (Base.Enum, Base.Bounded)
 
@@ -53,8 +52,8 @@ children_number_error_message =
 meta_node_name :: Text
 meta_node_name = "links-to"
 
-parse_core' :: [Tree Text] -> Either ParseError' Link
-parse_core' =
+parse_children :: [Tree Text] -> Either (Accu.Accumulated Text) Link
+parse_children =
 	map Tree.rootLabel >>>
 	\case
 		[destination_type, address] ->
@@ -67,16 +66,16 @@ parse_core' =
 				in map build (Optic.piso_interpret layer_destination_type destination_type)
 		_ -> Left children_number_error_message
 
-parse :: Tree Text -> Maybe (Either ParseError' Link)
-parse (Node trunk children) =
+parse_branch_on_link :: Tree Text -> Maybe (Either (Accu.Accumulated Text) Link)
+parse_branch_on_link (Node trunk children) =
 	if trunk == Ntt.render_exceptional meta_node_name
-		then Just (parse_core' children)
+		then Just (parse_children children)
 		else Nothing
 
-parse' :: Tree (Positioned Text) -> Maybe (Either ParseError Link)
-parse' tree =
+parse :: Tree (Positioned Text) -> Maybe (Either ParseError Link)
+parse tree =
 	map (BiFr.first (Pos.position_error (Tree.rootLabel tree)))
-		(parse (map Pos.positionedValue tree))
+		(parse_branch_on_link (map Pos.positionedValue tree))
 
 render :: Link -> Tree Text
 render d =
