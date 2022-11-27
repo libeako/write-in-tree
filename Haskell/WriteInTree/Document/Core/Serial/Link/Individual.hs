@@ -2,7 +2,6 @@ module WriteInTree.Document.Core.Serial.Link.Individual
 (
 	meta_node_name,
 	MetaNodeName (..),
-	ParseError,
 	render, parse,
 )
 where
@@ -11,11 +10,11 @@ where
 import Data.Tree (Tree (..))
 import Fana.Prelude
 import WriteInTree.Document.Core.Data (Link)
-import WriteInTree.Document.Core.Serial.Position (Positioned (..))
+import WriteInTree.Document.Core.Serial.Position 
+	(Positioned (..), prefix_error_message_with_position_from)
 
 import qualified Data.Bifunctor as BiFr
 import qualified Data.Tree as Tree
-import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Enum as Serial
 import qualified Prelude as Base
@@ -28,8 +27,6 @@ type Text = Base.String
 
 data MetaNodeName = MnLink deriving (Base.Enum, Base.Bounded)
 
-type ParseError = Pos.Positioned (Accu.Accumulated Text)
-
 data DestinationType = Internal | External deriving (Base.Enum, Base.Bounded)
 
 render_DestinationType :: DestinationType -> Text
@@ -37,7 +34,7 @@ render_DestinationType = \case
 	Internal -> "internal"
 	External -> "external"
 
-layer_destination_type :: Optic.PartialIso' (Accu.Accumulated Text) Text DestinationType
+layer_destination_type :: Optic.PartialIso' Text Text DestinationType
 layer_destination_type =
 	let
 		error_description = "link destination type not recognized"
@@ -45,14 +42,14 @@ layer_destination_type =
 			Optic.piso_convert_error_with_low (const (const error_description)) 
 				(Serial.enum render_DestinationType)
 
-children_number_error_message :: Accu.Accumulated Text
+children_number_error_message :: Text
 children_number_error_message =
-	Accu.single "a link node must have exactly 2 children [target type, target address]"
+	"a link node must have exactly 2 children [target type, target address]"
 
 meta_node_name :: Text
 meta_node_name = "links-to"
 
-parse_children :: [Tree Text] -> Either (Accu.Accumulated Text) Link
+parse_children :: [Tree Text] -> Either Text Link
 parse_children =
 	map Tree.rootLabel >>>
 	\case
@@ -66,15 +63,15 @@ parse_children =
 				in map build (Optic.piso_interpret layer_destination_type destination_type)
 		_ -> Left children_number_error_message
 
-parse_branch_on_link :: Tree Text -> Maybe (Either (Accu.Accumulated Text) Link)
+parse_branch_on_link :: Tree Text -> Maybe (Either Text Link)
 parse_branch_on_link (Node trunk children) =
 	if trunk == Ntt.render_exceptional meta_node_name
 		then Just (parse_children children)
 		else Nothing
 
-parse :: Tree (Positioned Text) -> Maybe (Either ParseError Link)
+parse :: Tree (Positioned Text) -> Maybe (Either Text Link)
 parse tree =
-	map (BiFr.first (Pos.position_error (Tree.rootLabel tree)))
+	map (BiFr.first (prefix_error_message_with_position_from (Tree.rootLabel tree)))
 		(parse_branch_on_link (map Pos.positionedValue tree))
 
 render :: Link -> Tree Text

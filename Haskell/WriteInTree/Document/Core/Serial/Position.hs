@@ -2,35 +2,34 @@ module WriteInTree.Document.Core.Serial.Position
 (
 	Count,
 	Position, inPositioned_position,
-	HasPosition (..), Positioned (..), PositionedMb (..),
-	position_error_in_piso,
-	position_error, without_position, maybefy_positioned, position_error_mb, fill_position,
-	show_position,
+	HasPosition (..), Positioned (..), 
+	prefix_error_message_with_position, prefix_error_message_with_position_from,
 )
 where
 
 import Fana.Data.Tree.SerializeHight (Count)
 import Fana.Prelude
 
-import qualified Data.Bifunctor as Bifunctor
-import qualified Data.Maybe as Base
-import qualified Fana.Data.HasSingle as Fana
-import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
+import qualified Fana.Data.Function as Fn
 import qualified Fana.Optic.Concrete.Prelude as Optic
-import qualified Fana.Serial.Print.Show as Fana
 import qualified Prelude as Base
 
 
 type Text = Base.String
-
 type Position = Count
-
-show_position :: Position -> Accu.Accumulated Text
-show_position = Base.show >>> Accu.single >>> ("at line " <>)
 
 class HasPosition p where get_position :: p -> Position
 
 instance HasPosition Position where get_position = id
+
+prefix_error_message_with_position :: Position -> Fn.Endo Text
+prefix_error_message_with_position p em = "at line " <> Base.show p <> ":\n" <> em
+
+prefix_error_message_with_position_from :: HasPosition p => p -> Fn.Endo Text
+prefix_error_message_with_position_from = get_position >>> prefix_error_message_with_position
+
+show_position :: Position -> Text
+show_position p = prefix_error_message_with_position p ""
 
 data Positioned e =
 	Positioned
@@ -45,49 +44,3 @@ inPositioned_position :: Optic.Lens' Position (Positioned e)
 inPositioned_position = Optic.lens_from_get_set position (\ p w -> w { position = p })
 
 instance HasPosition (Positioned e) where get_position = position
-instance Fana.HasSingle Positioned where elem = positionedValue
-
-position_error :: HasPosition a => a -> e -> Positioned e
-position_error = get_position >>> Positioned
-
-position_error_in_piso ::
-	forall e pr pp dr dp .
-	HasPosition pp =>
-	Optic.PartialIso e pr pp dr dp ->
-	Optic.PartialIso (Positioned e) pr pp dr dp
-position_error_in_piso (Optic.PartialIso render parse) =
-	let
-		new_parse :: pp -> Either (Positioned e) dp
-		new_parse = (get_position >>> Positioned >>> Bifunctor.first) <*> parse
-		in Optic.PartialIso render new_parse
-
--- | maybe positioned.
-data PositionedMb e = PositionedMb
-	{ position_mb :: Maybe Position
-		-- ^ the position in reverse order [towards trunk].
-	, value_in_PositionedMb :: e
-	}
-	deriving (Functor, Foldable, Traversable)	
-
-without_position :: e -> PositionedMb e
-without_position e = PositionedMb Nothing e
-
-maybefy_positioned :: Positioned e -> PositionedMb e
-maybefy_positioned (Positioned pos val) = PositionedMb (Just pos) val
-
-position_error_mb :: HasPosition a => a -> e -> PositionedMb e
-position_error_mb a = position_error a >>> maybefy_positioned
-
-fill_position :: HasPosition a => a -> PositionedMb e -> Positioned e
-fill_position a (PositionedMb pos val) = Positioned (Base.fromMaybe (get_position a) pos) val
-
-instance Fana.Showable Text e => Fana.Showable Text (PositionedMb e) where
-	show pe = let
-		show_pos :: Position -> Accu.Accumulated Text
-		show_pos p = show_position p <> (Accu.single ":\n")
-		pos :: Accu.Accumulated Text
-		pos = Base.maybe mempty show_pos (position_mb pe)
-		in pos <> Fana.show (value_in_PositionedMb pe)
-
-instance Fana.Showable Text e => Fana.Showable Text (Positioned e) where
-	show = maybefy_positioned >>> Fana.show
