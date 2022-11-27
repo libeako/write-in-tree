@@ -9,7 +9,6 @@ import Fana.Prelude
 import Prelude (String, FilePath)
 import WriteInTree.Document.Core.Data
 import WriteInTree.Document.Core.Serial.Page.Data
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 
 import qualified Data.Bifunctor as BiFr
 import qualified Data.Foldable as Fold

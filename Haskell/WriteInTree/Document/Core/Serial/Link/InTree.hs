@@ -1,6 +1,6 @@
 module WriteInTree.Document.Core.Serial.Link.InTree
 (
-	layer,
+	serialize,
 )
 where
 
@@ -54,8 +54,8 @@ parse (Node trunk children) =
 			map (Node (map (flip Data.Inline l) trunk)) (traverse parse rest_of_children)
 		in parse_children children >>= from_situation
 
-layer :: 
+serialize :: 
 	Optic.PartialIso ParseError 
 		(Forest Text) (Forest (Positioned Text))
 		(Forest (Positioned Inline)) (Forest (Positioned Inline))
-layer = Optic.lift_piso (Optic.PartialIso render parse)
+serialize = Optic.lift_piso (Optic.PartialIso render parse)

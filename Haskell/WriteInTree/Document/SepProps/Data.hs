@@ -7,7 +7,7 @@ where
 
 import Prelude (Eq)
 import Data.Default.Class
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
+import WriteInTree.Document.Core.Serial.Page.Data (PageAddress (..))
 
 import qualified Fana.Optic.Concrete.Categories.Lens as Optic
 import qualified Prelude as Base

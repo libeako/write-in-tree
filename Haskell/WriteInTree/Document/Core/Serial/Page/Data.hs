@@ -1,6 +1,7 @@
 module WriteInTree.Document.Core.Serial.Page.Data
 (
 	Text,
+	PageAddress (..),
 	PageContentTree, PageContentBulk, PageTitle, PageContent, Page,
 	Site,
 	title_of_page, 
@@ -14,12 +15,15 @@ import Data.Tree (Tree, Forest)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Optic.Concrete.Prelude (lens_2)
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 import WriteInTree.Document.Core.Data
 
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 
+
+data PageAddress = 
+	PageAddress { unwrapPageAddress :: Text }
+	deriving Eq
 
 type PageContentTree = Tree Node
 type PageContentBulk = Forest Node

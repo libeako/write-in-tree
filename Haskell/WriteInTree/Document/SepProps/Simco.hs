@@ -1,7 +1,7 @@
--- | serialization of the separate document properties in simco language
+-- | serialization of the separate properties in simco language
 module WriteInTree.Document.SepProps.Simco
 (
-	layer,
+	serialize,
 )
 where
 
@@ -24,14 +24,14 @@ type Text = String
 prefix_simco_parse_error :: SimcoAsText.ParseError -> Text
 prefix_simco_parse_error m = "error parsing SimCo:\n" <> Acc.extract (Fana.show m)
 
-prefix_config_parse_error :: Text -> Text
-prefix_config_parse_error m = "error parsing properties file:\n" <> m
+prefix_props_parse_error :: Text -> Text
+prefix_props_parse_error m = "error parsing properties file:\n" <> m
 
-layer :: Default r => PropTree.RecordType r -> Optic.PartialIso' Text Text r
-layer rt =
+serialize :: Default r => PropTree.RecordType r -> Optic.PartialIso' Text Text r
+serialize rt =
 	Category2.identity
 	>**>^ (Optic.piso_convert_error prefix_simco_parse_error SimcoAsText.serializer)
 	>**>^ SimcoProps.serialize
 	>**>^ 
-		Optic.piso_convert_error prefix_config_parse_error 
+		Optic.piso_convert_error prefix_props_parse_error 
 			(PropTree.record_serializer_over_property_list rt)

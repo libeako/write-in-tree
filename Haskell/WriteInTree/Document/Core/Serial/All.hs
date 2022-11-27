@@ -38,6 +38,6 @@ serialize =
 	>**>^ Optic.piso_convert_error show_error Tt.text_tree
 	>**>^ Path.layer
 	>**>^ Label.serialize_forest
-	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
+	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.serialize
 	>**>^ Node.serialize
 	>**>^ meta_text_escape

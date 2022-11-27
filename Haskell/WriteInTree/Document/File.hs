@@ -11,7 +11,6 @@ import Prelude (Char, String, IO, FilePath)
 import Technical.FolderMember (Folder, Reader, Member (..), member_string, read_forest)
 import System.FilePath ((</>))
 import WriteInTree.Document.Core.Serial.Page.Data
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
 import WriteInTree.Document.Main (Document (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..), FolderSepProps (FolderSepProps))
 
@@ -38,7 +37,7 @@ member_config =
 		serializer =
 			Optic.piso_convert_error
 				(Fana.show >>> Acc.extract >>> ("error in document's separate properties file:\n" <>))
-				(SepPropsSimco.layer SepPropsPT.type_structure_doc_sep_props)
+				(SepPropsSimco.serialize SepPropsPT.type_structure_doc_sep_props)
 		in
 			FolderMember.lift_by_piso serializer
 				(member_string "document separate properties" "properties.simco")
@@ -50,7 +49,7 @@ member_folder_config =
 		serializer =
 			Optic.piso_convert_error
 				(Fana.show >>> Acc.extract >>> ("error in folder's separate properties file:\n" <>))
-				(SepPropsSimco.layer SepPropsPT.type_structure_folder_sep_props)
+				(SepPropsSimco.serialize SepPropsPT.type_structure_folder_sep_props)
 		in
 			FolderMember.lift_by_piso serializer
 				(member_string "folder separate properties" "properties.simco")

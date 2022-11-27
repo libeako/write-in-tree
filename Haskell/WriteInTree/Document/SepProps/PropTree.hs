@@ -6,7 +6,7 @@ module WriteInTree.Document.SepProps.PropTree
 where
 
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.RichTextTree.Label.Structure (PageAddress (..))
+import WriteInTree.Document.Core.Serial.Page.Data (PageAddress (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..), FolderSepProps (..))
 
 import qualified Data.Bifunctor as Bifunctor
