@@ -7,14 +7,14 @@ where
 import Data.Tree (Tree (..), Forest)
 import Fana.Prelude
 import WriteInTree.Document.Core.Data (Inline, Link)
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
+import WriteInTree.Document.Core.Serial.Position (Positioned (..))
 
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Accu
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
 import qualified WriteInTree.Document.Core.Serial.Link.Individual as Individual
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
+import qualified WriteInTree.Document.Core.Serial.Position as Pos
 
 
 type Text = Base.String

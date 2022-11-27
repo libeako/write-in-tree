@@ -11,7 +11,7 @@ where
 import Data.Tree (Tree (..))
 import Fana.Prelude
 import WriteInTree.Document.Core.Data (Link)
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
+import WriteInTree.Document.Core.Serial.Position (Positioned (..))
 
 import qualified Data.Bifunctor as BiFr
 import qualified Data.Tree as Tree
@@ -20,8 +20,8 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Enum as Serial
 import qualified Prelude as Base
 import qualified WriteInTree.Document.Core.Data as Data
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Ntt
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
+import qualified WriteInTree.Document.Core.Serial.InNodeTextStructure as Ntt
+import qualified WriteInTree.Document.Core.Serial.Position as Pos
 
 
 type Text = Base.String

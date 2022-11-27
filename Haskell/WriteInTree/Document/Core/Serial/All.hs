@@ -9,17 +9,17 @@ import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Monoid.Accumulate (Accumulated)
 import Fana.Prelude
 import WriteInTree.Document.Core.Serial.Page.Data
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (PositionedMb (..))
+import WriteInTree.Document.Core.Serial.Position (PositionedMb (..))
 
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Text.Indent as Tt
 import qualified Fana.Serial.Print.Show as Fana
+import qualified WriteInTree.Document.Core.Serial.InNodeTextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Node as Node
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Mtt
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
+import qualified WriteInTree.Document.Core.Serial.Path as Path
+import qualified WriteInTree.Document.Core.Serial.Position as Pos
 
 
 show_error :: Fana.Showable Text e => e -> PositionedMb (Accumulated Text)

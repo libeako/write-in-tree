@@ -1,4 +1,4 @@
-module WriteInTree.Document.Core.Serial.RichTextTree.Path
+module WriteInTree.Document.Core.Serial.Path
 (
 	layer,
 )
@@ -6,7 +6,7 @@ where
 
 import Data.Tree (Tree, Forest)
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (Positioned))
+import WriteInTree.Document.Core.Serial.Position (Positioned (Positioned))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Data.Tree as Tree

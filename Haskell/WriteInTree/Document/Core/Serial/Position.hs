@@ -1,4 +1,4 @@
-module WriteInTree.Document.Core.Serial.RichTextTree.Position
+module WriteInTree.Document.Core.Serial.Position
 (
 	Position, inPositioned_position,
 	HasPosition (..), Positioned (..), PositionedMb (..),

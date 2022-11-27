@@ -1,4 +1,4 @@
-module WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure
+module WriteInTree.Document.Core.Serial.InNodeTextStructure
 (
 	render_exceptional, 
 	layer_escapee,

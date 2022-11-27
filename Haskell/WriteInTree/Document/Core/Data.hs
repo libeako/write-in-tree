@@ -5,7 +5,7 @@ module WriteInTree.Document.Core.Data where
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Prelude
 import Prelude (String)
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (Position, HasPosition, get_position)
+import WriteInTree.Document.Core.Serial.Position (Position, HasPosition, get_position)
 
 import qualified Data.Tree as Tree
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2

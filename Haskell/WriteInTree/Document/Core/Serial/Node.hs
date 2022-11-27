@@ -7,7 +7,7 @@ where
 import Data.Tree (Forest)
 import Fana.Prelude
 import WriteInTree.Document.Core.Data (Node, nodePosition, nodeContent, Paragraph)
-import WriteInTree.Document.Core.Serial.RichTextTree.Position (Positioned (..))
+import WriteInTree.Document.Core.Serial.Position (Positioned (..))
 
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified WriteInTree.Document.Core.Data as Data
