@@ -55,8 +55,8 @@ common common
       WriteInTree.Compile
       WriteInTree.Convert
       WriteInTree.Document.Core.Data
+      WriteInTree.Document.Core.Serial.All
       WriteInTree.Document.Core.Serial.LanguageVersion
-      WriteInTree.Document.Core.Serial.Layers
       WriteInTree.Document.Core.Serial.Link.Individual
       WriteInTree.Document.Core.Serial.Link.InTree
       WriteInTree.Document.Core.Serial.Node

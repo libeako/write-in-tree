@@ -1,6 +1,6 @@
-module WriteInTree.Document.Core.Serial.Layers
+module WriteInTree.Document.Core.Serial.All
 (
-	layer,
+	serialize,
 )
 where
 
@@ -26,18 +26,18 @@ import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 show_error :: Fana.Showable Text e => e -> PositionedMb (Accumulated Text)
 show_error = Fana.show >>> PositionedMb Nothing
 
-layer_meta_text_escapee :: Optic.Iso' PageContentBulk PageContentBulk
-layer_meta_text_escapee =
+meta_text_escape :: Optic.Iso' PageContentBulk PageContentBulk
+meta_text_escape =
 	Optic.lift_iso_by_function (Optic.fn_up text_content_in_page_content_bulk) Mtt.layer_escapee
 
 type LayerTextTree = Optic.PartialIso' (PositionedMb (Accumulated Text)) Text (Tree Text)
 
-layer :: Optic.PartialIso' (PositionedMb (Accumulated Text)) Text PageContentBulk
-layer =
+serialize :: Optic.PartialIso' (PositionedMb (Accumulated Text)) Text PageContentBulk
+serialize =
 	Category2.identity
 	>**>^ Optic.piso_convert_error show_error Tt.text_tree
 	>**>^ Path.layer
 	>**>^ Label.serialize_forest
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.layer
 	>**>^ Node.serialize
-	>**>^ layer_meta_text_escapee
+	>**>^ meta_text_escape

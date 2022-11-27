@@ -25,7 +25,7 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
 import qualified System.Directory as Directory
 import qualified Technical.FolderMember as FolderMember
-import qualified WriteInTree.Document.Core.Serial.Layers as CoreSerial
+import qualified WriteInTree.Document.Core.Serial.All as CoreSerial
 import qualified WriteInTree.Document.SepProps.Data as SepPropsData
 import qualified WriteInTree.Document.SepProps.PropTree as SepPropsPT
 import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
@@ -59,7 +59,7 @@ member_content :: Member PageContentBulk
 member_content =
 	let
 		serializer :: Optic.PartialIso' String String PageContentBulk
-		serializer = Optic.piso_convert_error (Fana.show >>> Acc.extract) CoreSerial.layer
+		serializer = Optic.piso_convert_error (Fana.show >>> Acc.extract) CoreSerial.serialize
 		in
 			FolderMember.lift_by_piso
 				serializer
