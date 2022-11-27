@@ -10,7 +10,7 @@ import Fana.Prelude
 import Prelude (Char, String, IO, FilePath)
 import Technical.FolderMember (Folder, Reader, Member (..), member_string, read_forest)
 import System.FilePath ((</>))
-import WriteInTree.Document.Core.Serial.Page.Data
+import WriteInTree.Document.Core.Data
 import WriteInTree.Document.Main (Document (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..), FolderSepProps (FolderSepProps))
 

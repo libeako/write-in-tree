@@ -8,7 +8,7 @@ import Data.Tree (Tree)
 import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
 import Fana.Math.Algebra.Monoid.Accumulate (Accumulated)
 import Fana.Prelude
-import WriteInTree.Document.Core.Serial.Page.Data
+import WriteInTree.Document.Core.Data
 import WriteInTree.Document.Core.Serial.Position (PositionedMb (..))
 
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
