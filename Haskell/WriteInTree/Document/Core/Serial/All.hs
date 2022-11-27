@@ -18,7 +18,6 @@ import qualified Fana.Serial.Print.Show as Fana
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Node as Node
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.InNodeTextStructure as Mtt
-import qualified WriteInTree.Document.Core.Serial.RichTextTree.Label.Serialize as Label
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Path as Path
 import qualified WriteInTree.Document.Core.Serial.RichTextTree.Position as Pos
 
@@ -37,7 +36,6 @@ serialize =
 	Category2.identity
 	>**>^ Optic.piso_convert_error show_error Tt.text_tree
 	>**>^ Path.layer
-	>**>^ Label.serialize_forest
 	>**>^ Optic.piso_convert_error Pos.maybefy_positioned Link.serialize
 	>**>^ Node.serialize
 	>**>^ meta_text_escape
