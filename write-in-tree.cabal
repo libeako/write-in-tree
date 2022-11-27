@@ -60,7 +60,6 @@ common common
       WriteInTree.Document.Core.Serial.Link.InTree
       WriteInTree.Document.Core.Serial.Node
       WriteInTree.Document.Core.Serial.InNodeTextStructure
-      WriteInTree.Document.Core.Serial.Path
       WriteInTree.Document.Core.Serial.Position
       WriteInTree.Document.File
       WriteInTree.Document.Main
