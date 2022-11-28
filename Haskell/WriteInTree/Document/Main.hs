@@ -22,7 +22,6 @@ data Document =
 	}
 	deriving (Eq)
 
-
 core_in_document :: Optic.Lens' Site Document
 core_in_document = Optic.lens_from_get_set docCore (\ c (Document sp _) -> Document sp c)
 

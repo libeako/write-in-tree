@@ -14,6 +14,7 @@ import WriteInTree.Document.Core.Serial.Position
 	(Positioned (..), prefix_error_message_with_position_from)
 
 import qualified Data.Bifunctor as BiFr
+import qualified Data.List as List
 import qualified Data.Tree as Tree
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Enum as Serial
@@ -44,14 +45,13 @@ layer_destination_type =
 
 children_number_error_message :: Text
 children_number_error_message =
-	"a link node must have exactly 2 children [target type, target address]"
+	"a link node must have exactly 2 arguments [target type, target address]"
 
 meta_node_name :: Text
 meta_node_name = "links-to"
 
-parse_children :: [Tree Text] -> Either Text Link
-parse_children =
-	map Tree.rootLabel >>>
+parse_link_from_words :: [Text] -> Either Text Link
+parse_link_from_words =
 	\case
 		[destination_type, address] ->
 			let
@@ -63,11 +63,17 @@ parse_children =
 				in map build (Optic.piso_interpret layer_destination_type destination_type)
 		_ -> Left children_number_error_message
 
+parse_link_tree :: [Text] -> Either Text Link
+parse_link_tree arguments = 
+	let 
+		words :: [Text]
+		words = fold (map List.words arguments)
+		in parse_link_from_words words
+
 parse_branch_on_link :: Tree Text -> Maybe (Either Text Link)
 parse_branch_on_link (Node trunk children) =
-	if trunk == Ntt.render_exceptional meta_node_name
-		then Just (parse_children children)
-		else Nothing
+	map (List.dropWhile (== ' ') >>> (: fold (map toList children)) >>> parse_link_tree)
+		(List.stripPrefix (Ntt.render_exceptional meta_node_name) trunk)
 
 parse :: Tree (Positioned Text) -> Maybe (Either Text Link)
 parse tree =
@@ -81,5 +87,4 @@ render d =
 			case d of
 				Data.LIn a -> (Internal, a)
 				Data.LEx a -> (External, a)
-		in Node (Ntt.render_exceptional meta_node_name)
-			(map (flip Node []) [render_DestinationType dt, addr])
+		in Node (List.intercalate " " [Ntt.render_exceptional meta_node_name, render_DestinationType dt, addr]) []
