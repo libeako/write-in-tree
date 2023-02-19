@@ -6,7 +6,7 @@ module WriteInTree.Document.SepProps.Simco
 where
 
 import Data.Default.Class
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
+import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 import Prelude (String)
 
@@ -30,8 +30,7 @@ prefix_props_parse_error m = "error parsing properties file:\n" <> m
 serialize :: Default r => PropTree.RecordType r -> Optic.PartialIso' Text Text r
 serialize rt =
 	Category2.identity
-	>**>^ (Optic.piso_convert_error prefix_simco_parse_error SimcoAsText.serializer)
-	>**>^ SimcoProps.serialize
-	>**>^ 
-		Optic.piso_convert_error prefix_props_parse_error 
-			(PropTree.record_serializer_over_property_list rt)
+	>**> Optic.piso_convert_error prefix_simco_parse_error SimcoAsText.serializer
+	>**> Optic.to_PartialIso SimcoProps.serialize
+	>**> Optic.piso_convert_error prefix_props_parse_error
+		(PropTree.record_serializer_over_property_list rt)

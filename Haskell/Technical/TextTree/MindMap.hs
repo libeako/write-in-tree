@@ -7,7 +7,7 @@ where
 
 import Control.Category
 import Data.Tree (Tree)
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
+import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 
 import qualified Data.List as Base
@@ -103,5 +103,5 @@ layer_mm = Optic.Iso render_to_whole_mm_file parse_from_xml_element
 layer :: Optic.PartialIso' ParseError Text [Tree Text]
 layer =
 	Category2.identity
-	>**>^ Optic.piso_convert_error (const XmlParseError) layer_xml
-	>**>^ layer_mm
+	>**> Optic.piso_convert_error (const XmlParseError) layer_xml
+	>**> Optic.to_PartialIso layer_mm

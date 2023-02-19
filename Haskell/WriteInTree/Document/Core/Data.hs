@@ -3,7 +3,7 @@ module WriteInTree.Document.Core.Data where
 
 
 import Data.Tree (Tree, Forest)
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
+import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 import Prelude (String)
 import WriteInTree.Document.Core.Serial.Position (Position, HasPosition, get_position)
@@ -99,71 +99,71 @@ internal_address_in_Link =
 internal_address_in_Inline :: Optic.AffineTraversal' Text Inline
 internal_address_in_Inline =
 	Category2.identity
-	>**>^ internal_address_in_Link
-	>**>^ Optic.prism_Maybe
-	>**>^ link_in_Inline
+	>**> Optic.to_AffineTraversal internal_address_in_Link
+	>**> Optic.to_AffineTraversal Optic.prism_Maybe
+	>**> Optic.to_AffineTraversal link_in_Inline
 
 link_in_Node :: Optic.Lens' (Maybe Link) Node
-link_in_Node = Category2.identity >**>^ link_in_Inline  >**>^ inNode_content
+link_in_Node = Category2.identity >**> link_in_Inline  >**> inNode_content
 
 text_in_Node :: forall . Optic.Lens' Text Node
 text_in_Node =
 	Category2.identity
-	>**>^ visual_in_Inline
-	>**>^ inNode_content
+	>**> visual_in_Inline
+	>**> inNode_content
 
 internal_address_in_link_in_node :: Optic.Traversal' Text Node
 internal_address_in_link_in_node =
 	Category2.identity
-	>**>^ internal_address_in_Inline
-	>**>^ inNode_content
+	>**> Optic.to_Traversal internal_address_in_Inline
+	>**> Optic.to_Traversal inNode_content
 
 node_in_tree :: Optic.Traversal' Node StructureAsTree
 node_in_tree = Optic.from_Traversable
 
 inlines_in_Structure :: Optic.Traversal' Inline StructureAsTree
-inlines_in_Structure = Category2.identity >**>^ inNode_content >**>^ node_in_tree
+inlines_in_Structure = Category2.identity >**> Optic.to_Traversal inNode_content >**> node_in_tree
 
 internal_address_in_link_in_tree ::	Optic.Traversal' Text StructureAsTree
-internal_address_in_link_in_tree = internal_address_in_link_in_node >**>^ node_in_tree
+internal_address_in_link_in_tree = internal_address_in_link_in_node >**> node_in_tree
 
 texts_in_Tree :: forall ia . Optic.Traversal' Text StructureAsTree
-texts_in_Tree = Category2.identity >**>^ text_in_Node >**>^ node_in_tree
+texts_in_Tree = Category2.identity >**> Optic.to_Traversal text_in_Node >**> node_in_tree
 
 node_in_page_content :: Optic.Traversal' Node PageContent
 node_in_page_content =
 	Category2.identity
-	>**>^ node_in_tree
-	>**>^ Optic.from_Traversable
-	>**>^ Optic.lens_2
+	>**> node_in_tree
+	>**> Optic.from_Traversable
+	>**> Optic.to_Traversal Optic.lens_2
 
 node_in_page :: Optic.Traversal' Node Page
 node_in_page =
 	Category2.identity
-	>**>^ node_in_page_content
-	>**>^ Optic.lens_2
+	>**> node_in_page_content
+	>**> Optic.to_Traversal Optic.lens_2
 
 node_in_site :: Optic.Traversal' Node Site
 node_in_site =
 	Category2.identity
-	>**>^ node_in_page
-	>**>^ Optic.from_Traversable
+	>**> node_in_page
+	>**> Optic.from_Traversable
 
 text_content_in_page_content_bulk :: Optic.Traversal' Text PageContentBulk
 text_content_in_page_content_bulk =
 	Category2.identity
-	>**>^ text_in_Node
-	>**>^ node_in_tree
-	>**>^ Optic.from_Traversable
+	>**> Optic.to_Traversal text_in_Node
+	>**> Optic.to_Traversal node_in_tree
+	>**> Optic.from_Traversable
 
 internal_address_in_link_in_site :: Optic.Traversal' Text Site
 internal_address_in_link_in_site = 
 	Category2.identity
-	>**>^ internal_address_in_link_in_tree
-	>**>^ Optic.from_Traversable
-	>**>^ Optic.lens_2
-	>**>^ Optic.lens_2
-	>**>^ Optic.from_Traversable
+	>**> internal_address_in_link_in_tree
+	>**> Optic.from_Traversable
+	>**> Optic.to_Traversal Optic.lens_2
+	>**> Optic.to_Traversal Optic.lens_2
+	>**> Optic.from_Traversable
 
 
 ------------- end of optics ----------------

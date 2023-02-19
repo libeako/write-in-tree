@@ -5,7 +5,7 @@ module WriteInTree.Document.Core.Serial.All
 where
 
 import Data.Tree (Forest)
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
+import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 import WriteInTree.Document.Core.Data
 import WriteInTree.Document.Core.Serial.Position
@@ -28,8 +28,8 @@ positioning = Optic.Iso id (map (map (uncurry Positioned)))
 serialize :: Optic.PartialIso' Text Text PageContentBulk
 serialize =
 	Category2.identity
-	>**>^ Tt.text_tree
-	>**>^ positioning
-	>**>^ Link.serialize
-	>**>^ Node.serialize
-	>**>^ meta_text_escape
+	>**> Tt.text_tree
+	>**> Optic.to_PartialIso positioning
+	>**> Optic.to_PartialIso Link.serialize
+	>**> Optic.to_PartialIso Node.serialize
+	>**> Optic.to_PartialIso meta_text_escape

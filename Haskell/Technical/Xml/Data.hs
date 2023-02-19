@@ -11,7 +11,7 @@ module Technical.Xml.Data
 where
 
 import Data.Default.Class (Default (..))
-import Fana.Math.Algebra.Category.ConvertThenCompose ((>**>^))
+import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 
 import qualified Data.Foldable as Fold
@@ -73,11 +73,11 @@ lens_classes_of_Labels = Optic.lens_from_get_set label_classes (\ e c -> c { lab
 
 lens_id_of_Element :: Optic.Lens' (Maybe Text) ElementL
 lens_id_of_Element =
-	Category2.identity >**>^ lens_id_of_Labels >**>^ lens_head_else >**>^ Optic.lens_1
+	Category2.identity >**> lens_id_of_Labels >**> lens_head_else >**> Optic.lens_1
 
 lens_classes_of_Element :: Optic.Lens' [Text] ElementL
 lens_classes_of_Element =
-	Category2.identity >**>^ lens_classes_of_Labels >**>^ lens_head_else >**>^ Optic.lens_1
+	Category2.identity >**> lens_classes_of_Labels >**> lens_head_else >**> Optic.lens_1
 
 type ContentL = Content Labels
 type ElementL = Element Labels
