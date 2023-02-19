@@ -16,6 +16,9 @@ type Text = [Char]
 delimit_char :: Char
 delimit_char = ' '
 
+norm_char :: Char
+norm_char = '*'
+
 meta_char :: Char
 meta_char = '#'
 
@@ -37,19 +40,20 @@ layer_escapee =
 		in Optic.Iso r p
 
 
-data Structure = Normal Text | Meta Text
+data Structure = Norm Text | Meta Text
 
 render :: Structure -> Text
 render =
 	\case
-		Normal t -> t
+		Norm t -> norm_char : delimit_char : t
 		Meta t -> meta_char : delimit_char : t
 
 parse :: Text -> Either Text Structure
 parse =
 	\case
 		m : d : t | m == meta_char && d == delimit_char -> Right (Meta t)
-		t -> Right (Normal t)
+		n : d : t | n == norm_char && d == delimit_char-> Right (Norm t)
+		_ -> Left "node must start with a character that signals the type of the node"
 
 serialize :: Optic.PartialIso' Text Text Structure
 serialize = Optic.PartialIso render parse

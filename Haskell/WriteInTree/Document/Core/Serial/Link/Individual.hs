@@ -66,7 +66,7 @@ parse_link_from_words =
 parse_branch_on_link :: Tree InNode.Structure -> Maybe (Either Text Link)
 parse_branch_on_link (Node trunk _) =
 	case trunk of
-		InNode.Normal _ -> Nothing
+		InNode.Norm _ -> Nothing
 		InNode.Meta t -> 
 			map (List.dropWhile (== ' ') >>> List.words >>> parse_link_from_words)
 				(List.stripPrefix meta_node_name t)

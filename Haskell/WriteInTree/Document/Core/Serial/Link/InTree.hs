@@ -22,7 +22,7 @@ render :: Tree (Positioned Inline) -> Tree InNode.Structure
 render (Node trunk children) =
 	let
 		trunk_rendered :: InNode.Structure
-		trunk_rendered = InNode.Normal (Data.ilVisual (positionedValue trunk))
+		trunk_rendered = InNode.Norm (Data.ilVisual (positionedValue trunk))
 		children_rendered :: [Tree InNode.Structure]
 		children_rendered = map render children
 		in
@@ -57,7 +57,7 @@ parse (Node trunk children) =
 		check_it_is_normal :: InNode.Structure -> Either Text Text
 		check_it_is_normal =
 			\ case
-				InNode.Normal t -> Right t
+				InNode.Norm t -> Right t
 				InNode.Meta _ -> Left "root node must be regular text"
 		in traverse check_it_is_normal trunk >>= parse' children
 
