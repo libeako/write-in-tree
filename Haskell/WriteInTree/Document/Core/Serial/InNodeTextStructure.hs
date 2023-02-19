@@ -1,7 +1,7 @@
 module WriteInTree.Document.Core.Serial.InNodeTextStructure
 (
-	render_exceptional, 
 	layer_escapee,
+	Structure(..), render, parse, serialize,
 )
 where
 
@@ -13,11 +13,11 @@ import qualified Fana.Optic.Concrete.Prelude as Optic
 
 type Text = [Char]
 
+delimit_char :: Char
+delimit_char = ' '
+
 meta_char :: Char
 meta_char = '#'
-
-render_exceptional :: Text -> Text
-render_exceptional t = (meta_char : ' ' : t)
 
 layer_escapee :: Optic.Iso' Text Text
 layer_escapee =
@@ -35,3 +35,21 @@ layer_escapee =
 					-- delete a meta character from the front
 				x -> x
 		in Optic.Iso r p
+
+
+data Structure = Normal Text | Meta Text
+
+render :: Structure -> Text
+render =
+	\case
+		Normal t -> t
+		Meta t -> meta_char : delimit_char : t
+
+parse :: Text -> Either Text Structure
+parse =
+	\case
+		m : d : t | m == meta_char && d == delimit_char -> Right (Meta t)
+		t -> Right (Normal t)
+
+serialize :: Optic.PartialIso' Text Text Structure
+serialize = Optic.PartialIso render parse
