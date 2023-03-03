@@ -31,16 +31,6 @@ data Inline =
 
 type Paragraph = Inline
 
-data IsPageTrunkStatus =
-	IsPageTrunk | IsNotPageTrunk
-	deriving (Eq)
-
-status_from_is_page_trunk :: Bool -> IsPageTrunkStatus
-status_from_is_page_trunk =
-	\case
-		True -> IsPageTrunk
-		False -> IsNotPageTrunk
-
 data Node =
 	Node
 	{ nodePosition :: Position
