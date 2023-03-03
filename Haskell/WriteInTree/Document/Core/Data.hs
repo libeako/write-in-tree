@@ -27,7 +27,7 @@ data Inline e =
 	{ ilVisual :: e
 	, ilLink :: Maybe Link
 	}
-	deriving (Eq)
+	deriving (Eq, Functor, Foldable, Traversable)
 type InlineT = Inline Text
 
 type Paragraph = InlineT

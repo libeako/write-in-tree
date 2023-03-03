@@ -6,7 +6,7 @@ where
 
 import Data.Tree (Tree (..), Forest)
 import Fana.Prelude
-import WriteInTree.Document.Core.Data (InlineT, Link)
+import WriteInTree.Document.Core.Data (Inline, Link)
 import WriteInTree.Document.Core.Serial.Position (Positioned (..))
 
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -18,11 +18,11 @@ import qualified WriteInTree.Document.Core.Serial.Link.Individual as Individual
 
 type Text = Base.String
 
-render :: Tree (Positioned InlineT) -> Tree InNode.Structure
+render :: Tree (Positioned (Inline InNode.Structure)) -> Tree InNode.Structure
 render (Node trunk children) =
 	let
 		trunk_rendered :: InNode.Structure
-		trunk_rendered = InNode.Norm (Data.ilVisual (positionedValue trunk))
+		trunk_rendered = Data.ilVisual (positionedValue trunk)
 		children_rendered :: [Tree InNode.Structure]
 		children_rendered = map render children
 		in
@@ -43,26 +43,19 @@ parse_children children =
 				(map (\ l -> (Just l, rest)))
 				(Individual.parse first)
 
-parse' :: Forest (Positioned InNode.Structure) -> Positioned Text -> Either Text (Tree (Positioned InlineT))
-parse' children trunk =
+parse' :: Tree (Positioned InNode.Structure) -> Either Text (Tree (Positioned (Inline InNode.Structure)))
+parse' (Node trunk children) =
 	let
-		from_situation :: ParseChildrenSituation -> Either Text (Tree (Positioned InlineT))
+		from_situation :: ParseChildrenSituation -> Either Text (Tree (Positioned (Inline InNode.Structure)))
 		from_situation (l, rest_of_children) =
 			map (Node (map (flip Data.Inline l) trunk)) (traverse parse rest_of_children)
 		in parse_children children >>= from_situation
 
-parse :: Tree (Positioned InNode.Structure) -> Either Text (Tree (Positioned InlineT))
-parse (Node trunk children) =
-	let
-		check_it_is_normal :: InNode.Structure -> Either Text Text
-		check_it_is_normal =
-			\ case
-				InNode.Norm t -> Right t
-				InNode.Meta _ -> Left "root node must be regular text"
-		in traverse check_it_is_normal trunk >>= parse' children
+parse :: Tree (Positioned InNode.Structure) -> Either Text (Tree (Positioned (Inline InNode.Structure)))
+parse = parse'
 
 serialize :: 
 	Optic.PartialIso Text
 		(Forest InNode.Structure) (Forest (Positioned InNode.Structure))
-		(Forest (Positioned InlineT)) (Forest (Positioned InlineT))
+		(Forest (Positioned (Inline InNode.Structure))) (Forest (Positioned (Inline InNode.Structure)))
 serialize = Optic.lift_piso (Optic.PartialIso render parse)
