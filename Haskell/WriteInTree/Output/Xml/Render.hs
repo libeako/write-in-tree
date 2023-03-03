@@ -85,7 +85,7 @@ render_link =
 		get_address link = link_to_address link 
 		in maybe id (get_address >>> wrap_with_link_to)
 
-render_inline :: Inline -> Xml.ContentL
+render_inline :: InlineT -> Xml.ContentL
 render_inline il = (render_link (ilLink il)) (Xml.text (ilVisual il))
 
 render_paragraph :: Paragraph -> Xml.ElementL
