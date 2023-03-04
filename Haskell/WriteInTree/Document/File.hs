@@ -52,7 +52,7 @@ member_folder_config =
 				(SepPropsSimco.serialize SepPropsPT.type_structure_folder_sep_props)
 		in
 			FolderMember.lift_by_piso serializer
-				(member_string "folder separate properties" "properties.simco")
+				(member_string "folder separate properties" "_properties.simco")
 
 member_content :: Member PageContentBulk
 member_content =
@@ -62,7 +62,7 @@ member_content =
 		in
 			FolderMember.lift_by_piso
 				serializer
-				(member_string "core page tree content" "content")
+				(member_string "core page tree content" "_content")
 
 file_char_iso :: Optic.Iso' Char Char
 file_char_iso =
