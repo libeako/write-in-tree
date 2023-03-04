@@ -18,15 +18,15 @@ import qualified WriteInTree.Document.Core.Serial.Link.Individual as Individual
 
 type Text = Base.String
 
-render :: Tree (Positioned (Inline InNode.Structure)) -> Tree InNode.Structure
+render :: Tree (Inline InNode.Structure) -> Tree InNode.Structure
 render (Node trunk children) =
 	let
 		trunk_rendered :: InNode.Structure
-		trunk_rendered = Data.ilVisual (positionedValue trunk)
+		trunk_rendered = Data.ilVisual trunk
 		children_rendered :: [Tree InNode.Structure]
 		children_rendered = map render children
 		in
-			case (positionedValue >>> Data.ilLink) trunk of
+			case Data.ilLink trunk of
 				Nothing -> Node trunk_rendered children_rendered
 				Just link -> Node trunk_rendered (Individual.render link : children_rendered)
 
@@ -57,5 +57,5 @@ parse = parse'
 serialize :: 
 	Optic.PartialIso Text
 		(Forest InNode.Structure) (Forest (Positioned InNode.Structure))
-		(Forest (Positioned (Inline InNode.Structure))) (Forest (Positioned (Inline InNode.Structure)))
+		(Forest (Inline InNode.Structure)) (Forest (Positioned (Inline InNode.Structure)))
 serialize = Optic.lift_piso (Optic.PartialIso render parse)

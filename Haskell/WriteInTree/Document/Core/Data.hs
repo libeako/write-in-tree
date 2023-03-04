@@ -30,12 +30,13 @@ data Inline e =
 	deriving (Eq, Functor, Foldable, Traversable)
 type InlineT = Inline Text
 
-type Paragraph = InlineT
+type Paragraph e = [Inline e]
+type ParagraphT = Paragraph Text
 
 data Node =
 	Node
 	{ nodePosition :: Position
-	, nodeContent :: Paragraph
+	, nodeContent :: ParagraphT
 	}
 	deriving (Eq)
 
@@ -64,7 +65,7 @@ title_of_page = snd >>> fst
 inNode_position :: Optic.Lens' Position Node
 inNode_position = Optic.lens_from_get_set nodePosition (\ p w -> w { nodePosition = p })
 
-inNode_content :: Optic.Lens' Paragraph Node
+inNode_content :: Optic.Lens' ParagraphT Node
 inNode_content = Optic.lens_from_get_set nodeContent (\ p w -> w { nodeContent = p })
 
 ofLink_internals :: Optic.Iso' (Either Text String) Link
@@ -94,26 +95,36 @@ internal_address_in_Inline =
 	>**> Optic.to_AffineTraversal Optic.prism_Maybe
 	>**> Optic.to_AffineTraversal link_in_Inline
 
-link_in_Node :: Optic.Lens' (Maybe Link) Node
-link_in_Node = Category2.identity >**> link_in_Inline  >**> inNode_content
+link_in_Node :: Optic.Traversal' (Maybe Link) Node
+link_in_Node = 
+	Category2.identity
+	>**> Optic.to_Traversal link_in_Inline
+	>**> Optic.from_Traversable
+	>**> Optic.to_Traversal inNode_content
 
-text_in_Node :: forall . Optic.Lens' Text Node
+text_in_Node :: forall . Optic.Traversal' Text Node
 text_in_Node =
 	Category2.identity
-	>**> visual_in_Inline
-	>**> inNode_content
+	>**> Optic.to_Traversal visual_in_Inline
+	>**> Optic.from_Traversable
+	>**> Optic.to_Traversal inNode_content
 
 internal_address_in_link_in_node :: Optic.Traversal' Text Node
 internal_address_in_link_in_node =
 	Category2.identity
 	>**> Optic.to_Traversal internal_address_in_Inline
+	>**> Optic.from_Traversable
 	>**> Optic.to_Traversal inNode_content
 
 node_in_tree :: Optic.Traversal' Node StructureAsTree
 node_in_tree = Optic.from_Traversable
 
 inlines_in_Structure :: Optic.Traversal' InlineT StructureAsTree
-inlines_in_Structure = Category2.identity >**> Optic.to_Traversal inNode_content >**> node_in_tree
+inlines_in_Structure = 
+	Category2.identity
+	>**> Optic.from_Traversable
+	>**> Optic.to_Traversal inNode_content
+	>**> node_in_tree
 
 internal_address_in_link_in_tree ::	Optic.Traversal' Text StructureAsTree
 internal_address_in_link_in_tree = internal_address_in_link_in_node >**> node_in_tree

@@ -18,6 +18,7 @@ import qualified WriteInTree.Document.Core.Serial.InNodeTextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Node as Node
 import qualified WriteInTree.Document.Core.Serial.InNodeTextStructure as InNode
+import qualified WriteInTree.Document.Core.Serial.Paragraph as Paragraph
 
 
 meta_text_escape :: Optic.Iso' PageContentBulk PageContentBulk
@@ -33,11 +34,16 @@ node ::
 		(Forest InNode.Structure) (Forest (Positioned InNode.Structure))
 node = Optic.PartialIso ((map >>> map) InNode.render) ((traverse >>> traverse >>> traverse) InNode.parse)
 
-loose_meta' :: Optic.PartialIso' Text (Positioned (Inline InNode.Structure)) (Positioned InlineT)
+loose_meta' :: 
+	Optic.PartialIso Text
+		(Paragraph InNode.Structure)
+		(Positioned (Paragraph InNode.Structure))
+		(Positioned ParagraphT)
+		(Positioned ParagraphT)
 loose_meta' =
 	let
-		render :: InlineT -> Inline InNode.Structure
-		render = map InNode.Norm
+		render :: ParagraphT -> Paragraph InNode.Structure
+		render = (map >>> map) InNode.Norm
 		parse'' :: InNode.Structure -> Either Text Text
 		parse'' =
 			\case
@@ -45,14 +51,16 @@ loose_meta' =
 				InNode.Meta t -> Left ("could not recognize meta text \"" <> t <> "\"")
 		parse' :: Inline InNode.Structure -> Either Text InlineT
 		parse' = traverse parse''
-		parse :: Positioned (Inline InNode.Structure) -> Either Text (Positioned InlineT)
-		parse x = BiFr.first (prefix_error_message_with_position_from x) (traverse parse' x)
-		in Optic.PartialIso (map render) parse
+		parse :: Positioned (Paragraph InNode.Structure) -> Either Text (Positioned ParagraphT)
+		parse x = BiFr.first (prefix_error_message_with_position_from x) ((traverse >>> traverse) parse' x)
+		in Optic.PartialIso (positionedValue >>> render) parse
 
 loose_meta ::
-	Optic.PartialIso' Text
-		(Forest (Positioned (Inline InNode.Structure)))
-		(Forest (Positioned InlineT))
+	Optic.PartialIso Text
+		(Forest (Paragraph InNode.Structure))
+		(Forest (Positioned (Paragraph InNode.Structure)))
+		(Forest (Positioned ParagraphT))
+		(Forest (Positioned ParagraphT))
 loose_meta = (Optic.lift_piso >>> Optic.lift_piso) loose_meta'
 
 serialize :: Optic.PartialIso' Text Text PageContentBulk
@@ -62,6 +70,7 @@ serialize =
 	>**> Optic.to_PartialIso positioning
 	>**> node
 	>**> Optic.to_PartialIso Link.serialize
+	>**> Optic.to_PartialIso Paragraph.serialize
 	>**> loose_meta
 	>**> Optic.to_PartialIso Node.serialize
 	>**> Optic.to_PartialIso meta_text_escape
