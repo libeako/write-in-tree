@@ -116,7 +116,7 @@ read_recursively :: FilePath -> ExceptT String IO (Forest Page)
 read_recursively folder_path =
 	let
 		read_dir_to_page :: Folder (PageAddress, PageContentBulk) -> Page
-		read_dir_to_page (name, (address, content_bulk)) = (address, (name, content_bulk))
+		read_dir_to_page (folder_name, (address, content_bulk)) = (address, (Optic.ofIso_up file_name_iso folder_name, content_bulk))
 		in (map >>> map >>> map) read_dir_to_page (read_forest single_folder_content_reader folder_path)
 
 search_page_address_error_in_site :: Site -> Maybe String
