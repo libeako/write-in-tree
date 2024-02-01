@@ -4,8 +4,6 @@ module WriteInTree.Document.Core.Serial.Node
 )
 where
 
-import Data.Tree (Forest)
-import Fana.Prelude
 import WriteInTree.Document.Core.Data
 import WriteInTree.Document.Core.Serial.Position (Positioned (..))
 
@@ -21,7 +19,7 @@ parse_into_node (Positioned pos par) = Data.Node pos par
 
 serialize ::
 	Optic.Iso
-		(Forest (Positioned ParagraphT))
-		(Forest (Positioned ParagraphT))
-		(Forest Node) (Forest Node)
-serialize = (Optic.lift_iso >>> Optic.lift_iso) (Optic.Iso render_from_node parse_into_node)
+		(ForestA (Positioned ParagraphT))
+		(ForestA (Positioned ParagraphT))
+		(ForestA Node) (ForestA Node)
+serialize = (Optic.lift_iso) (Optic.Iso render_from_node parse_into_node)

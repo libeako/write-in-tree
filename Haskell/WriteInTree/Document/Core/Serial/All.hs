@@ -4,15 +4,17 @@ module WriteInTree.Document.Core.Serial.All
 )
 where
 
-import Data.Tree (Forest)
+import Data.Tree (Tree, Forest)
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 import WriteInTree.Document.Core.Data
 import WriteInTree.Document.Core.Serial.Position
 
 import qualified Data.Bifunctor as BiFr
+import qualified Data.Tree as Tree
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
+import qualified Fana.Data.Tree.ChildrenWithInfo as ForestA
 import qualified Fana.Serial.Bidir.Instances.Text.Indent as Tt
 import qualified WriteInTree.Document.Core.Serial.InNodeTextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
@@ -21,7 +23,7 @@ import qualified WriteInTree.Document.Core.Serial.InNodeTextStructure as InNode
 import qualified WriteInTree.Document.Core.Serial.Paragraph as Paragraph
 
 
-meta_text_escape :: Optic.Iso' PageContentBulk PageContentBulk
+meta_text_escape :: Optic.Iso' StructureAsForest StructureAsForest
 meta_text_escape =
 	Optic.lift_iso_by_function (Optic.fn_up text_content_in_page_content_bulk) Mtt.layer_escapee
 
@@ -63,7 +65,26 @@ loose_meta ::
 		(Forest (Positioned ParagraphT))
 loose_meta = (Optic.lift_piso >>> Optic.lift_piso) loose_meta'
 
-serialize :: Optic.PartialIso' Text Text PageContentBulk
+{- this is temporary -}
+empty_id ::
+	Optic.Iso
+		(Forest (Positioned ParagraphT))
+		(Forest (Positioned ParagraphT))
+		(ForestA (Positioned ParagraphT))
+		(ForestA (Positioned ParagraphT))
+empty_id = 
+	let
+		render_t :: TreeA (Positioned ParagraphT) -> Tree (Positioned ParagraphT)
+		render_t (ForestA.Node t c) = Tree.Node t (render_f c)
+		render_f :: ForestA (Positioned ParagraphT) -> Forest (Positioned ParagraphT)
+		render_f = ForestA.the_list >>> map render_t
+		parse_t :: Tree (Positioned ParagraphT) -> TreeA (Positioned ParagraphT)
+		parse_t (Tree.Node t c) = ForestA.Node t (parse_f c)
+		parse_f :: Forest (Positioned ParagraphT) -> ForestA (Positioned ParagraphT)
+		parse_f = map parse_t >>> ForestA.Forest Nothing
+		in Optic.Iso render_f parse_f
+
+serialize :: Optic.PartialIso' Text Text StructureAsForest
 serialize =
 	Category2.identity
 	>**> Tt.text_tree
@@ -72,5 +93,6 @@ serialize =
 	>**> Optic.to_PartialIso Link.serialize
 	>**> Optic.to_PartialIso Paragraph.serialize
 	>**> loose_meta
+	>**> Optic.to_PartialIso empty_id
 	>**> Optic.to_PartialIso Node.serialize
 	>**> Optic.to_PartialIso meta_text_escape
