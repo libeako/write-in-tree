@@ -41,19 +41,17 @@ data Node =
 	}
 	deriving (Eq)
 
-data PageAddress = 
-	PageAddress { unwrapPageAddress :: Text }
-	deriving Eq
+data Address = Address { unwrapPageAddress :: Text } deriving Eq
 
-type TreeA e = ForestA.Tree (Maybe PageAddress) e
-type ForestA e = ForestA.Forest (Maybe PageAddress) e
+type TreeA e = ForestA.Tree (Maybe Address) e
+type ForestA e = ForestA.Forest (Maybe Address) e
 
 type StructureAsTree = TreeA Node
 type StructureAsForest = ForestA Node
 type PageTitle = Text
 {-| (title, bulk content) -}
 type PageContent = (PageTitle, StructureAsForest)
-type Page = (PageAddress, PageContent)
+type Page = (Address, PageContent)
 type Site = Tree Page
 
 

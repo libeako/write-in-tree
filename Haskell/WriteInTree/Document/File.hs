@@ -105,7 +105,7 @@ write address doc =
 				write_member member_config (docSepProps doc)
 				write_page_forest pages_folder_path pages
 
-single_folder_content_reader :: Reader (PageAddress, StructureAsForest)
+single_folder_content_reader :: Reader (Address, StructureAsForest)
 single_folder_content_reader path =
 	do
 		sep_props <- FolderMember.memberReader member_folder_config path
@@ -115,7 +115,7 @@ single_folder_content_reader path =
 read_recursively :: FilePath -> ExceptT String IO (Forest Page)
 read_recursively folder_path =
 	let
-		read_dir_to_page :: Folder (PageAddress, StructureAsForest) -> Page
+		read_dir_to_page :: Folder (Address, StructureAsForest) -> Page
 		read_dir_to_page (folder_name, (address, content_bulk)) = (address, (Optic.ofIso_up file_name_iso folder_name, content_bulk))
 		in (map >>> map >>> map) read_dir_to_page (read_forest single_folder_content_reader folder_path)
 

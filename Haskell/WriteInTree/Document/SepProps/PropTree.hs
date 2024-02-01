@@ -6,7 +6,7 @@ module WriteInTree.Document.SepProps.PropTree
 where
 
 import Fana.Prelude
-import WriteInTree.Document.Core.Data (PageAddress (..))
+import WriteInTree.Document.Core.Data (Address (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..), FolderSepProps (..))
 
 import qualified Data.Bifunctor as Bifunctor
@@ -42,11 +42,11 @@ type_structure_folder_sep_props =
 		field_address :: PropTree.Field FolderSepProps
 		field_address = 
 			let
-				address_serializer :: PropTree.Serializer PageAddress
+				address_serializer :: PropTree.Serializer Address
 				address_serializer = 
 					PropTree.atomic_serializer 
 						(
-							Optic.PartialIso unwrapPageAddress (PageAddress >>> pure)
+							Optic.PartialIso unwrapPageAddress (Address >>> pure)
 						)
 				in PropTree.Field "address" Props.address_in_props address_serializer
 		in MapI.from_list 
