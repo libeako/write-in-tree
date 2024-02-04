@@ -41,6 +41,7 @@ layer_escapee =
 
 
 data Structure = Norm Text | Meta Text
+	deriving Eq
 
 render :: Structure -> Text
 render =

@@ -30,11 +30,15 @@ meta_text_escape =
 positioning :: Optic.Iso (Forest Text) (Forest (Count, Text)) (Forest Text) (Forest (Positioned Text))
 positioning = Optic.Iso id (map (map (uncurry Positioned)))
 
-node :: 
+type CollectionSerializer c l h =
 	Optic.PartialIso Text
-		(Forest Text) (Forest (Positioned Text))
-		(Forest InNode.Structure) (Forest (Positioned InNode.Structure))
+		(c l) (c (Positioned l))
+		(c h) (c (Positioned h))
+
+node :: CollectionSerializer Forest Text InNode.Structure
 node = Optic.PartialIso ((map >>> map) InNode.render) ((traverse >>> traverse >>> traverse) InNode.parse)
+
+-- ~ serialize_id :: ForestSerializer InNode.Structure (Address, InNode.Structure)
 
 loose_meta' :: 
 	Optic.PartialIso Text

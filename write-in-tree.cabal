@@ -35,7 +35,7 @@ common common
     , containers >=0.5 && <0.7
     , data-default-class >=0.1 && <0.2
     , directory <=1.4
-    , fana ==0.0.0.204
+    , fana ==0.0.0.205
     , filepath <=1.4
     , mtl >=2.2 && <2.3
     , optparse-applicative >=0.14 && <0.17
@@ -55,6 +55,7 @@ common common
       WriteInTree.Convert
       WriteInTree.Document.Core.Data
       WriteInTree.Document.Core.Serial.All
+      WriteInTree.Document.Core.Serial.Id
       WriteInTree.Document.Core.Serial.LanguageVersion
       WriteInTree.Document.Core.Serial.Link.Individual
       WriteInTree.Document.Core.Serial.Link.InTree
