@@ -55,7 +55,8 @@ common common
       WriteInTree.Convert
       WriteInTree.Document.Core.Data
       WriteInTree.Document.Core.Serial.All
-      WriteInTree.Document.Core.Serial.Id
+      WriteInTree.Document.Core.Serial.Id.Node
+      WriteInTree.Document.Core.Serial.Id.Forest
       WriteInTree.Document.Core.Serial.LanguageVersion
       WriteInTree.Document.Core.Serial.Link.Individual
       WriteInTree.Document.Core.Serial.Link.InTree
