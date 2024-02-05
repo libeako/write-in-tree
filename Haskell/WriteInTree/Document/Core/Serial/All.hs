@@ -63,30 +63,32 @@ loose_meta' =
 
 loose_meta ::
 	Optic.PartialIso Text
-		(Forest (Paragraph InNode.Structure))
-		(Forest (Positioned (Paragraph InNode.Structure)))
-		(Forest (Positioned ParagraphT))
-		(Forest (Positioned ParagraphT))
-loose_meta = (Optic.lift_piso >>> Optic.lift_piso) loose_meta'
+		(ForestA (Paragraph InNode.Structure))
+		(ForestA (Positioned (Paragraph InNode.Structure)))
+		(ForestA (Positioned ParagraphT))
+		(ForestA (Positioned ParagraphT))
+loose_meta = Optic.lift_piso loose_meta'
 
 {- this is temporary -}
 empty_id ::
 	Optic.Iso
-		(Forest (Positioned ParagraphT))
-		(Forest (Positioned ParagraphT))
-		(ForestA (Positioned ParagraphT))
-		(ForestA (Positioned ParagraphT))
+		(Forest (Paragraph InNode.Structure))
+		(Forest (Positioned (Paragraph InNode.Structure)))
+		(ForestA (Paragraph InNode.Structure))
+		(ForestA (Positioned (Paragraph InNode.Structure)))
 empty_id = 
 	let
-		render_t :: TreeA (Positioned ParagraphT) -> Tree (Positioned ParagraphT)
+		render_t :: TreeA (Paragraph InNode.Structure) -> Tree (Paragraph InNode.Structure)
 		render_t (ForestA.Node t c) = Tree.Node t (render_f c)
-		render_f :: ForestA (Positioned ParagraphT) -> Forest (Positioned ParagraphT)
+		render_f :: ForestA (Paragraph InNode.Structure) -> Forest (Paragraph InNode.Structure)
 		render_f = ForestA.the_list >>> map render_t
-		parse_t :: Tree (Positioned ParagraphT) -> TreeA (Positioned ParagraphT)
+		parse_t :: Tree (Positioned (Paragraph InNode.Structure)) -> TreeA (Positioned (Paragraph InNode.Structure))
 		parse_t (Tree.Node t c) = ForestA.Node t (parse_f c)
-		parse_f :: Forest (Positioned ParagraphT) -> ForestA (Positioned ParagraphT)
+		parse_f :: Forest (Positioned (Paragraph InNode.Structure)) -> ForestA (Positioned (Paragraph InNode.Structure))
 		parse_f = map parse_t >>> ForestA.Forest Nothing
-		in Optic.Iso render_f parse_f
+		in Optic.Iso 
+			render_f 
+			parse_f
 
 serialize :: Optic.PartialIso' Text Text StructureAsForest
 serialize =
@@ -96,7 +98,7 @@ serialize =
 	>**> node
 	>**> Optic.to_PartialIso Link.serialize
 	>**> Optic.to_PartialIso Paragraph.serialize
-	>**> loose_meta
 	>**> Optic.to_PartialIso empty_id
+	>**> loose_meta
 	>**> Optic.to_PartialIso Node.serialize
 	>**> Optic.to_PartialIso meta_text_escape
