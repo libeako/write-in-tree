@@ -31,7 +31,7 @@ data Inline e =
 	deriving (Eq, Functor, Foldable, Traversable)
 type InlineT = Inline Text
 
-type Paragraph e = [Inline e]
+type Paragraph e = Inline e
 type ParagraphT = Paragraph Text
 
 data Node =
@@ -99,27 +99,23 @@ link_in_Node :: Optic.Traversal' (Maybe Link) Node
 link_in_Node = 
 	Category2.identity
 	>**> Optic.to_Traversal link_in_Inline
-	>**> Optic.from_Traversable
 	>**> Optic.to_Traversal inNode_content
 
 text_in_Node :: forall . Optic.Traversal' Text Node
 text_in_Node =
 	Category2.identity
 	>**> Optic.to_Traversal visual_in_Inline
-	>**> Optic.from_Traversable
 	>**> Optic.to_Traversal inNode_content
 
 internal_address_in_link_in_node :: Optic.Traversal' Text Node
 internal_address_in_link_in_node =
 	Category2.identity
 	>**> Optic.to_Traversal internal_address_in_Inline
-	>**> Optic.from_Traversable
 	>**> Optic.to_Traversal inNode_content
 
 inlines_in_Structure :: Optic.Traversal' InlineT StructureAsTree
 inlines_in_Structure = 
 	Category2.identity
-	>**> Optic.from_Traversable
 	>**> Optic.to_Traversal inNode_content
 	>**> Optic.from_Traversable
 

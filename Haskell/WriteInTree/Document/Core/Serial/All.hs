@@ -20,7 +20,6 @@ import qualified WriteInTree.Document.Core.Serial.InNodeTextStructure as Mtt
 import qualified WriteInTree.Document.Core.Serial.Link.InTree as Link
 import qualified WriteInTree.Document.Core.Serial.Node as Node
 import qualified WriteInTree.Document.Core.Serial.InNodeTextStructure as InNode
-import qualified WriteInTree.Document.Core.Serial.Paragraph as Paragraph
 
 
 meta_text_escape :: Optic.Iso' StructureAsForest StructureAsForest
@@ -49,7 +48,7 @@ loose_meta' ::
 loose_meta' =
 	let
 		render :: ParagraphT -> Paragraph InNode.Structure
-		render = (map >>> map) InNode.Norm
+		render = map InNode.Norm
 		parse'' :: InNode.Structure -> Either Text Text
 		parse'' =
 			\case
@@ -58,7 +57,7 @@ loose_meta' =
 		parse' :: Inline InNode.Structure -> Either Text InlineT
 		parse' = traverse parse''
 		parse :: Positioned (Paragraph InNode.Structure) -> Either Text (Positioned ParagraphT)
-		parse x = BiFr.first (prefix_error_message_with_position_from x) ((traverse >>> traverse) parse' x)
+		parse x = BiFr.first (prefix_error_message_with_position_from x) (traverse parse' x)
 		in Optic.PartialIso (positionedValue >>> render) parse
 
 loose_meta ::
@@ -97,7 +96,6 @@ serialize =
 	>**> Optic.to_PartialIso positioning
 	>**> node
 	>**> Optic.to_PartialIso Link.serialize
-	>**> Optic.to_PartialIso Paragraph.serialize
 	>**> Optic.to_PartialIso empty_id
 	>**> loose_meta
 	>**> Optic.to_PartialIso Node.serialize

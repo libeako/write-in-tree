@@ -90,7 +90,7 @@ render_inline :: InlineT -> Xml.ContentL
 render_inline il = (render_link (ilLink il)) (Xml.text (ilVisual il))
 
 render_paragraph :: ParagraphT -> Xml.ElementL
-render_paragraph p = (Xml.Head "p" [] (Xml.Labels Nothing []), (map render_inline p))
+render_paragraph p = (Xml.Head "p" [] (Xml.Labels Nothing []), [render_inline p])
 
 render_section :: Site -> StructureAsTree -> Xml.ElementL
 render_section site node_tree =
