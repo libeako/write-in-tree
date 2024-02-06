@@ -80,14 +80,12 @@ empty_id =
 		render_t :: TreeA (Paragraph InNode.Structure) -> Tree (Paragraph InNode.Structure)
 		render_t (ForestA.Node t c) = Tree.Node t (render_f c)
 		render_f :: ForestA (Paragraph InNode.Structure) -> Forest (Paragraph InNode.Structure)
-		render_f = ForestA.the_list >>> map render_t
+		render_f = ForestA.trees >>> map render_t
 		parse_t :: Tree (Positioned (Paragraph InNode.Structure)) -> TreeA (Positioned (Paragraph InNode.Structure))
 		parse_t (Tree.Node t c) = ForestA.Node t (parse_f c)
 		parse_f :: Forest (Positioned (Paragraph InNode.Structure)) -> ForestA (Positioned (Paragraph InNode.Structure))
 		parse_f = map parse_t >>> ForestA.Forest Nothing
-		in Optic.Iso 
-			render_f 
-			parse_f
+		in Optic.Iso render_f parse_f
 
 serialize :: Optic.PartialIso' Text Text StructureAsForest
 serialize =
