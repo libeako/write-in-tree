@@ -28,7 +28,7 @@ render_tree_to_renderable_lines (ForestA.Node t c) = Tree.Node (Right t) (render
 render_forest_to_renderable_lines ::
 	ForestA InNode.Structure ->
 	Forest (Either Address InNode.Structure)
-render_forest_to_renderable_lines (ForestA.Forest mba c) = 
+render_forest_to_renderable_lines (mba, c) = 
 	let
 		appender :: Fn.Endo (Forest (Either Address InNode.Structure))
 		appender =
@@ -50,7 +50,8 @@ parse_forest_from_parsed_lines ::
 	ForestA (Positioned InNode.Structure)
 parse_forest_from_parsed_lines =
 	map parse_tree_from_parsed_lines >>> partitionEithers >>>
-	\ (addresses, normal_subtrees) -> ForestA.Forest (map positionedValue (List.first addresses)) normal_subtrees
+	\ (addresses, normal_subtrees) -> 
+		(map positionedValue (List.first addresses), normal_subtrees)
 
 render :: ForestA InNode.Structure -> Forest InNode.Structure
 render = render_forest_to_renderable_lines >>> (map >>> map) Node.render

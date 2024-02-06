@@ -96,7 +96,7 @@ render_section :: Site -> StructureAsTree -> Xml.ElementL
 render_section site node_tree =
 	let
 		sub_content :: [Xml.ElementL]
-		sub_content = map (render_section site) ((ForestA.forest >>> ForestA.trees) node_tree)
+		sub_content = map (render_section site) ((ForestA.forest >>> snd) node_tree)
 		from_sub_content :: [Xml.ElementL] -> Xml.ElementL
 		from_sub_content =
 			let
@@ -151,7 +151,7 @@ render_page_body_content site (path_to_trunk, page) =
 					let
 						per_child node_tree =
 							Xml.element_as_content (render_section site node_tree)
-						in map per_child (ForestA.trees node_forest)
+						in map per_child (snd node_forest)
 				in [Html.classify_into [text_class_page_main_part] core]
 		navigation_bar = render_navigation_bar path_to_trunk
 		nav_separator =

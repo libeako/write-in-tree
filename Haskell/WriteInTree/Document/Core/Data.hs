@@ -129,6 +129,8 @@ node_in_page_content :: Optic.Traversal' Node PageContent
 node_in_page_content =
 	Category2.identity
 	>**> Optic.from_Traversable
+	>**> Optic.from_Traversable
+	>**> Optic.from_Traversable
 	>**> Optic.to_Traversal Optic.lens_2
 
 node_in_page :: Optic.Traversal' Node Page
@@ -148,11 +150,15 @@ text_content_in_page_content_bulk =
 	Category2.identity
 	>**> Optic.to_Traversal text_in_Node
 	>**> Optic.from_Traversable
+	>**> Optic.from_Traversable
+	>**> Optic.from_Traversable
 
 internal_address_in_link_in_site :: Optic.Traversal' Text Site
 internal_address_in_link_in_site = 
 	Category2.identity
 	>**> internal_address_in_link_in_node
+	>**> Optic.from_Traversable
+	>**> Optic.from_Traversable
 	>**> Optic.from_Traversable
 	>**> Optic.to_Traversal Optic.lens_2
 	>**> Optic.to_Traversal Optic.lens_2

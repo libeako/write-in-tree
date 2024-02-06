@@ -7,15 +7,14 @@ module WriteInTree.Document.Core.Serial.Link.Individual
 where
 
 
-import Data.Tree (Tree (..))
 import Fana.Prelude
-import WriteInTree.Document.Core.Data (Link)
+import WriteInTree.Document.Core.Data (Link, TreeA)
 import WriteInTree.Document.Core.Serial.Position 
 	(Positioned (..), prefix_error_message_with_position_from)
 
 import qualified Data.Bifunctor as BiFr
 import qualified Data.List as List
-import qualified Data.Tree as Tree
+import qualified Fana.Data.Tree.ChildrenWithInfo as ForestA
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Bidir.Instances.Enum as Serial
 import qualified Prelude as Base
@@ -63,24 +62,24 @@ parse_link_from_words =
 				in map build (Optic.piso_interpret layer_destination_type destination_type)
 		_ -> Left children_number_error_message
 
-parse_branch_on_link :: Tree InNode.Structure -> Maybe (Either Text Link)
-parse_branch_on_link (Node trunk _) =
+parse_branch_on_link :: TreeA InNode.Structure -> Maybe (Either Text Link)
+parse_branch_on_link (ForestA.Node trunk _) =
 	case trunk of
 		InNode.Norm _ -> Nothing
 		InNode.Meta t -> 
 			map (List.dropWhile (== ' ') >>> List.words >>> parse_link_from_words)
 				(List.stripPrefix meta_node_name t)
 
-parse :: Tree (Positioned InNode.Structure) -> Maybe (Either Text Link)
+parse :: TreeA (Positioned InNode.Structure) -> Maybe (Either Text Link)
 parse tree =
-	map (BiFr.first (prefix_error_message_with_position_from (Tree.rootLabel tree)))
+	map (BiFr.first (prefix_error_message_with_position_from (ForestA.trunk tree)))
 		(parse_branch_on_link (map Pos.positionedValue tree))
 
-render :: Link -> Tree InNode.Structure
+render :: Link -> TreeA InNode.Structure
 render d =
 	let
 		(dt, addr) =
 			case d of
 				Data.LIn a -> (Internal, a)
 				Data.LEx a -> (External, a)
-		in Node (InNode.Meta (List.intercalate " " [meta_node_name, render_DestinationType dt, addr])) []
+		in ForestA.Node (InNode.Meta (List.intercalate " " [meta_node_name, render_DestinationType dt, addr])) (Nothing, [])
