@@ -4,7 +4,7 @@ module WriteInTree.Document.File
 )
 where
 
-import Control.Monad.Except (ExceptT (..), liftEither)
+import Control.Monad.Except (ExceptT (..), liftEither, throwError)
 import Data.Tree (Tree, Forest)
 import Fana.Prelude
 import Prelude (Char, String, IO, FilePath)
@@ -12,7 +12,6 @@ import Technical.FolderMember (Folder, Reader, Member (..), member_string, read_
 import System.FilePath ((</>))
 import WriteInTree.Document.Core.Data
 import WriteInTree.Document.Main (Document (..))
-import WriteInTree.Document.SepProps.Data (DocSepProps (..), FolderSepProps (FolderSepProps))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Fana.Data.Function as Fn
@@ -26,34 +25,7 @@ import qualified Fana.Serial.Print.Show as Fana
 import qualified System.Directory as Directory
 import qualified Technical.FolderMember as FolderMember
 import qualified WriteInTree.Document.Core.Serial.All as CoreSerial
-import qualified WriteInTree.Document.SepProps.Data as SepPropsData
-import qualified WriteInTree.Document.SepProps.PropTree as SepPropsPT
-import qualified WriteInTree.Document.SepProps.Simco as SepPropsSimco
 
-
-member_config :: Member DocSepProps
-member_config =
-	let
-		serializer :: Optic.PartialIso' Text Text DocSepProps
-		serializer =
-			Optic.piso_convert_error
-				(Fana.show >>> Acc.extract >>> ("error in document's separate properties file:\n" <>))
-				(SepPropsSimco.serialize SepPropsPT.type_structure_doc_sep_props)
-		in
-			FolderMember.lift_by_piso serializer
-				(member_string "document separate properties" "properties.simco")
-
-member_folder_config :: Member FolderSepProps
-member_folder_config =
-	let
-		serializer :: Optic.PartialIso' Text Text FolderSepProps
-		serializer =
-			Optic.piso_convert_error
-				(Fana.show >>> Acc.extract >>> ("error in folder's separate properties file:\n" <>))
-				(SepPropsSimco.serialize SepPropsPT.type_structure_folder_sep_props)
-		in
-			FolderMember.lift_by_piso serializer
-				(member_string "folder separate properties" "_properties.simco")
 
 member_content :: Member StructureAsForest
 member_content =
@@ -80,9 +52,7 @@ pages_folder_name = "pages"
 
 single_folder_content_writer :: FilePath -> Page -> IO ()
 single_folder_content_writer folder_path page =
-	do
-		memberWriter member_folder_config folder_path (FolderSepProps (fst page))
-		memberWriter member_content folder_path (snd (snd page))
+	memberWriter member_content folder_path (snd (snd page))
 
 write_page_forest :: FilePath -> Forest (Folder Page) -> IO ()
 write_page_forest folder_path =
@@ -91,7 +61,6 @@ write_page_forest folder_path =
 write :: FilePath -> Document -> IO ()
 write address doc =
 	let
-		sep_props = docSepProps doc
 		write_member :: Member d -> d -> IO ()
 		write_member m = memberWriter m address
 		pages_folder_path = address </> pages_folder_name
@@ -103,15 +72,17 @@ write address doc =
 			do
 				Directory.createDirectory address
 				Directory.createDirectory pages_folder_path
-				write_member member_config (docSepProps doc)
 				write_page_forest pages_folder_path pages
 
 single_folder_content_reader :: Reader (Address, StructureAsForest)
 single_folder_content_reader path =
 	do
-		sep_props <- FolderMember.memberReader member_folder_config path
 		page_content_bulk <- FolderMember.memberReader member_content path
-		pure (SepPropsData.address sep_props, page_content_bulk)
+		address <-
+			case fst page_content_bulk of
+				Nothing -> throwError (path <> ": error:\n File does not contain main identifier.")
+				Just a -> pure a
+		pure (address, page_content_bulk)
 
 read_recursively :: FilePath -> ExceptT String IO (Forest Page)
 read_recursively folder_path =
@@ -145,8 +116,6 @@ search_page_address_error_in_site site =
 read :: FilePath -> ExceptT Text IO Document
 read folder_path =
 	let
-		read_member :: Member d -> ExceptT Text IO d
-		read_member = FolderMember.read folder_path
 		process_page_forest :: Forest Page -> Either Text (Tree Page)
 		process_page_forest = 
 			\case
@@ -154,6 +123,5 @@ read folder_path =
 				_ -> Left "page folder forest must consist of a single tree"
 		in
 			do
-				sep_props <- read_member member_config
 				foldered_pages <- read_recursively (folder_path </> pages_folder_name)
-				liftEither (map (Document sep_props)(process_page_forest foldered_pages))
+				liftEither (map Document (process_page_forest foldered_pages))
