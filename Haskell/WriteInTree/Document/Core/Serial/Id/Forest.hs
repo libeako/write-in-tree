@@ -1,11 +1,11 @@
 module WriteInTree.Document.Core.Serial.Id.Forest
 (
-	serialize,
+	serialize, test,
 )
 where
 
-
 import Data.Tree (Tree, Forest)
+import Fana.Develop.Test.Define (Test)
 import Fana.Prelude
 import WriteInTree.Document.Core.Data
 import WriteInTree.Document.Core.Serial.Position
@@ -14,6 +14,7 @@ import qualified WriteInTree.Document.Core.Serial.Id.Node as Node
 import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.List as List
 import qualified Fana.Data.Tree.ChildrenWithInfo as ForestA
+import qualified Fana.Develop.Test.Define as Test
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Data.Tree as Tree
 import qualified WriteInTree.Document.Core.Serial.InNodeTextStructure as InNode
@@ -35,7 +36,7 @@ render_forest_to_renderable_lines (mba, c) =
 			case mba of
 				Nothing -> id
 				Just a -> (Tree.Node (Left a) [] :)
-		in (map render_tree_to_renderable_lines c)
+		in appender (map render_tree_to_renderable_lines c)
 
 parse_tree_from_parsed_lines ::
 	Tree (Either (Positioned Address) (Positioned InNode.Structure)) ->
@@ -63,3 +64,21 @@ serialize :: Optic.PartialIso Error
 	(Forest InNode.Structure) (Forest (Positioned InNode.Structure))
 	(ForestA InNode.Structure) (ForestA (Positioned InNode.Structure)) 
 serialize = Optic.PartialIso render parse
+
+
+
+{- ----------------- TESTS ------------------- -}
+
+test :: Test
+test = Test.single "id in forest" 
+	(
+		let
+			test_input = (Just (Address "eng"), [])
+			in
+				Optic.test_piso
+					(
+						Optic.Iso ((map >>> map) positionedValue) ((map >>> map) (Positioned 1)),
+						Optic.Iso ((map >>> map >>> map) positionedValue) ((map >>> map >>> map) (Positioned 1))
+					)
+					[] [test_input] serialize
+	)

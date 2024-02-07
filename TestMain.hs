@@ -8,7 +8,8 @@ import Fana.Prelude
 import qualified Fana.Develop.Test.Define as Test
 import qualified Fana.Develop.Test.Run as Test
 
-import qualified WriteInTree.Document.Core.Serial.Id as Id
+import qualified WriteInTree.Document.Core.Serial.Id.Node as IdN
+import qualified WriteInTree.Document.Core.Serial.Id.Forest as IdF
 
 
 fail :: Test
@@ -16,7 +17,7 @@ fail = Test.single "dummy test" False
 
 all_tests :: Test
 all_tests = Test.bunch "all" 
-	[ Id.test
+	[ IdN.test, IdF.test
 	]
 
 main :: Sys.IO ()

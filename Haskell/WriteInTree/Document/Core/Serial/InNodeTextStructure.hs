@@ -9,6 +9,7 @@ import Fana.Prelude
 import Prelude (Char)
 
 import qualified Fana.Optic.Concrete.Prelude as Optic
+import qualified Prelude as Base
 
 
 type Text = [Char]
@@ -41,7 +42,7 @@ layer_escapee =
 
 
 data Structure = Norm Text | Meta Text
-	deriving Eq
+	deriving (Eq, Base.Show)
 
 render :: Structure -> Text
 render =
