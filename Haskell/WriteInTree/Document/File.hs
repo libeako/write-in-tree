@@ -15,6 +15,7 @@ import WriteInTree.Document.Main (Document (..))
 import WriteInTree.Document.SepProps.Data (DocSepProps (..), FolderSepProps (FolderSepProps))
 
 import qualified Data.Bifunctor as Bifunctor
+import qualified Fana.Data.Function as Fn
 import qualified Fana.Data.Key.LensToMaybeElement as MapI
 import qualified Fana.Data.Key.Map.Interface as MapI
 import qualified Fana.Data.Key.Map.KeyIsString as SMap
@@ -116,7 +117,11 @@ read_recursively :: FilePath -> ExceptT String IO (Forest Page)
 read_recursively folder_path =
 	let
 		read_dir_to_page :: Folder (Address, StructureAsForest) -> Page
-		read_dir_to_page (folder_name, (address, content_bulk)) = (address, (Optic.ofIso_up file_name_iso folder_name, content_bulk))
+		read_dir_to_page (folder_name, (address, content_bulk)) = 
+			let
+				smuggle_in_address :: Fn.Endo StructureAsForest 
+				smuggle_in_address = Bifunctor.first (const (Just address))
+				in (address, (Optic.ofIso_up file_name_iso folder_name, smuggle_in_address content_bulk))
 		in (map >>> map >>> map) read_dir_to_page (read_forest single_folder_content_reader folder_path)
 
 search_page_address_error_in_site :: Site -> Maybe String
