@@ -106,7 +106,7 @@ search_page_address_error_in_site site =
 				Right page_map -> 
 					let
 						addresses :: [String]
-						addresses = Optic.to_list internal_address_in_link_in_site site
+						addresses = Optic.to_list internal_address_in_Link_in_Site site
 						reference_error_of_address :: String -> Maybe String
 						reference_error_of_address address = 
 							maybe (Just ("page with address " <> address <> " does not exist")) (const Nothing)

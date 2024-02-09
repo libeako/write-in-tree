@@ -23,7 +23,7 @@ import qualified WriteInTree.Document.Core.Serial.InNodeTextStructure as InNode
 
 meta_text_escape :: Optic.Iso' StructureAsForest StructureAsForest
 meta_text_escape =
-	Optic.lift_iso_by_function (Optic.fn_up text_content_in_page_content_bulk) Mtt.layer_escapee
+	Optic.lift_iso_by_function (Optic.fn_up text_content_in_PageContentBulk) Mtt.layer_escapee
 
 positioning :: Optic.Iso (Forest Text) (Forest (Count, Text)) (Forest Text) (Forest (Positioned Text))
 positioning = Optic.Iso id (map (map (uncurry Positioned)))

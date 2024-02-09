@@ -25,4 +25,4 @@ core_in_document :: Optic.Lens' Site Document
 core_in_document = Optic.lens_from_get_set docCore (\ c (Document _) -> Document c)
 
 node_in_document :: Optic.Traversal' Data.Node Document
-node_in_document = Category2.identity >**> node_in_site >**> Optic.to_Traversal core_in_document
+node_in_document = Category2.identity >**> node_in_Site >**> Optic.to_Traversal core_in_document
