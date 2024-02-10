@@ -3,11 +3,15 @@ module WriteInTree.Document.Core.Data where
 
 
 import Data.Tree (Tree)
+import Fana.Haskell.DescribingClass (convert_from_describing_class_4)
 import Fana.Math.Algebra.Category.OnTypePairs ((>**>))
 import Fana.Prelude
 import Prelude (String)
 import WriteInTree.Document.Core.Serial.Position (Position, HasPosition, get_position)
 
+import qualified Data.Bifunctor as Bifunctor
+import qualified Fana.Data.HeteroPair as Pair
+import qualified Fana.Data.Key.Map.KeyIsString as StringMap
 import qualified Fana.Data.Tree.ChildrenWithInfo as ForestA
 import qualified Fana.Math.Algebra.Category.OnTypePairs as Category2
 import qualified Fana.Optic.Concrete.Prelude as Optic
@@ -79,6 +83,8 @@ data Node =
 	}
 	deriving (Eq)
 
+instance HasPosition Node where
+	get_position = nodePosition
 
 position_in_Node :: Optic.Lens' Position Node
 position_in_Node = Optic.lens_from_get_set nodePosition (\ p w -> w { nodePosition = p })
@@ -154,6 +160,14 @@ node_in_Page =
 	>**> node_in_PageContent
 	>**> Optic.to_Traversal Optic.lens_2
 
+ids_in_Page :: Optic.Traversal' Address Page
+ids_in_Page = 
+	Category2.identity
+	>**> convert_from_describing_class_4 Optic.prism_Maybe
+	>**> ForestA.additionals_in_Forest
+	>**> Optic.to_Traversal Optic.lens_2
+	>**> Optic.to_Traversal Optic.lens_2
+	
 
 {- site -}
 
@@ -177,6 +191,11 @@ internal_address_in_Link_in_Site =
 	>**> Optic.to_Traversal Optic.lens_2
 	>**> Optic.from_Traversable
 
+type SiteAddressMap = StringMap.Map Base.Char Page
 
-instance HasPosition Node where
-	get_position = nodePosition
+address_map :: Site -> Either Text SiteAddressMap
+address_map =
+	let
+		ids_in_page :: Page -> [(Text, Page)]
+		ids_in_page p = map (unwrapPageAddress >>> Pair.before p) (Optic.to_list ids_in_Page p)
+		in foldMap ids_in_page >>> StringMap.from_list_of_uniques >>> Bifunctor.first fst

@@ -7,16 +7,18 @@ where
 import Data.Tree (Tree, rootLabel)
 import Fana.Prelude
 import Prelude (String, FilePath)
-import WriteInTree.Document.Core.Data
+import WriteInTree.Document.Core.Data hiding (address_map)
 
 import qualified Data.Bifunctor as BiFr
 import qualified Data.Foldable as Fold
 import qualified Data.List as List
 import qualified Data.Tree as Tree
 import qualified Fana.Data.Function as Fn
+import qualified Fana.Data.Key.LensToMaybeElement as Map
 import qualified Fana.Data.Tree.ChildrenWithInfo as ForestA
 import qualified Fana.Data.Tree.OfBase as Tree
 import qualified Fana.Optic.Concrete.Prelude as Optic
+import qualified Prelude as Base
 import qualified System.FilePath as Fp
 
 import qualified Technical.Html as Html
@@ -77,33 +79,43 @@ wrap_by_header_content =
 		Nothing -> id
 		Just header -> wrap_subcontent_by_div >>> pure >>> (header :)
 
-render_link :: Maybe Link -> Fn.Endo Xml.ContentL
-render_link =
+page_file_name_from_address :: Text -> String
+page_file_name_from_address address = Fp.addExtension address "html"
+
+link_to_address :: SiteAddressMap -> Link -> String
+link_to_address address_map = 
+	\ case
+		LIn address -> 
+			case Map.get_at address address_map of
+				Nothing -> Base.error "Software error: site address map is invalid, could not find a page"
+				Just (Address page_address, _) -> page_file_name_from_address page_address
+		LEx a -> a
+
+render_link :: SiteAddressMap -> Maybe Link -> Fn.Endo Xml.ContentL
+render_link address_map =
 	let
 		wrap_with_link_to :: String -> Fn.Endo Xml.ContentL
 		wrap_with_link_to target = pure >>> Html.with_link_to target >>> Xml.element_as_content
-		get_address :: Link -> String
-		get_address link = link_to_address link 
-		in maybe id (get_address >>> wrap_with_link_to)
+		in maybe id (link_to_address address_map >>> wrap_with_link_to)
 
-render_inline :: InlineT -> Xml.ContentL
-render_inline il = (render_link (ilLink il)) (Xml.text (ilVisual il))
+render_inline :: SiteAddressMap -> InlineT -> Xml.ContentL
+render_inline address_map il = (render_link address_map (ilLink il)) (Xml.text (ilVisual il))
 
-render_paragraph :: ParagraphT -> Xml.ElementL
-render_paragraph p = (Xml.Head "p" [] (Xml.Labels Nothing []), [render_inline p])
+render_paragraph :: SiteAddressMap -> ParagraphT -> Xml.ElementL
+render_paragraph address_map p = (Xml.Head "p" [] (Xml.Labels Nothing []), [render_inline address_map p])
 
-render_section :: Site -> StructureAsTree -> Xml.ElementL
-render_section site node_tree =
+render_section :: SiteAddressMap -> Site -> StructureAsTree -> Xml.ElementL
+render_section address_map site node_tree =
 	let
 		sub_content :: [Xml.ElementL]
-		sub_content = map (render_section site) ((ForestA.forest >>> snd) node_tree)
+		sub_content = map (render_section address_map site) ((ForestA.forest >>> snd) node_tree)
 		from_sub_content :: [Xml.ElementL] -> Xml.ElementL
 		from_sub_content =
 			let
 				trunk_node :: Node
 				trunk_node = ForestA.trunk node_tree
 				header :: Maybe Xml.ElementL
-				header = Just (render_paragraph (Data.nodeContent trunk_node))
+				header = Just (render_paragraph address_map (Data.nodeContent trunk_node))
 				in
 					wrap_by_header_content header >>>
 					wrap_by_section >>> wrap_by_classes []
@@ -139,8 +151,8 @@ render_navigation_bar path_to_site_trunk =
 				(Xml.Head "nav" [] (Xml.Labels Nothing navigation_classes)) 
 				[navigation_content_single_line]
 
-render_page_body_content :: Site -> ([Page], Page) -> [Xml.ContentL]
-render_page_body_content site (path_to_trunk, page) =
+render_page_body_content :: SiteAddressMap -> Site -> ([Page], Page) -> [Xml.ContentL]
+render_page_body_content address_map site (path_to_trunk, page) =
 	let
 		node_forest = snd (snd page)
 		page_is_trunk :: Bool
@@ -150,7 +162,7 @@ render_page_body_content site (path_to_trunk, page) =
 				core = 
 					let
 						per_child node_tree =
-							Xml.element_as_content (render_section site node_tree)
+							Xml.element_as_content (render_section address_map site node_tree)
 						in map per_child (snd node_forest)
 				in [Html.classify_into [text_class_page_main_part] core]
 		navigation_bar = render_navigation_bar path_to_trunk
@@ -162,21 +174,19 @@ render_page_body_content site (path_to_trunk, page) =
 				in Html.horizontal_line (Xml.Labels Nothing classes_names)
 		in map Xml.element_as_content (navigation_bar : nav_separator : content)
 
-render_page :: Site -> ([Page], Page) -> Xml.ElementL
-render_page site (path_to_trunk, page) = 
+render_page :: SiteAddressMap -> Site -> ([Page], Page) -> Xml.ElementL
+render_page address_map site (path_to_trunk, page) = 
 	let
 		classes :: [Text]
 		classes = html_classes_of_whether_page_is_trunk (List.null path_to_trunk)
 		in 
 			Html.page classes (Html.header (title_of_page page) "style.css")
-				(render_page_body_content site (path_to_trunk, page))
+				(render_page_body_content address_map site (path_to_trunk, page))
 
-render_page_to_text :: Site -> ([Page], Page) -> String
-render_page_to_text site (path_to_trunk, page) =
-	Html.page_text (render_page site (path_to_trunk, page))
+render_page_to_text :: SiteAddressMap -> Site -> ([Page], Page) -> String
+render_page_to_text address_map site (path_to_trunk, page) =
+	Html.page_text (render_page address_map site (path_to_trunk, page))
 
-page_file_name_from_address :: Text -> String
-page_file_name_from_address address = Fp.addExtension address "html"
 
 page_file_name :: Page -> String
 page_file_name = fst >>> unwrapPageAddress >>> page_file_name_from_address
@@ -184,31 +194,25 @@ page_file_name = fst >>> unwrapPageAddress >>> page_file_name_from_address
 page_file_path :: Page -> FilePath
 page_file_path = page_file_name
 
-link_to_address :: Link -> String
-link_to_address = 
-	\ case
-		LIn address -> page_file_name_from_address address
-		LEx a -> a
-
-compile_a_page :: Site -> FilePath -> ([Page], Page) -> T.FileCreation
-compile_a_page site output_folder_path (path_to_trunk, page) =
+compile_a_page :: SiteAddressMap -> Site -> FilePath -> ([Page], Page) -> T.FileCreation
+compile_a_page address_map site output_folder_path (path_to_trunk, page) =
 	let 
 		page_f_path = page_file_path page
 		in
 			(
 			Fp.joinPath [output_folder_path, page_f_path],
-			render_page_to_text site (path_to_trunk, page)
+			render_page_to_text address_map site (path_to_trunk, page)
 			)
 
-to_technical :: FilePath -> Site -> T.FileOps
-to_technical output_folder_path site =
+to_technical :: FilePath -> (SiteAddressMap, Site) -> T.FileOps
+to_technical output_folder_path (address_map, site) =
 	let
 		pages_with_pathes :: Tree ([Page], Page)
 		pages_with_pathes = map (BiFr.first (map rootLabel)) (Tree.with_path_to_trunk site)
 		main_page = Tree.rootLabel site
 		regular_files =
 			map
-				(compile_a_page site output_folder_path)
+				(compile_a_page address_map site output_folder_path)
 				pages_with_pathes
 		redirect_file =
 			let 

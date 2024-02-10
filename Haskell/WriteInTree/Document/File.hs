@@ -15,10 +15,7 @@ import WriteInTree.Document.Main (Document (..))
 
 import qualified Data.Bifunctor as Bifunctor
 import qualified Fana.Data.Function as Fn
-import qualified Fana.Data.Key.LensToMaybeElement as MapI
-import qualified Fana.Data.Key.Map.Interface as MapI
-import qualified Fana.Data.Key.Map.KeyIsString as SMap
-import qualified Fana.Data.List as List
+import qualified Fana.Data.HeteroPair as Pair
 import qualified Fana.Math.Algebra.Monoid.Accumulate as Acc
 import qualified Fana.Optic.Concrete.Prelude as Optic
 import qualified Fana.Serial.Print.Show as Fana
@@ -80,7 +77,7 @@ single_folder_content_reader path =
 		page_content_bulk <- FolderMember.memberReader member_content path
 		address <-
 			case fst page_content_bulk of
-				Nothing -> throwError (path <> ": error:\n File does not contain main identifier.")
+				Nothing -> throwError ("Error: File " <> path <> " does not contain main identifier.")
 				Just a -> pure a
 		pure (address, page_content_bulk)
 
@@ -95,33 +92,19 @@ read_recursively folder_path =
 				in (address, (Optic.ofIso_up file_name_iso folder_name, smuggle_in_address content_bulk))
 		in (map >>> map >>> map) read_dir_to_page (read_forest single_folder_content_reader folder_path)
 
-search_page_address_error_in_site :: Site -> Maybe String
-search_page_address_error_in_site site =
-	let
-		page_map_result :: Either (String, [PageContent]) (SMap.Map Char PageContent)
-		page_map_result = MapI.from_list_of_uniques (map (Bifunctor.first unwrapPageAddress) (toList site))
-		in
-			case page_map_result of
-				Left (repeted_address, _) -> Just ("multiple pages have the same address " <> repeted_address)
-				Right page_map -> 
-					let
-						addresses :: [String]
-						addresses = Optic.to_list internal_address_in_Link_in_Site site
-						reference_error_of_address :: String -> Maybe String
-						reference_error_of_address address = 
-							maybe (Just ("page with address " <> address <> " does not exist")) (const Nothing)
-								(flip MapI.get_at page_map address)
-						in List.first (catMaybes (map reference_error_of_address addresses))
 
-read :: FilePath -> ExceptT Text IO Document
-read folder_path =
+read :: FilePath -> ExceptT Text IO (SiteAddressMap, Document)
+read =
 	let
-		process_page_forest :: Forest Page -> Either Text (Tree Page)
-		process_page_forest = 
-			\case
-				[single] -> maybe (Right single) Left (search_page_address_error_in_site single)
+		read_page_forest :: FilePath -> ExceptT String IO (Forest Page)
+		read_page_forest = ( </> pages_folder_name) >>> read_recursively
+		singlify_forest :: Forest Page -> Either Text (Tree Page)
+		singlify_forest = 
+			\ case
+				[single] -> Right single
 				_ -> Left "page folder forest must consist of a single tree"
-		in
-			do
-				foldered_pages <- read_recursively (folder_path </> pages_folder_name)
-				liftEither (map Document (process_page_forest foldered_pages))
+		attach_address_map :: Tree Page -> Either Text (SiteAddressMap, Document)
+		attach_address_map t = map (Pair.before (Document t)) (address_map t)
+		from_page_forest :: Forest Page -> Either Text (SiteAddressMap, Document)
+		from_page_forest = singlify_forest >=> attach_address_map
+		in read_page_forest >=> (from_page_forest >>> liftEither)
